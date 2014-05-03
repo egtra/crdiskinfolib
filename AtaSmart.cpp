@@ -538,6 +538,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	IsWorkaroundHD204UI = workaroundHD204UI;
 	IsWorkaroundAdataSsd = workaroundAdataSsd;
 
+	FlagNvidia = FALSE;
+
 	CArray<DISK_POSITION, DISK_POSITION> previous;
 	
 	if(flagChangeDisk != NULL)
@@ -747,6 +749,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						}
 						SAFE_RELEASE(pCOMDev);
 
+						// NVIDIA ATA Controller
+						if (name1.Find(_T("NVIDIA")) == 0)
+						{
+							FlagNvidia = TRUE;
+						}
+
 						if(cstr.Find(_T("   - ") + name1) >= 0 || cstr.Find(_T("   + ") + name1) >= 0)
 						{
 							cstr1 = _T("- ") + name1;
@@ -813,7 +821,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						}
 
 						// Black List
-						if(! IsAdvancedDiskSearch && name1.Find(_T("VIA VT6410")) == 0
+						if(! IsAdvancedDiskSearch 
+						&& (name1.Find(_T("VIA VT6410")) == 0 || name1.Find(_T("ITE IT8212 ATA RAID")) == 0)
 						)
 						{
 							flagBlackList = TRUE;
@@ -1321,7 +1330,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						}
 
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
-						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType, pnpDeviceId))
+						if (flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType, FlagNvidia, pnpDeviceId))
 						{
 							DebugPrint(_T("int index = (int)vars.GetCount() - 1;"));
 							int index = (int)vars.GetCount() - 1;
@@ -1879,7 +1888,6 @@ safeRelease:
 		vars[i].DriveMap.Append(driveLetter);
 		vars[i].DriveMap.TrimRight();
 	}
-
 	// Drive Letter Mapping2
 
 	MeasuredGetTickCount = GetTickCount();
@@ -2178,21 +2186,13 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 					return FALSE;
 				}
 			}
-			else if (asi.ModelWmi.IsEmpty())
-			{
-				return FALSE;
-			}
 			else if (vars[i].ModelWmi.IsEmpty())
 			{
 				duplicatedId = i;
 			}
-			else if (asi.CommandType == CMD_TYPE_SCSI_MINIPORT)
+			else if (asi.ModelWmi.IsEmpty())
 			{
 				return FALSE;
-			}
-			else if (vars[i].CommandType == CMD_TYPE_SCSI_MINIPORT)
-			{
-				duplicatedId = i;
 			}
 		}
 	}
@@ -2214,7 +2214,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 						identify->SerialAtaAdditionalCapabilities,
 						identify->UltraDmaMode, asi.CurrentTransferMode, asi.MaxTransferMode,
 						asi.Interface, &asi.InterfaceType);
-	asi.DetectedTimeUnitType = GetTimeUnitType(asi);
+	asi.DetectedTimeUnitType = GetTimeUnitType(asi.Model, asi.FirmwareRev, asi.Major, asi.TransferModeType);
 
 	if(asi.DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
 	{
@@ -2393,7 +2393,10 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	//	asi.TotalDiskSize = 0;
 		asi.TotalDiskSize = asi.DiskSizeChs;
 	}
-	
+
+
+
+
 	// Error Check for External ATA Controller
 	if(asi.IsLba48Supported && (identify->TotalAddressableSectors < 268435455 && asi.DiskSizeLba28 != asi.DiskSizeLba48))
 	{
@@ -2746,8 +2749,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	{
 		asi.IsThresholdBug = TRUE;
 	}
-
-
+	
 	// DEBUG
 	// asi.IsSmartCorrect = rand() %2;
 
@@ -2771,6 +2773,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		asi.DetectedPowerOnHours -= 0x0DA753;
 		asi.MeasuredPowerOnHours -= 0x0DA753;
 	}
+
 
 	if(asi.IsIdInfoIncorrect && (! IsAdvancedDiskSearch || commandType >= CMD_TYPE_SAT))
 	{
@@ -2833,6 +2836,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if (IsSsdMicron(asi))
+	{
+		asi.SmartKeyName = _T("SmartMicron");
+		asi.DiskVendorId = SSD_VENDOR_MICRON;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(IsSsdJMicron60x(asi))
 	{
 		asi.SmartKeyName = _T("SmartJMicron60x");
@@ -2877,13 +2887,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 		asi.IsRawValues7 = TRUE;
-	}
-	else if(IsSsdMicron(asi))
-	{
-		asi.SmartKeyName = _T("SmartMicron");
-		asi.DiskVendorId = SSD_VENDOR_MICRON;
-		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
-		asi.IsSsd = TRUE;
 	}
 	else if(IsSsdOcz(asi))
 	{
@@ -3271,31 +3274,68 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					));
 			}
 			break;
+		case 0xF5:
+			// NAND Page Size = 8KBytes
+			// http://www.overclock.net/t/1145150/official-crucial-ssd-owners-club/1290
+			if (asi.DiskVendorId == SSD_VENDOR_MICRON)
+			{
+				asi.NandWrites = (INT) (
+					(UINT64)
+					((UINT64) asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64) asi.Attribute[j].RawValue[0])
+					* 8 / 1024 / 1024);
+			}
+			break;
+		case 0xF6:
+			if (asi.DiskVendorId == SSD_VENDOR_MICRON)
+			{
+				asi.HostWrites = (INT) (
+					(UINT64)
+					((UINT64) asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64) asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64) asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
+			break;
 		default:
 			break;
 		}
 	}
 }
 
-
 INT CAtaSmart::CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi)
 {
+	CString model = asi.Model;
+	CString serial = asi.SerialNumber;
 	INT unit = 0;
-	if(asi.Model.Find(_T("512")) >= 0)
+	INT capacity = 0;
+	model.Replace(L"PLEXTOR PX-", L"");
+	capacity = _wtoi(model);
+
+	// Block Size: 2MB
+	if (model.Find(L"M2") >= 0 || model.Find(L"M3") >= 0
+	|| ((model.Find(L"M5P") >= 0 || model.Find(L"M5S")) && _wtoi(serial.Mid(1, 5)) <= 2247)
+	)
 	{
-		unit = 256;
+		if (capacity > 0)
+		{
+			unit = capacity / 2;
+		}
 	}
-	else if(asi.Model.Find(_T("256")) >= 0)
+	// Block Size: 4MB
+	else
 	{
-		unit = 128;
-	}
-	else if(asi.Model.Find(_T("128")) >= 0)
-	{
-		unit = 64;
-	}
-	else if(asi.Model.Find(_T("64")) >= 0)
-	{
-		unit = 32;
+		if (capacity > 0)
+		{
+			unit = capacity;
+		}
 	}
 	
 	return unit;
@@ -3552,6 +3592,8 @@ BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
 BOOL CAtaSmart::IsSsdMicron(ATA_SMART_INFO &asi)
 {
 	BOOL flagSmartType = FALSE;
+	CString modelUpper = asi.Model;
+	modelUpper.MakeUpper();
 
 	if(asi.Attribute[ 0].Id == 0x01
 	&& asi.Attribute[ 1].Id == 0x05
@@ -3568,10 +3610,14 @@ BOOL CAtaSmart::IsSsdMicron(ATA_SMART_INFO &asi)
 	{
 		flagSmartType = TRUE;
 	}
-	
-	return asi.Model.Find(_T("P500")) == 0 || asi.Model.Find(_T("C500")) == 0 || asi.Model.Find(_T("M5-")) == 0
-		|| asi.Model.Find(_T("P400")) == 0 || asi.Model.Find(_T("C400")) == 0 || asi.Model.Find(_T("M4-")) == 0
-		|| asi.Model.Find(_T("P300")) == 0 || asi.Model.Find(_T("C300")) == 0 || asi.Model.Find(_T("M3-")) == 0
+
+	return modelUpper.Find(_T("P500")) == 0 || modelUpper.Find(_T("C500")) == 0
+		|| modelUpper.Find(_T("M5-")) == 0 || modelUpper.Find(_T("M500")) == 0
+		|| modelUpper.Find(_T("P400")) == 0 || modelUpper.Find(_T("C400")) == 0
+		|| modelUpper.Find(_T("M4-")) == 0 || modelUpper.Find(_T("M400")) == 0
+		|| modelUpper.Find(_T("P300")) == 0 || modelUpper.Find(_T("C300")) == 0
+		|| modelUpper.Find(_T("M3-")) == 0 || modelUpper.Find(_T("M300")) == 0
+		|| modelUpper.Find(_T("CRUCIAL")) == 0 || modelUpper.Find(_T("MICRON")) == 0
 		|| flagSmartType;
 }
 
@@ -3620,7 +3666,7 @@ BOOL CAtaSmart::IsSsdPlextor(ATA_SMART_INFO &asi)
 	}
 
 	// Added CFD's SSD
-	return 	asi.Model.Find(_T("CSSD-S6T128NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0
+	return 	asi.Model.Find(_T("PLEXTOR")) == 0 || asi.Model.Find(_T("CSSD-S6T128NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0
 		|| flagSmartType;
 }
 
@@ -3741,7 +3787,7 @@ VOID CAtaSmart::WakeUp(INT physicalDriveId)
 }
 
 BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, 
-	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType,  CString pnpDeviceId
+	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType, BOOL flagNvidia, CString pnpDeviceId
 	)
 {
 	DebugPrint(_T("GetDiskInfo"));
@@ -3813,7 +3859,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 						debug.Format(_T("DoIdentifyDeviceScsi(%d, %d) - 4"), scsiPort, scsiTargetId);
 						DebugPrint(debug);
 
-						if(scsiPort >= 0 && scsiTargetId >= 0 && DoIdentifyDeviceScsi(scsiPort, scsiTargetId, &identify))
+						if ((FlagNvidia || IsAdvancedDiskSearch) && scsiPort >= 0 && scsiTargetId >= 0 && DoIdentifyDeviceScsi(scsiPort, scsiTargetId, &identify))
 						{
 							debug.Format(_T("AddDisk(%d, %d, %d) - 5"), physicalDriveId, scsiPort, scsiTargetId);
 							DebugPrint(debug);
@@ -5882,10 +5928,10 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 					rawValue = asi->Attribute[j].WorstValue * 256 + asi->Attribute[j].CurrentValue;
 				}
 				// Intel SSD 520 Series and etc...
-				else if(
+				else if (
 					(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
 				||  (asi->DetectedTimeUnitType == POWER_ON_HOURS && rawValue >= 0x0DA000)
-				||  (asi->Model.Find(_T("Intel")) == 0 && rawValue >= 0x0DA000)
+				|| (asi->Model.Find(_T("Intel")) == 0 && rawValue >= 0x0DA000)
 				)
 				{
 					asi->MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
@@ -6273,6 +6319,35 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						));
 				}
 				break;
+			case 0xF5:
+				// NAND Page Size = 8KBytes
+				// http://www.overclock.net/t/1145150/official-crucial-ssd-owners-club/1290
+				if (asi->DiskVendorId == SSD_VENDOR_MICRON)
+				{
+					asi->NandWrites = (INT) ((UINT64)
+						( (UINT64) asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64) asi->Attribute[j].RawValue[0])
+						* 8 / 1024 / 1024);
+				}
+				break;
+			case 0xF6:
+				if (asi->DiskVendorId == SSD_VENDOR_MICRON)
+				{
+					asi->HostWrites = (INT) (
+						(UINT64)
+						((UINT64) asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64) asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64) asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
+				break;
 			default:
 				break;
 			}
@@ -6637,13 +6712,13 @@ DWORD CAtaSmart::GetTransferMode(WORD w63, WORD w76, WORD w77, WORD w88, CString
 	return tm;
 }
 
-DWORD CAtaSmart::GetTimeUnitType(ATA_SMART_INFO &asi)
+DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode)
 {
-	asi.Model.MakeUpper();
+	model.MakeUpper();
 
-	if (asi.Model.Find(_T("FUJITSU")) == 0)
+	if(model.Find(_T("FUJITSU")) == 0)
 	{
-		if (asi.Major >= 8)
+		if(major >= 8)
 		{
 			return POWER_ON_HOURS;
 		}
@@ -6652,17 +6727,17 @@ DWORD CAtaSmart::GetTimeUnitType(ATA_SMART_INFO &asi)
 			return POWER_ON_SECONDS;
 		}
 	}
-	else if (asi.Model.Find(_T("HITACHI_DK")) == 0)
+	else if(model.Find(_T("HITACHI_DK")) == 0)
 	{
 		return POWER_ON_MINUTES;
 	}
-	else if (asi.Model.Find(_T("MAXTOR")) == 0)
+	else if(model.Find(_T("MAXTOR")) == 0)
 	{
-		if (asi.TransferModeType >= TRANSFER_MODE_SATA_300
-			|| asi.Model.Find(_T("MAXTOR 6H")) == 0		// Maxtor DiamondMax 11 family
-			|| asi.Model.Find(_T("MAXTOR 7H500")) == 0	// Maxtor MaXLine Pro 500 family
-			|| asi.Model.Find(_T("MAXTOR 6L0")) == 0	// Maxtor DiamondMax Plus D740X family
-			|| asi.Model.Find(_T("MAXTOR 4K")) == 0		// Maxtor DiamondMax D540X-4K family
+		if(transferMode >= TRANSFER_MODE_SATA_300
+		|| model.Find(_T("MAXTOR 6H")) == 0		// Maxtor DiamondMax 11 family
+		|| model.Find(_T("MAXTOR 7H500")) == 0	// Maxtor MaXLine Pro 500 family
+		|| model.Find(_T("MAXTOR 6L0")) == 0	// Maxtor DiamondMax Plus D740X family
+		|| model.Find(_T("MAXTOR 4K")) == 0		// Maxtor DiamondMax D540X-4K family
 		)
 		{
 			return POWER_ON_HOURS;
@@ -6672,20 +6747,20 @@ DWORD CAtaSmart::GetTimeUnitType(ATA_SMART_INFO &asi)
 			return POWER_ON_MINUTES;
 		}
 	}
-	else if (asi.Model.Find(_T("SAMSUNG")) == 0)
+	else if(model.Find(_T("SAMSUNG")) == 0)
 	{
-		if (asi.TransferModeType >= TRANSFER_MODE_SATA_300)
+		if(transferMode >= TRANSFER_MODE_SATA_300)
 		{
 			return POWER_ON_HOURS;
 		}
-		else if (-23 >= _tstoi(asi.FirmwareRev.Right(3)) && _tstoi(asi.FirmwareRev.Right(3)) >= -39)
+		else if(-23 >= _tstoi(firmware.Right(3)) && _tstoi(firmware.Right(3)) >= -39)
 		{
 			return POWER_ON_HALF_MINUTES;
 		}
-		else if (asi.Model.Find(_T("SAMSUNG SV")) == 0
-			|| asi.Model.Find(_T("SAMSUNG SP")) == 0
-			|| asi.Model.Find(_T("SAMSUNG HM")) == 0
-			|| asi.Model.Find(_T("SAMSUNG MP")) == 0
+		else if(model.Find(_T("SAMSUNG SV")) == 0
+		||		model.Find(_T("SAMSUNG SP")) == 0
+		||		model.Find(_T("SAMSUNG HM")) == 0
+		||		model.Find(_T("SAMSUNG MP")) == 0
 		)
 		{
 			return POWER_ON_HALF_MINUTES;
@@ -6699,19 +6774,18 @@ DWORD CAtaSmart::GetTimeUnitType(ATA_SMART_INFO &asi)
 	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=504;id=diskinfo#504
 	// http://sourceforge.jp/ticket/browse.php?group_id=4394&tid=27443
 	else if(
-		((asi.Model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || asi.Model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && (asi.FirmwareRev.Find(_T("VM21")) == 0 || asi.FirmwareRev.Find(_T("VN21")) == 0))
-		|| ((asi.Model.Find(_T("PX-128M2P")) != -1 || asi.Model.Find(_T("PX-256M2P")) != -1) && _tstof(asi.FirmwareRev) < 1.059)
-		|| (asi.Model.Find(_T("Corsair Performance Pro")) == 0 && _tstof(asi.FirmwareRev) < 1.059)
+	   ((model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && (firmware.Find(_T("VM21")) == 0 || firmware.Find(_T("VN21")) == 0))
+	|| ((model.Find(_T("PX-128M2P")) != -1 || model.Find(_T("PX-256M2P")) != -1) && _tstof(firmware) < 1.059)
+	|| (model.Find(_T("Corsair Performance Pro")) == 0 && _tstof(firmware) < 1.059)
 	)
 	{
 		return POWER_ON_10_MINUTES;
 	}
 	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1174;id=diskinfo#1174
 	else if(
-//		(asi.Model.Find(_T("INTEL SSDSC2CW")) == 0 && asi.Model.Find(_T("A3")) > 0) // Intel SSD 520 Series
-//	||
-	(asi.Model.Find(_T("INTEL SSDSC2BW")) == 0 && asi.Model.Find(_T("A3")) > 0) // Intel SSD 520 Series
-	||	(asi.Model.Find(_T("INTEL SSDSC2CT")) == 0 && asi.Model.Find(_T("A3")) > 0) // Intel SSD 330 Series
+		   (model.Find(_T("INTEL SSDSC2CW")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 520 Series
+		|| (model.Find(_T("INTEL SSDSC2BW")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 520 Series
+		|| (model.Find(_T("INTEL SSDSC2CT")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 330 Series
 		)
 	{
 		return POWER_ON_MILLI_SECONDS;

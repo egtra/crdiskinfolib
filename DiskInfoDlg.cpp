@@ -102,6 +102,10 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_AlertMailPath = ((CDiskInfoApp*)AfxGetApp())->m_AlertMailPath;
 	m_OpusDecPath = ((CDiskInfoApp*)AfxGetApp())->m_OpusDecPath;
 
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_ShizukuVoicePath = ((CDiskInfoApp*) AfxGetApp())->m_ShizukuVoicePath;
+#endif
+
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
 
 	m_FlagStartupExit = flagStartupExit;
@@ -242,6 +246,12 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 		m_RawValues = 0;
 	}
 
+	m_FontType = GetPrivateProfileInt(_T("Setting"), _T("FontType"), FT_GDI_PLUS, m_Ini);
+	if (m_FontType < FT_AUTO || FT_GDI_PLUS < m_FontType)
+	{
+		m_FontType = FT_AUTO;
+	}
+
 	m_ZoomType = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
 
 	// Setting
@@ -295,6 +305,8 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	{
 		m_LayeredListCtrl = FALSE;
 	}
+
+	m_hShizukuVoice = LoadLibrary(m_ShizukuVoicePath);
 #endif
 }
 
@@ -307,6 +319,13 @@ CDiskInfoDlg::~CDiskInfoDlg()
 
 	AlertSound(-1, AS_DEINIT);
 	DeleteShareInfo();
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	if (m_hShizukuVoice)
+	{
+		FreeLibrary(m_hShizukuVoice);
+	}
+#endif
 }
 
 void CDiskInfoDlg::OnCancel()
@@ -1157,6 +1176,9 @@ void CDiskInfoDlg::UpdateDialogSize()
 	m_CtrlLabelDiskStatus.InitControl(128 + OFFSET_X, 260, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelTemperature.InitControl(436 + OFFSET_X, 260, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 
+	m_CtrlLabelDiskStatus.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelTemperature.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+
 	m_CtrlDiskStatus.InitControl       (256 + OFFSET_X, 256, 180, 28, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
 	m_CtrlDiskStatus.SetAlpha(IMAGE_ALPHA);
 
@@ -1172,7 +1194,11 @@ void CDiskInfoDlg::UpdateDialogSize()
 	m_CtrlLabelDiskStatus.InitControl  (8 + OFFSET_X,  88, 100, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelTemperature.InitControl (8 + OFFSET_X, 184, 100, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 
+	m_CtrlLabelDiskStatus.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelTemperature.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+
 	m_CtrlDiskStatus.InitControl       (8 + OFFSET_X, 112, 100, 60, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+	m_CtrlDiskStatus.SetMargin(4, 0, 4, 0, m_ZoomRatio);
 #endif
 	m_CtrlDiskStatus.SetHandCursor(TRUE);
 
@@ -1201,6 +1227,14 @@ void CDiskInfoDlg::UpdateDialogSize()
 	m_CtrlLabelAtaAtapi.InitControl(128 + OFFSET_X, 208, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelFeature.InitControl(128 + OFFSET_X, 232, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 
+	m_CtrlLabelFirmware.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelSerialNumber.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelInterface.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelTransferMode.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelDriveMap.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelAtaAtapi.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelFeature.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+
 	m_CtrlFirmware.InitControl    (256 + OFFSET_X,  88, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlSerialNumber.InitControl(256 + OFFSET_X, 112, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlInterface.InitControl   (256 + OFFSET_X, 136, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
@@ -1209,17 +1243,37 @@ void CDiskInfoDlg::UpdateDialogSize()
 	m_CtrlAtaAtapi.InitControl    (256 + OFFSET_X, 208, 408, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlFeature.InitControl     (256 + OFFSET_X, 232, 408, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 
+	m_CtrlFirmware.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlSerialNumber.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlInterface.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlTransferMode.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlDriveMap.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlAtaAtapi.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+	m_CtrlFeature.SetMargin(0, 2, 0, 0, m_ZoomRatio);
+
 	m_CtrlLabelBufferSize.InitControl(436 + OFFSET_X, 88, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelNvCacheSize.InitControl(436 + OFFSET_X, 112, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelRotationRate.InitControl(436 + OFFSET_X, 136, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelPowerOnCount.InitControl(436 + OFFSET_X, 160, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlLabelPowerOnHours.InitControl(436 + OFFSET_X, 184, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 
+	m_CtrlLabelBufferSize.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelNvCacheSize.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelRotationRate.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelPowerOnCount.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+	m_CtrlLabelPowerOnHours.SetMargin(0, 0, 0, 1, m_ZoomRatio);
+
 	m_CtrlBufferSize.InitControl  (564 + OFFSET_X,  88, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlNvCacheSize.InitControl (564 + OFFSET_X, 112, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlRotationRate.InitControl(564 + OFFSET_X, 136, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlPowerOnCount.InitControl(564 + OFFSET_X, 160, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
 	m_CtrlPowerOnHours.InitControl(564 + OFFSET_X, 184, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_CtrlBufferSize.SetMargin(0, 0, 0, 2, m_ZoomRatio);
+	m_CtrlNvCacheSize.SetMargin(0, 0, 0, 2, m_ZoomRatio);
+	m_CtrlRotationRate.SetMargin(0, 0, 0, 2, m_ZoomRatio);
+	m_CtrlPowerOnCount.SetMargin(0, 0, 0, 2, m_ZoomRatio);
+	m_CtrlPowerOnHours.SetMargin(0, 0, 0, 2, m_ZoomRatio);
 
 	m_IsDrawFrame = IsDrawFrame();
 
@@ -1688,37 +1742,39 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 
 		PlaySound(NULL, NULL, SND_NODEFAULT);
 
+		HRSRC hrs;
 		// Choose OPUS resource
 		CString resource;
+		HMODULE hModule = NULL;
+
 #ifdef SUISHO_SHIZUKU_SUPPORT
 		// For Japanese
 		if (m_CurrentLang.Find(_T("Japanese")) == 0 || GetUserDefaultLCID() == 0x0411)
 		{
-
-			resource.Format(_T("IDR_SOUND_%03d_IY"), soundId);
+			hModule = m_hShizukuVoice;
+			resource.Format(_T("CDI_VOICE_%03d"), soundId);
 		}
 		else
 		{
-			resource = _T("IDR_SOUND_001_SK");
+			resource = _T("CDI_SOUND_001");
 		}
 #else
-		resource = _T("IDR_SOUND_001_SK");
+		resource = _T("CDI_SOUND_001");
 #endif
+		hrs = FindResource(hModule, resource, _T("OPUS"));
 		// Resource to TempFile
-
-		HRSRC hrs = FindResource(NULL, resource, _T("OPUS"));
 		if (hrs == NULL)
 		{
 			return FALSE;
 		}
-		HGLOBAL hOpus = LoadResource(NULL, hrs);
+		HGLOBAL hOpus = LoadResource(hModule, hrs);
 		LPBYTE lpOpus = (LPBYTE)LockResource(hOpus);
 		DWORD dwWrite = 0;
 
 		HANDLE hFile = CreateFile(tempFilePathOpus, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			if (WriteFile(hFile, lpOpus, SizeofResource(NULL, hrs), &dwWrite, NULL) == 0)
+			if (WriteFile(hFile, lpOpus, SizeofResource(hModule, hrs), &dwWrite, NULL) == 0)
 			{
 				CloseHandle(hFile);
 				return FALSE;
@@ -2105,56 +2161,56 @@ void CDiskInfoDlg::SetControlFont()
 
 	for(int i = 0; i < 8; i++)
 	{
-		m_ButtonDisk[i].SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+		m_ButtonDisk[i].SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 	}
 
 	if (m_IsHighContrast)
 	{
-		m_CtrlModel.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor);
+		m_CtrlModel.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 	}
 	else
 	{
-		m_CtrlModel.SetFontEx(m_FontFace, 24, m_ZoomRatio, textAlpha, textColor);
-
+		m_CtrlModel.SetFontEx(m_FontFace, 24, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 	}
-	m_CtrlButtonPreDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlButtonNextDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	
-	m_CtrlLabelFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelDiskStatus.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLabelTemperature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
 
-	m_CtrlFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlButtonPreDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlButtonNextDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	
+	m_CtrlLabelFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelDiskStatus.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlLabelTemperature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+
+	m_CtrlFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
+	m_CtrlFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
-	m_CtrlDiskStatus.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlTemperature.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlLife.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlDiskStatus.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor, FW_BOLD, m_FontType);
+	m_CtrlTemperature.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_BOLD, m_FontType);
+	m_CtrlLife.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 #else
-	m_CtrlDiskStatus.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor);
-	m_CtrlTemperature.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlDiskStatus.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_BOLD);
+	m_CtrlTemperature.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor, FW_BOLD);
 #endif
 }
 

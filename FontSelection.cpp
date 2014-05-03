@@ -26,6 +26,8 @@ CFontSelection::CFontSelection(CWnd* pParent)
 	m_DefaultLangPath = ((CMainDialog*)pParent)->m_DefaultLangPath;
 	m_ZoomType = ((CMainDialog*)pParent)->GetZoomType();
 	m_FontFace = ((CMainDialog*)pParent)->m_FontFace;
+	m_FontType = ((CMainDialog*) pParent)->m_FontType;
+
 	m_CxThemeDir = ((CDiskInfoApp*)AfxGetApp())->m_ThemeDir;
 	m_CxCurrentTheme = ((CMainDialog*)pParent)->m_CurrentTheme;
 	m_CxDefaultTheme = ((CMainDialog*)pParent)->m_DefaultTheme;
@@ -40,6 +42,7 @@ void CFontSelection::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, ID_OK, m_CtrlOk);
 	DDX_Control(pDX, IDC_FONT_COMBO, m_FontComboBox);
+	DDX_Control(pDX, IDC_FONT_TYPE_COMBO, m_FontTypeComboBox);
 }
 
 
@@ -87,6 +90,19 @@ BOOL CFontSelection::OnInitDialog()
 		}
 	}
 
+	m_FontTypeComboBox.AddString(i18n(_T("HealthStatus"), _T("Default")));
+	m_FontTypeComboBox.AddString(L"GDI");
+	m_FontTypeComboBox.AddString(L"GDI+");
+//	m_FontTypeComboBox.AddString(L"DirectWrite");
+	if (0 <= m_FontType && m_FontType <= 2)
+	{
+		m_FontTypeComboBox.SetCurSel(m_FontType);
+	}
+	else
+	{
+		m_FontTypeComboBox.SetCurSel(0);
+	}
+
 	UpdateDialogSize();
 
 	return TRUE;
@@ -108,8 +124,16 @@ void CFontSelection::UpdateDialogSize()
 	}
 	m_FontComboBox.MoveWindow((DWORD)(8 * m_ZoomRatio), (DWORD)(8 * m_ZoomRatio), (DWORD)(304 * m_ZoomRatio), (DWORD)(200 * m_ZoomRatio));
 
+	m_FontTypeComboBox.SetItemHeight(-1, (UINT) (24 * m_ZoomRatio));
+	for (int i = 0; i < m_FontTypeComboBox.GetCount(); i++)
+	{
+		m_FontTypeComboBox.SetItemHeight(i, (UINT) (20 * m_ZoomRatio));
+	}
+	m_FontTypeComboBox.SetFontEx(m_FontFace, 14, m_ZoomRatio);
+	m_FontTypeComboBox.MoveWindow((DWORD) (8 * m_ZoomRatio), (DWORD) (44 * m_ZoomRatio), (DWORD) (304 * m_ZoomRatio), (DWORD) (200 * m_ZoomRatio));
+
 	m_CtrlOk.SetFontEx(m_FontFace, 12, m_ZoomRatio);
-	m_CtrlOk.InitControl(80, 44, 160, 28, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::SystemDraw | m_IsHighContrast);
+	m_CtrlOk.InitControl(80, 84, 160, 28, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::SystemDraw | m_IsHighContrast);
 
 	Invalidate();
 }
@@ -117,6 +141,11 @@ void CFontSelection::UpdateDialogSize()
 CString CFontSelection::GetFontFace()
 {
 	return m_FontFace;
+}
+
+INT CFontSelection::GetFontType()
+{
+	return m_FontType;
 }
 
 int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType, LPARAM lParam)
@@ -135,6 +164,7 @@ int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, i
 void CFontSelection::OnBnClickedOk()
 {
 	m_FontComboBox.GetLBText(m_FontComboBox.GetCurSel(), m_FontFace);
+	m_FontType = m_FontTypeComboBox.GetCurSel();
 
-	CDialog::OnOK();	
+	CDialog::OnOK();
 }

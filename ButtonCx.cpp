@@ -64,6 +64,7 @@ CButtonCx::CButtonCx()
 	, m_RenderMode(0)
 	, m_bHighContrast(FALSE)
 	, m_Alpha(255)
+	, m_FontType(FT_GDI)
 {
 	m_Margin.top = 0;
 	m_Margin.left = 0;
@@ -135,9 +136,11 @@ void CButtonCx::SetToolTipText(LPCTSTR pText)
 	InitToolTip();
 
 	// テキストが有効？
-	if(pText == NULL) return;
-	m_ToolTipText = pText;
+	if (pText == NULL){ return; }
+	// テキストの内容が異なる？
+	if (m_ToolTipText.Find(pText) == 0){ return; }
 
+	m_ToolTipText = pText;
 	// ツール ヒント コントロールに登録されているツールの数は無効？
 	if(m_ToolTip.GetToolCount() == 0)
 	{
@@ -261,64 +264,87 @@ void CButtonCx::DrawString(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct)
 	GetWindowText(title);
 
 	// テキストが空の場合および GDI+ Font/Brush が設定されていない場合何もしない。
-	if(title.IsEmpty() || m_GpFont == NULL || m_GpBrush == NULL)
+	if (title.IsEmpty() || m_GpFont == NULL || m_GpBrush == NULL)
 	{
-		return ;
+		return;
 	}
 
+	// 透過モードにする。
+	drawDC->SetBkMode(TRANSPARENT);
+
 	// テキストの描画位置
-	CRect rect = (CRect)(lpDrawItemStruct->rcItem); // クライアント四角形の取得
+	CRect rect = (CRect) (lpDrawItemStruct->rcItem); // クライアント四角形の取得
 	// マージン設定
 	rect.top += m_Margin.top;
 	rect.left += m_Margin.left;
 	rect.bottom -= m_Margin.bottom;
 	rect.right -= m_Margin.right;
 
-	// 透過モードにする。
-	drawDC->SetBkMode(TRANSPARENT);
-
-	// GDI+ によるテキスト描画
-	Gdiplus::Graphics g(drawDC->m_hDC);
-
-	const Gdiplus::PointF pointF(0.0, 0.0);
-	Gdiplus::RectF extentF;
-
 	CArray<CString, CString> arr;
-    arr.RemoveAll();
+	arr.RemoveAll();
 
 	CString resToken;
-	int curPos= 0;
+	int curPos = 0;
 	resToken = title.Tokenize(L"\r\n", curPos);
-	while(resToken != L"")
+	while (resToken != L"")
 	{
 		arr.Add(resToken);
 		resToken = title.Tokenize(L"\r\n", curPos);
 	}
 
-	for(int i = 0; i < arr.GetCount(); i++)
+	if (m_FontType == FT_GDI_PLUS || m_FontType == FT_AUTO)	// GDI+
 	{
-		CRect r;
-		r.top = (LONG)(((double)rect.Height()) / arr.GetCount() * i);
-		r.bottom = (LONG)(((double)rect.Height()) / arr.GetCount() * (i + 1));
-		r.left = rect.left;
-		r.right = rect.right;
+		Gdiplus::Graphics g(drawDC->m_hDC);
 
-		g.MeasureString(arr.GetAt(i), arr.GetAt(i).GetLength() + 1, m_GpFont, pointF, &extentF); // "+ 1" for workdaround 
-//		Gdiplus::PointF pt(rect.CenterPoint().x - (extentF.Width/2), r.CenterPoint().y - (extentF.Height/2));
+		const Gdiplus::PointF pointF(0.0, 0.0);
+		Gdiplus::RectF extentF;
 
-		REAL y;
-		FontFamily ff;
-		m_GpFont->GetFamily(&ff);
-		REAL ascent = (REAL)ff.GetCellAscent(FontStyleRegular);
-		REAL lineSpacing = (REAL)ff.GetLineSpacing(FontStyleRegular);
+		for (int i = 0; i < arr.GetCount(); i++)
+		{
+			CRect r;
+			r.top = (LONG) (((double) rect.Height()) / arr.GetCount() * i);
+			r.bottom = (LONG) (((double) rect.Height()) / arr.GetCount() * (i + 1));
+			r.left = rect.left;
+			r.right = rect.right;
 
-		y = r.CenterPoint().y - (extentF.Height * ascent / lineSpacing) / 2;
+			g.MeasureString(arr.GetAt(i), arr.GetAt(i).GetLength() + 1, m_GpFont, pointF, &extentF); // "+ 1" for workdaround 
 
-		Gdiplus::PointF pt(rect.CenterPoint().x - (extentF.Width/2), y);
-		Gdiplus::RectF rectF(pt.X, pt.Y, (REAL)extentF.Width, (REAL)extentF.Height);
+			REAL y;
+			FontFamily ff;
+			m_GpFont->GetFamily(&ff);
+			REAL ascent = (REAL) ff.GetCellAscent(FontStyleRegular);
+			REAL lineSpacing = (REAL) ff.GetLineSpacing(FontStyleRegular);
 
-		g.SetTextRenderingHint(TextRenderingHintAntiAlias);
-		g.DrawString(arr.GetAt(i), -1, m_GpFont, rectF, m_GpStringformat, m_GpBrush);
+			y = r.CenterPoint().y - (extentF.Height * ascent / lineSpacing) / 2;
+
+			Gdiplus::PointF pt(rect.CenterPoint().x - (extentF.Width / 2), y);
+			Gdiplus::RectF rectF(pt.X, pt.Y, (REAL) extentF.Width, (REAL) extentF.Height);
+
+			g.SetTextRenderingHint(TextRenderingHintAntiAlias);
+			g.DrawString(arr.GetAt(i), -1, m_GpFont, rectF, m_GpStringformat, m_GpBrush);
+		}
+	}
+	else // GDI
+	{
+		for (int i = 0; i < arr.GetCount(); i++)
+		{
+			CRect r;
+			r.top = rect.top + (LONG) (((double) rect.Height()) / arr.GetCount() * i);
+			r.bottom = rect.top + (LONG) (((double) rect.Height()) / arr.GetCount() * (i + 1));
+			r.left = rect.left;
+			r.right = rect.right;
+
+			CRect rectI;
+			CSize extent;
+			HGDIOBJ oldFont = drawDC->SelectObject(m_Font);
+			GetTextExtentPoint32(drawDC->m_hDC, arr.GetAt(i), arr.GetAt(i).GetLength() + 1, &extent);
+			rectI.top = r.top + (r.Height() - extent.cy) / 2;
+			rectI.bottom = rectI.top + extent.cy;
+			rectI.left = r.left;
+			rectI.right = r.right;
+			DrawText(drawDC->m_hDC, arr.GetAt(i), arr.GetAt(i).GetLength(), r, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			drawDC->SelectObject(oldFont);
+		}
 	}
 	// いつか DirectWrite 描画に対応したいものである。。。
 }
@@ -419,7 +445,7 @@ void CButtonCx::DrawControl(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct, CBit
 						int cn = (baseY + py) * CtlLineBytes;
 						for (LONG px = 0; px < DstBmpInfo.bmWidth; px++)
 						{
-							// 画像のアルファ値と指定したのアルファ値を乗じたものを使用。
+							// 画像のアルファ値と指定したアルファ値を乗じたものを使用。
 							int a = CtlBuffer[cn + 3] * m_Alpha / 255;
 							int na = 255 - a;
 							// 背景と合成する。
@@ -807,12 +833,13 @@ void CButtonCx::SetDrawFrame(BOOL bDrawFrame)
 // フォント関連
 //------------------------------------------------
 
-void CButtonCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha, COLORREF textColor, LONG fontWeight)
+void CButtonCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha, COLORREF textColor, LONG fontWeight, INT fontType)
 {
 	LOGFONT logFont = {0};
 	logFont.lfCharSet = DEFAULT_CHARSET;
 	logFont.lfHeight = (LONG)(-1 * size * zoomRatio);
 	logFont.lfQuality = 6;
+	logFont.lfWeight = fontWeight;
 	if(face.GetLength() < 32)
 	{
 		wsprintf(logFont.lfFaceName, _T("%s"), face.GetString());
@@ -825,6 +852,16 @@ void CButtonCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlp
 	m_Font.DeleteObject();
 	m_Font.CreateFontIndirect(&logFont);
 	SetFont(&m_Font);
+
+	// フォント描画方法を設定します。
+	if (FT_AUTO <= fontType && fontType <= FT_GDI_PLUS)
+	{
+		m_FontType = fontType;
+	}
+	else
+	{
+		m_FontType = FT_AUTO;
+	}
 
 	// ツールチップにフォントを設定します。
 	if(m_ToolTip.m_hWnd != NULL)

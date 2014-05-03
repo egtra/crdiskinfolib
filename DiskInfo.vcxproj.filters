@@ -841,18 +841,6 @@
     <None Include="resN\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="resS\001igarashi.opus" />
-    <None Include="resS\601igarashi.opus" />
-    <None Include="resS\602igarashi.opus" />
-    <None Include="resS\603igarashi.opus" />
-    <None Include="resS\604igarashi.opus" />
-    <None Include="resS\605igarashi.opus" />
-    <None Include="resS\606igarashi.opus" />
-    <None Include="resS\701igarashi.opus" />
-    <None Include="resS\702igarashi.opus" />
-    <None Include="resS\703igarashi.opus" />
-    <None Include="resS\704igarashi.opus" />
-    <None Include="resS\705igarashi.opus" />
     <None Include="res\001soundkenjin.opus" />
   </ItemGroup>
   <ItemGroup>

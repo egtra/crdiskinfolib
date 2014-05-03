@@ -73,6 +73,10 @@ public:
 
 public:
 
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	HMODULE m_hShizukuVoice;
+#endif
+
 	// Timer
 	static const int TIMER_SET_POWER_ON_UNIT = 0x2001;
 	static const int TIMER_AUTO_REFRESH      = 0x2002;
@@ -172,6 +176,10 @@ protected:
 	CString		m_OpusDecPath;
 	CString		m_AlertSoundPath;
 
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	CString		m_ShizukuVoicePath;
+#endif
+
 	DWORD m_SelectDisk;
 	DWORD m_DriveMenuPage;
 	DWORD m_AutoRefreshStatus;
@@ -263,7 +271,7 @@ protected:
 	BOOL ChangeDisk(DWORD index);
 	BOOL UpdateListCtrl(DWORD index);
 	void SelectDrive(DWORD index);
-	void InitDriveList(BOOL flagTooltipUpdate = TRUE);
+	void InitDriveList();
 	void InitListCtrl();
 	void InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI, BOOL workaroundAdataSsd);
 

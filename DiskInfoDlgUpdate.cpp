@@ -797,6 +797,8 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	m_CtrlBufferSize.SetToolTipText(L"");
 	m_CtrlNvCacheSize.SetToolTipText(L"");
 	m_CtrlRotationRate.SetToolTipText(L"");
+	m_CtrlTransferMode.SetToolTipText(L"");
+	m_CtrlAtaAtapi.SetToolTipText(L"");
 
 	if(m_Ata.vars.GetCount() == 0)
 	{
@@ -1255,8 +1257,10 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		m_Capacity = i18n(_T("Dialog"), _T("UNKNOWN"));
 	}
 	m_TransferMode = m_Ata.vars[i].CurrentTransferMode + _T(" | ") + m_Ata.vars[i].MaxTransferMode;
+	m_CtrlTransferMode.SetToolTipText(i18n(_T("Dialog"), _T("CURRENT_MODE_SUPPORTED_MODE")));
 	m_Interface = m_Ata.vars[i].Interface;
 	m_AtaAtapi = m_Ata.vars[i].MajorVersion + _T(" | ") + m_Ata.vars[i].MinorVersion;
+	m_CtrlAtaAtapi.SetToolTipText(i18n(_T("Dialog"), _T("MAJOR_VERSION_MINOR_VERSION")));
 	m_Feature = _T("");
 	cstr = L"\
 S.M.A.R.T.: Self-Monitoring, Analysis and Reporting Technology\n\
@@ -2051,7 +2055,7 @@ void CDiskInfoDlg::SelectDrive(DWORD i)
 		{
 			if(preFlagFahrenheit == m_FlagFahrenheit)
 			{
-				return ;
+			//	return ;
 			}
 			else
 			{
@@ -2065,7 +2069,7 @@ void CDiskInfoDlg::SelectDrive(DWORD i)
 	m_DriveMenuPage = i / 8;
 	ChangeDisk(i);
 	UpdateListCtrl(i);
-	InitDriveList(FALSE);
+	InitDriveList();
 	UpdateToolTip();
 
 	CMenu *menu = GetMenu();	
@@ -2147,6 +2151,13 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	CreateDirectory(dir, NULL);
 
 	AlarmHealthStatus(i, dir, disk);
+
+
+	// Computer Name
+	// 
+	DWORD length = 256;
+	GetComputerNameW(str, &length);
+	WritePrivateProfileString(L"PC", L"ComputerName", str, dir + _T("\\") + SMART_INI);
 
 	GetPrivateProfileString(disk, _T("Date"), _T(""), str, 256, dir + _T("\\") + SMART_INI);
 	cstr = str;

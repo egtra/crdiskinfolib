@@ -419,13 +419,14 @@ BEGIN
     CTEXT           "スタティック",IDC_VALUE_FFX,248,164,33,8
 END
 
-IDD_FONT DIALOGEX 0, 0, 180, 62
+IDD_FONT DIALOGEX 0, 0, 180, 89
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Font Setting"
 FONT 12, "MS UI Gothic", 400, 0, 0x80
 BEGIN
-    COMBOBOX        IDC_FONT_COMBO,7,6,166,148,CBS_DROPDOWNLIST | CBS_OWNERDRAWVARIABLE | CBS_SORT | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",ID_OK,48,41,83,14,BS_CENTER
+    COMBOBOX        IDC_FONT_COMBO,7,6,166,148,CBS_DROPDOWNLIST | CBS_OWNERDRAWVARIABLE | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",ID_OK,48,68,83,14,BS_CENTER
+    COMBOBOX        IDC_FONT_TYPE_COMBO,7,28,166,148,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_ALARM_HISTORY DIALOGEX 0, 0, 316, 183
@@ -455,8 +456,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,0,4,2013
- PRODUCTVERSION 6,0,4,2013
+ FILEVERSION 6,1,0,2014
+ PRODUCTVERSION 6,1,0,2014
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -473,9 +474,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, Simplified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "6.0.4.2013"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2013 hiyohiyo. All rights reserved."
-            VALUE "ProductVersion", "6.0.4.2013"
+            VALUE "FileVersion", "6.1.0.2014"
+            VALUE "LegalCopyright", "Copyright (C) 2008-2014 hiyohiyo. All rights reserved."
+            VALUE "ProductVersion", "6.1.0.2014"
             VALUE "ProductName", "CrystalDiskInfo"
             VALUE "FileDescription", "CrystalDiskInfo"
             VALUE "OriginalFilename", "DiskInfo.exe"
@@ -546,7 +547,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 173
         TOPMARGIN, 6
-        BOTTOMMARGIN, 55
+        BOTTOMMARGIN, 82
     END
 
     IDD_ALARM_HISTORY, DIALOG
@@ -723,7 +724,7 @@ BEGIN
             MENUITEM "300%",                        ID_ZOOM_300
             MENUITEM "Auto",                        ID_ZOOM_AUTO
         END
-		MENUITEM "Green Mode",                  ID_GREEN_MODE
+        MENUITEM "Green Mode",                  ID_GREEN_MODE
         MENUITEM "Font Setting",                ID_FONT_SETTING
         MENUITEM SEPARATOR
     END
@@ -846,7 +847,7 @@ IDR_HTML_DUMMY          HTML                    "res\\dummy.html"
 // OPUS
 //
 
-IDR_SOUND_001_SK        OPUS                    "res\\001soundkenjin.opus"
+CDI_SOUND_001_SK        OPUS                    "res\\001soundkenjin.opus"
 #endif    // 日本語 (日本) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -1292,9 +1292,13 @@ void CDiskInfoDlg::OnFontSetting()
 	if(fontSelection.DoModal() == IDOK)
 	{
 		m_FontFace = fontSelection.GetFontFace();
+		m_FontType = fontSelection.GetFontType();
 		SetControlFont();
 		Invalidate();
+		CString cstr;
+		cstr.Format(L"%d", m_FontType);
 		WritePrivateProfileString(_T("Setting"), _T("FontFace"), _T("\"") + m_FontFace + _T("\""), m_Ini);
+		WritePrivateProfileString(_T("Setting"), _T("FontType"), cstr, m_Ini);
 	}
 }
 

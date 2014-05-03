@@ -206,6 +206,9 @@ protected:
 		DWORD   TimeOutValue;
 		DWORD   ReservedAsUlong;
 	//	DWORD   DataBufferOffset;
+#ifdef _WIN64
+		DWORD	padding;
+#endif
 		DWORD_PTR   DataBufferOffset;
 		IDEREGS PreviousTaskFile;
 		IDEREGS CurrentTaskFile;
@@ -1411,6 +1414,7 @@ public:
 
 	DWORD MeasuredGetTickCount;
 
+	BOOL FlagNvidia;
 	BOOL FlagUsbSat;
 	BOOL FlagUsbSunplus;
 	BOOL FlagUsbIodata;
@@ -1428,7 +1432,7 @@ protected:
 	BOOL m_FlagAtaPassThrough;
 	BOOL m_FlagAtaPassThroughSmart;
 
-	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0, CString pnpDeviceId = _T(""));
+	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0, BOOL flagNvidia = 0, CString pnpDeviceId = _T(""));
 	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1, PCSMI_SAS_PHY_ENTITY sasPhyEntity = NULL, CString pnpDeviceId = _T(""));
 	DWORD CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SMART_ATTRIBUTE* cur);
 
@@ -1480,17 +1484,15 @@ protected:
 	BOOL ControlSmartStatusCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE command);
 	BOOL SendAtaCommandCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE main, BYTE sub, BYTE param, PBYTE data, DWORD dataSize);
 
-
 	DWORD GetTransferMode(WORD w63, WORD w76, WORD w77, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
-	DWORD GetTimeUnitType(ATA_SMART_INFO &asi);
+	DWORD GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode);
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);
 //	DWORD GetMaxtorPowerOnHours(DWORD currentValue, DWORD rawValue);
 
 	BOOL FillSmartData(ATA_SMART_INFO* asi);
 	BOOL FillSmartThreshold(ATA_SMART_INFO* asi);
-
-
+	
 	VOID CheckSsdSupport(ATA_SMART_INFO &asi);
 	BOOL IsSsdOld(ATA_SMART_INFO &asi);
 	BOOL IsSsdMtron(ATA_SMART_INFO &asi);

@@ -565,7 +565,7 @@ CString CDiskInfoDlg::GetLogicalDriveInfo(DWORD index, INT maxLength)
 	}
 }
 
-void CDiskInfoDlg::InitDriveList(BOOL flagTooltipUpdate)
+void CDiskInfoDlg::InitDriveList()
 {
 	CString cstr;
 	CString delimiter;
@@ -573,14 +573,14 @@ void CDiskInfoDlg::InitDriveList(BOOL flagTooltipUpdate)
 	for(int i = m_Ata.vars.GetCount() % 8; i < 8; i++)
 	{
 		m_LiDisk[i] = _T("");
-		cstr.Format(_T("Disk%d"), i);
-		m_ButtonDisk[i].EnableWindow(FALSE);
 		m_ButtonDisk[i].ReloadImage(IP(L"noDisk"), 1);
+	//	m_ButtonDisk[i].EnableWindow(FALSE);
+		m_ButtonDisk[i].SetHandCursor(FALSE);
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
 		m_ButtonDisk[i].SetSelected(FALSE);
-		if(flagTooltipUpdate)
-		{
-			m_ButtonDisk[i].SetToolTipText(L"");
-		}
 	}
 
 	delimiter = _T("\r\n");
@@ -613,11 +613,7 @@ void CDiskInfoDlg::InitDriveList(BOOL flagTooltipUpdate)
 
 		if(m_SelectDisk == i)
 		{
-			m_ButtonDisk[i].SetSelected(TRUE);
-		}
-		else
-		{
-			m_ButtonDisk[i].SetSelected(FALSE);
+			m_ButtonDisk[i % 8].SetSelected(TRUE);
 		}
 
 		// DriveMenu
@@ -669,14 +665,11 @@ void CDiskInfoDlg::InitDriveList(BOOL flagTooltipUpdate)
 			{
 				cstr.Format(_T("Disk -- : %s %.1f GB\n%s"), m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, GetLogicalDriveInfo(i));
 			}
-
-			m_ButtonDisk[i % 8].EnableWindow(TRUE);
+			
+			m_ButtonDisk[i % 8].SetToolTipText(cstr);
 			className.Replace(L"Status", L"");
 			m_ButtonDisk[i % 8].ReloadImage(IP(className), 4);
-			if(flagTooltipUpdate)
-			{
-				m_ButtonDisk[i % 8].SetToolTipText(cstr);
-			}
+			m_ButtonDisk[i % 8].EnableWindow(TRUE);
 		}
 	}
 

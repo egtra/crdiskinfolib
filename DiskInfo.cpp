@@ -188,6 +188,10 @@ BOOL CDiskInfoApp::InitInstance()
 		m_AlertMailPath = _T("");
 	}
 	m_OpusDecPath.Format(_T("%s\\%s"), tmp, OPUS_DEC_PATH);
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_ShizukuVoicePath.Format(_T("%s\\%s"), tmp, SHIZUKU_VOICE_PATH);
+#endif
 	
 	m_ThemeIndex = MENU_THEME_INDEX;
 	m_LangIndex = MENU_LANG_INDEX;

@@ -17,6 +17,11 @@ class CStaticCx : public CStatic
 	static const int OwnerDrawGlass       = 0x0008;
 	static const int OwnerDrawTransparent = 0x0010;
 
+	static const int FT_AUTO              = 0x0000;
+	static const int FT_GDI               = 0x0001;
+	static const int FT_GDI_PLUS          = 0x0002;
+	static const int FT_D_WRITE           = 0x0003;
+
 // 基本
 public:
 	CStaticCx();
@@ -41,7 +46,7 @@ public:
 	void SetToolTipActivate(BOOL bActivate = TRUE);	// ツールチップの有効無効を切り替えます。
 	void SetToolTipWindowText(LPCTSTR pText);		// コントロールとツールチップのメッセージを設定する。
 	// フォント関係
-	void SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha = 255, COLORREF textColor = RGB(0, 0, 0), LONG fontWeight = FW_NORMAL); // フォントを設定します。
+	void SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha = 255, COLORREF textColor = RGB(0, 0, 0), LONG fontWeight = FW_NORMAL, int fontType = FT_GDI); // フォントを設定します。
 	void SetMargin(int top, int left, int bottom, int right, double zoomRatio); // テキスト描画用のマージンを設定します。
 	// カーソル関係
 	void SetHandCursor(BOOL bHandCuror = TRUE);	// カーソルモードを設定します。
@@ -80,6 +85,7 @@ private:
 	BOOL m_bHandCursor;		// ハンドカーソルモード
 	CRect m_Margin;			// テキスト描画マージン
 	BYTE m_Alpha;			// 画像用のアルファ値
+	int m_FontType;		    // 描画フォントの使用テクノロジー
 
 // 内部関数。
 private:

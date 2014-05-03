@@ -10,6 +10,12 @@
 class CDialogCx : public CDialogEx
 {
 public:
+	// Font Type
+	static const int FT_AUTO      = 0x0000;
+	static const int FT_GDI       = 0x0001;
+	static const int FT_GDI_PLUS  = 0x0002;
+	static const int FT_D_WRITE   = 0x0003;
+
 	CDialogCx(UINT dlgResouce, CWnd* pParent = NULL);
 	virtual ~CDialogCx();
 
@@ -21,6 +27,7 @@ public:
 	CString m_FontFace;
 	CString m_CurrentLangPath;
 	CString m_DefaultLangPath;
+	INT m_FontType;
 
 	enum ZOOM_TYPE
 	{

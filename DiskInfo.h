@@ -23,6 +23,7 @@
 #define ALERT_MAIL_PATH				_T("CdiResource\\AlertMail.exe")
 #define ALERT_MAIL_4_PATH			_T("CdiResource\\AlertMail4.exe")
 #define OPUS_DEC_PATH				_T("CdiResource\\opus\\opusdec.exe")
+#define SHIZUKU_VOICE_PATH			_T("CdiResource\\voice\\ShizukuVoice.dll")
 
 
 #define MENU_THEME_INDEX			3
@@ -52,6 +53,9 @@ public:
 	CString m_GadgetDir;
 	CString m_AlertMailPath;
 	CString m_OpusDecPath;
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	CString m_ShizukuVoicePath;
+#endif
 	CString m_Ini;
 	CString m_SaveAsText;
 	BOOL m_FlagCopyExit;

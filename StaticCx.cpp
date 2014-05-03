@@ -62,6 +62,7 @@ CStaticCx::CStaticCx()
 	, m_RenderMode(0)
 	, m_bHighContrast(FALSE)
 	, m_Alpha(255)
+	, m_FontType(FT_GDI)
 {
 	m_Margin.top = 0;
 	m_Margin.left = 0;
@@ -133,7 +134,10 @@ void CStaticCx::SetToolTipText(LPCTSTR pText)
 	InitToolTip();
 
 	// テキストが有効？
-	if(pText == NULL) return;
+	if (pText == NULL){ return; }
+	// テキストの内容が異なる？
+	if (m_ToolTipText.Find(pText) == 0){ return; }
+
 	m_ToolTipText = pText;
 
 	// ツール ヒント コントロールに登録されているツールの数は無効？
@@ -230,13 +234,13 @@ void CStaticCx::DrawString(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct)
 	GetWindowText(title);
 
 	// テキストが空の場合および GDI+ Font/Brush が設定されていない場合何もしない。
-	if(m_GpFont == NULL || m_GpBrush == NULL)
+	if (m_GpFont == NULL || m_GpBrush == NULL)
 	{
-		return ;
+		return;
 	}
 
 	// テキストの描画位置
-	CRect rect = (CRect)(lpDrawItemStruct->rcItem); // クライアント四角形の取得
+	CRect rect = (CRect) (lpDrawItemStruct->rcItem); // クライアント四角形の取得
 	// マージン設定
 	rect.top += m_Margin.top;
 	rect.left += m_Margin.left;
@@ -246,48 +250,68 @@ void CStaticCx::DrawString(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct)
 	// 透過モードにする。
 	drawDC->SetBkMode(TRANSPARENT);
 
-	// GDI+ によるテキスト描画
-	Gdiplus::Graphics g(drawDC->m_hDC);
-		
-	const Gdiplus::PointF pointF(0.0, 0.0);
-	Gdiplus::RectF extentF;
-	g.MeasureString(title, title.GetLength() + 1, m_GpFont, pointF, &extentF); // "+ 1" for workdaround 
+	if (m_FontType == FT_GDI_PLUS || m_FontType == FT_AUTO) // GDI+
+	{
+		Gdiplus::Graphics g(drawDC->m_hDC);
 
-	// 描画位置の設定
-	REAL x, y;
-	if(m_TextAlign == SS_CENTER)
-	{
-		x = rect.CenterPoint().x - (extentF.Width/2);
-	}
-	else if(m_TextAlign == SS_RIGHT)
-	{
-		if(rect.Width() > extentF.Width)
+		const Gdiplus::PointF pointF(0.0, 0.0);
+		Gdiplus::RectF extentF;
+		g.MeasureString(title, title.GetLength() + 1, m_GpFont, pointF, &extentF); // "+ 1" for workdaround 
+
+		// 描画位置の設定
+		REAL x = 0.0, y = 0.0;
+		if (m_TextAlign == SS_CENTER)
 		{
-			x = rect.Width() - (extentF.Width);
+			x = rect.CenterPoint().x - (extentF.Width / 2);
+		}
+		else if (m_TextAlign == SS_RIGHT)
+		{
+			if (rect.Width() > extentF.Width)
+			{
+				x = rect.Width() - extentF.Width;
+			}
+		}
+
+		if (x < 0)
+		{
+			x = 0.0;
+		}
+
+		FontFamily ff;
+		m_GpFont->GetFamily(&ff);
+		REAL ascent = (REAL) ff.GetCellAscent(FontStyleRegular);
+		REAL descent = (REAL) ff.GetCellDescent(FontStyleRegular);
+		REAL lineSpacing = (REAL) ff.GetLineSpacing(FontStyleRegular);
+
+		y = rect.CenterPoint().y - (extentF.Height * (ascent + descent) / lineSpacing) / 2;
+
+		Gdiplus::PointF pt(x, y);
+		Gdiplus::RectF rectF(pt.X, pt.Y, (REAL) extentF.Width, (REAL) extentF.Height);
+
+		g.SetTextRenderingHint(TextRenderingHintAntiAlias);
+		g.DrawString(title, title.GetLength(), m_GpFont, rectF, m_GpStringformat, m_GpBrush);
+	}
+	else // GDI
+	{
+		CRect rectI;
+		CSize extent;
+		HGDIOBJ oldFont = drawDC->SelectObject(m_Font);
+		GetTextExtentPoint32(drawDC->m_hDC, title, title.GetLength() + 1, &extent);
+
+		if (m_TextAlign == SS_CENTER)
+		{
+			DrawTextW(drawDC->m_hDC, title, title.GetLength(), rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		}
+		else if (m_TextAlign == SS_RIGHT)
+		{
+			DrawText(drawDC->m_hDC, title, title.GetLength(), rect, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
 		}
 		else
 		{
-			x = 0;
+			DrawText(drawDC->m_hDC, title, title.GetLength(), rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 		}
+		drawDC->SelectObject(oldFont);
 	}
-	else
-	{
-		x = 0;
-	}
-	FontFamily ff;
-	m_GpFont->GetFamily(&ff);
-	REAL ascent = (REAL)ff.GetCellAscent(FontStyleRegular);
-	REAL descent = (REAL)ff.GetCellDescent(FontStyleRegular);
-	REAL lineSpacing = (REAL)ff.GetLineSpacing(FontStyleRegular);
-
-	y = rect.CenterPoint().y - (extentF.Height * (ascent + descent) / lineSpacing) / 2;
-
-	Gdiplus::PointF pt(x, y);
-	Gdiplus::RectF rectF(pt.X, pt.Y, (REAL)extentF.Width, (REAL)extentF.Height);
-
-	g.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	g.DrawString(title, title.GetLength(), m_GpFont, rectF, m_GpStringformat, m_GpBrush);
-
 	// いつか DirectWrite 描画に対応したいものである。。。
 }
 
@@ -310,8 +334,9 @@ void CStaticCx::DrawControl(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct, CBit
 	pBgDC->CreateCompatibleDC(drawDC);
 	pOldBgBitmap = pBgDC->SelectObject(&BgBitmap);
 
-	if (drawDC->GetDeviceCaps(BITSPIXEL) * drawDC->GetDeviceCaps(PLANES) < 24)
+	if (drawDC->GetDeviceCaps(BITSPIXEL) * drawDC->GetDeviceCaps(PLANES) < 32)
 	{
+		/*
 		BLENDFUNCTION blendfunc = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
 
 		// 取り込んでいた背景を描画
@@ -329,6 +354,11 @@ void CStaticCx::DrawControl(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct, CBit
 				drawDC->BitBlt(0, 0, m_CtrlSize.cx, m_CtrlSize.cy, pMemDC, 0, m_CtrlSize.cy * no, SRCCOPY);
 			}
 		}
+		*/
+		// 取り込んでいた背景を描画
+		drawDC->BitBlt(0, 0, m_CtrlSize.cx, m_CtrlSize.cy, pBgDC, 0, m_CtrlSize.cy * no, SRCCOPY);
+		// コントロールをそのまま描画
+		drawDC->BitBlt(0, 0, m_CtrlSize.cx, m_CtrlSize.cy, pMemDC, 0, m_CtrlSize.cy * no, SRCCOPY);
 		// 描画用のビットマップに文字列を描画。
 		DrawString(drawDC, lpDrawItemStruct);
 	}
@@ -386,7 +416,7 @@ void CStaticCx::DrawControl(CDC *drawDC, LPDRAWITEMSTRUCT lpDrawItemStruct, CBit
 						int cn = (baseY + py) * CtlLineBytes;
 						for (LONG px = 0; px < DstBmpInfo.bmWidth; px++)
 						{
-							// 画像のアルファ値と指定したのアルファ値を乗じたものを使用。
+							// 画像のアルファ値と指定したアルファ値を乗じたものを使用。
 							int a = CtlBuffer[cn + 3] * m_Alpha / 255;
 							int na = 255 - a;
 							// 背景と合成する。
@@ -774,12 +804,13 @@ void CStaticCx::SetDrawFrame(BOOL bDrawFrame)
 // フォント関連
 //------------------------------------------------
 
-void CStaticCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha, COLORREF textColor, LONG fontWeight)
+void CStaticCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlpha, COLORREF textColor, LONG fontWeight, INT fontType)
 {
 	LOGFONT logFont = {0};
 	logFont.lfCharSet = DEFAULT_CHARSET;
 	logFont.lfHeight = (LONG)(-1 * size * zoomRatio);
 	logFont.lfQuality = 6;
+	logFont.lfWeight = fontWeight;
 	if(face.GetLength() < 32)
 	{
 		wsprintf(logFont.lfFaceName, _T("%s"), face.GetString());
@@ -792,6 +823,16 @@ void CStaticCx::SetFontEx(CString face, int size, double zoomRatio, BYTE textAlp
 	m_Font.DeleteObject();
 	m_Font.CreateFontIndirect(&logFont);
 	SetFont(&m_Font);
+
+	// フォント描画方法を設定します。
+	if (FT_AUTO <= fontType && fontType <= FT_GDI_PLUS)
+	{
+		m_FontType = fontType;
+	}
+	else
+	{
+		m_FontType = FT_AUTO;
+	}
 
 	// ツールチップにフォントを設定します。
 	if(m_ToolTip.m_hWnd != NULL)

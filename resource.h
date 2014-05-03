@@ -238,6 +238,7 @@
 #define IDC_SCROLLBAR_C6                1007
 #define IDC_SCROLLBAR_FF                1008
 #define IDC_FONT_COMBO                  1009
+#define IDC_FONT_TYPE_COMBO             1010
 #define IDC_ALARM_LIST                  1011
 #define IDC_VALUE_MODEL                 1012
 #define IDC_LABEL_FIRMWARE              1013
@@ -543,7 +544,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        170
 #define _APS_NEXT_COMMAND_VALUE         34002
-#define _APS_NEXT_CONTROL_VALUE         1099
+#define _APS_NEXT_CONTROL_VALUE         1101
 #define _APS_NEXT_SYMED_VALUE           111
 #endif
 #endif

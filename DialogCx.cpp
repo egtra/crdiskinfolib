@@ -31,6 +31,7 @@ CDialogCx::CDialogCx(UINT dlgResouce, CWnd* pParent)
 	m_ParentWnd = NULL;
 	m_DlgWnd = NULL;
 	m_MenuId = 0;
+	m_FontType = FT_GDI;
 
 	m_BackgroundName = L"background";
 
