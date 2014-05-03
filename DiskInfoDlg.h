@@ -67,7 +67,9 @@ public:
 
 	HMENU m_hMenu;
 	void CreateMainMenu(DWORD index);
-	protected:
+
+	DWORD GetSelectDisk();
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
 // Implementation
@@ -86,7 +88,7 @@ protected:
 	CListCtrlEx		m_List;
 	CImageList		m_ImageList;
 
-//	HDEVNOTIFY m_hDevNotify;
+	HDEVNOTIFY m_hDevNotify;
 
 	CString		m_SmartDir;
 	CString		m_ExeDir;
@@ -95,6 +97,7 @@ protected:
 	DWORD m_DriveMenuPage;
 	DWORD m_AutoRefreshStatus;
 	DWORD m_WaitTimeStatus;
+	DWORD m_AutoDetectionStatus;
 	DWORD m_RawValues;
 	BOOL m_NowDetectingUnitPowerOnHours;
 
@@ -121,6 +124,7 @@ protected:
 	BOOL m_FlagDumpSmartReadData;
 	BOOL m_FlagDumpSmartReadThreshold;
 	BOOL m_FlagShowTemperatureIconOnly;
+	BOOL m_FlagAsciiView;
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -177,7 +181,6 @@ protected:
 	void InitDriveList();
 	void InitListCtrl();
 	BOOL InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
-	VOID UpdateThreshold();
 
 	void ChangeLang(CString LangName);
 	void UpdateDialogSize();
@@ -203,10 +206,12 @@ protected:
 	void CheckRadioWaitTime(int id, int value);
 	BOOL CheckRadioZoomType(int id, int value);
 	void CheckRadioRawValues(int id, int value);
+	void CheckRadioAutoDetection(int id, int value);
 	void CheckRadioAutoRefresh();
 	void CheckRadioWaitTime();
 	void CheckRadioZoomType();
 	void CheckRadioRawValues();
+	void CheckRadioAutoDetection();
 	void ReExecute();
 	void AlarmOverheat();
 	void AlarmHealthStatus(DWORD i, CString dir, CString disk);
@@ -226,6 +231,7 @@ protected:
 	BOOL UnregisterStartup();
 
 	CString __Number(DWORD value);
+	CHAR AsciiFilter(BYTE c);
 
 	// Generated message map functions
 	virtual void OnOK();
@@ -244,6 +250,7 @@ protected:
 	HRESULT OnDisk7(IHTMLElement *pElement);
 	HRESULT OnPreDisk(IHTMLElement *pElement);
 	HRESULT OnNextDisk(IHTMLElement *pElement);
+	HRESULT OnDiskStatus(IHTMLElement *pElement);
 #ifdef BENCHMARK
 	HRESULT OnBenchmark(IHTMLElement *pElement);
 	void SetMeter(double score);
@@ -340,6 +347,11 @@ public:
 	afx_msg void OnWait180Sec();
 	afx_msg void OnWait210Sec();
 	afx_msg void OnWait240Sec();
+	afx_msg void OnAutoDetection05Sec();
+	afx_msg void OnAutoDetection10Sec();
+	afx_msg void OnAutoDetection20Sec();
+	afx_msg void OnAutoDetection30Sec();
+	afx_msg void OnAutoDetectionDisable();
 	afx_msg void OnEventLog();
 	afx_msg void OnCelsius();
 	afx_msg void OnFahrenheit();
@@ -369,4 +381,6 @@ public:
 	afx_msg void OnRawValues10All();
 	afx_msg void OnRawValues2byte();
 	afx_msg void OnRawValues1byte();
+//	afx_msg void OnAutoDetection();
+	afx_msg void OnAsciiView();
 };	

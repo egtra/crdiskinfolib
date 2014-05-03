@@ -17,8 +17,6 @@
 
 void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 {
-	UpdateThreshold();
-
 	CWaitCursor wait;
 	BOOL flagUpdate = FALSE;
 	DWORD smartUpdate[CAtaSmart::MAX_DISK] = {0};
@@ -79,14 +77,14 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 
 	m_List.DeleteAllItems();
 
-	if(preVendorId == m_Ata.vars[i].VendorId && ! forceUpdate)
+	if(preVendorId == m_Ata.vars[i].DiskVendorId && ! forceUpdate)
 	{
 		return ;
 	}
 
 	while(m_List.DeleteColumn(0)){}
 
-	if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
 		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
@@ -97,7 +95,7 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 244 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.SSD_VENDOR_JMICRON;
 	}
-	else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
 		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
@@ -187,13 +185,13 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				switch(m_Ata.vars[i].Attribute[j].Id)
 				{
 				case 0x05:
-					threshold = m_Ata.Threshold05;
+					threshold = m_Ata.vars[i].Threshold05;
 					break;
 				case 0xC5:
-					threshold = m_Ata.ThresholdC5;
+					threshold = m_Ata.vars[i].ThresholdC5;
 					break;
 				case 0xC6:
-					threshold = m_Ata.ThresholdC6;
+					threshold = m_Ata.vars[i].ThresholdC6;
 					break;
 				}
 				if(threshold > 0 && raw >= threshold && ! m_Ata.vars[i].IsSsd)
@@ -241,7 +239,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				}
 				break;
 			case 0xBB: // Vendor Specific
-				if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_MTRON)
+				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
 				{
 					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
 					{
@@ -290,7 +288,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				}
 				break;
 			case 0xD1:
-				if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 				{
 					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
 					{
@@ -338,6 +336,45 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 					}
 				}
 				break;
+			case 0x01: // Read Error Rate for SandForce Bug
+				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+				{
+					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0 && m_Ata.vars[i].Attribute[j].RawValue[0] == 0 && m_Ata.vars[i].Attribute[j].RawValue[1] == 0)
+					{
+						if(flag)
+						{
+							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						}
+						else
+						{
+							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						}
+					}
+					else if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 && m_Ata.vars[i].Attribute[j].CurrentValue <= m_Ata.vars[i].Threshold[j].ThresholdValue)
+					{
+						if(flag)
+						{
+							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
+						}
+						else
+						{
+							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+						}
+					}
+					else
+					{
+						if(flag)
+						{
+							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						}
+						else
+						{
+							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						}
+					}
+					break;
+				}
+				// break;
 			default:
 				if(((0x01 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0x0D)
 				||	(0xBF <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xD1)
@@ -414,7 +451,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 
 		m_List.SetItemText(k, 2, str);
 
-		if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
 		{
 			cstr.Format(_T("%d"), m_Ata.vars[i].Attribute[j].CurrentValue);							
 			m_List.SetItemText(k, 3, cstr);
@@ -467,7 +504,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 6, cstr);
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDDDDDD"));
 		}
-		else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+		else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 		{
 			m_List.SetItemText(k, 3, _T("---"));
 			m_List.SetItemText(k, 4, _T("---"));
@@ -1097,6 +1134,9 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	subMenu.ModifyMenu(1, MF_BYPOSITION, 1, cstr);
 	subMenu.Detach();
 
+	cstr = i18n(_T("Menu"), _T("ASCII_VIEW"));
+	menu->ModifyMenu(ID_ASCII_VIEW, MF_STRING, ID_ASCII_VIEW, cstr);
+
 	cstr = i18n(_T("Menu"), _T("HIDE_SMART_INFO"));
 	menu->ModifyMenu(ID_HIDE_SMART_INFO, MF_STRING, ID_HIDE_SMART_INFO, cstr);
 	cstr = i18n(_T("Menu"), _T("HIDE_SERIAL_NUMBER"));
@@ -1128,6 +1168,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	cstr = i18n(_T("Menu"), _T("AUTO_AAM_APM_ADAPTION"));
 	menu->ModifyMenu(ID_AUTO_AAM_APM, MF_STRING, ID_AUTO_AAM_APM, cstr);
+
 	cstr = i18n(_T("Menu"), _T("STARTUP"));
 	menu->ModifyMenu(ID_STARTUP, MF_STRING, ID_STARTUP, cstr);
 	cstr = i18n(_T("Menu"), _T("GRAPH"));
@@ -1155,7 +1196,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("WAIT_TIME_AT_STARTUP"));
 	subMenu.ModifyMenu(14, MF_BYPOSITION, 14, cstr);
 	cstr = i18n(_T("Menu"), _T("ADVANCED_FEATURE"));
-	subMenu.ModifyMenu(19, MF_BYPOSITION, 19, cstr);
+	subMenu.ModifyMenu(20, MF_BYPOSITION, 19, cstr);
 	subMenu.Detach();
 
 	cstr = i18n(_T("Menu"), _T("OPEN_DISK_MANAGEMENT"));
@@ -1163,61 +1204,54 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("OPEN_DEVICE_MANAGER"));
 	menu->ModifyMenu(ID_OPEN_DEVICE_MANAGER, MF_STRING, ID_OPEN_DEVICE_MANAGER, cstr);
 
-	cstr = i18n(_T("Menu"), _T("DISABLE"));
+	cstr = i18n(_T("TrayMenu"), _T("DISABLE"));
 	menu->ModifyMenu(ID_AUTO_REFRESH_DISABLE, MF_STRING, ID_AUTO_REFRESH_DISABLE, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_01_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_01_MIN, MF_STRING, ID_AUTO_REFRESH_01_MIN, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_03_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_03_MIN, MF_STRING, ID_AUTO_REFRESH_03_MIN, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_05_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_05_MIN, MF_STRING, ID_AUTO_REFRESH_05_MIN, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_10_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_10_MIN, MF_STRING, ID_AUTO_REFRESH_10_MIN, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_30_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_30_MIN, MF_STRING, ID_AUTO_REFRESH_30_MIN, cstr);
-	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_60_MIN"));
-	menu->ModifyMenu(ID_AUTO_REFRESH_60_MIN, MF_STRING, ID_AUTO_REFRESH_60_MIN, cstr);
+	cstr = i18n(_T("Menu"), _T("MINUTE"));
+	menu->ModifyMenu(ID_AUTO_REFRESH_01_MIN, MF_STRING, ID_AUTO_REFRESH_01_MIN, _T("1 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_03_MIN, MF_STRING, ID_AUTO_REFRESH_03_MIN, _T("3 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_05_MIN, MF_STRING, ID_AUTO_REFRESH_05_MIN, _T("5 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_10_MIN, MF_STRING, ID_AUTO_REFRESH_10_MIN, _T("10 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_30_MIN, MF_STRING, ID_AUTO_REFRESH_30_MIN, _T("30 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_60_MIN, MF_STRING, ID_AUTO_REFRESH_60_MIN, _T("60 ") + cstr);
 
 	CheckRadioAutoRefresh();
 
-	cstr = i18n(_T("Menu"), _T("WAIT_0_SEC"));
-	menu->ModifyMenu(ID_WAIT_0_SEC, MF_STRING, ID_WAIT_0_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_5_SEC"));
-	menu->ModifyMenu(ID_WAIT_5_SEC, MF_STRING, ID_WAIT_5_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_10_SEC"));
-	menu->ModifyMenu(ID_WAIT_10_SEC, MF_STRING, ID_WAIT_10_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_15_SEC"));
-	menu->ModifyMenu(ID_WAIT_15_SEC, MF_STRING, ID_WAIT_15_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_20_SEC"));
-	menu->ModifyMenu(ID_WAIT_20_SEC, MF_STRING, ID_WAIT_20_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_30_SEC"));
-	menu->ModifyMenu(ID_WAIT_30_SEC, MF_STRING, ID_WAIT_30_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_40_SEC"));
-	menu->ModifyMenu(ID_WAIT_40_SEC, MF_STRING, ID_WAIT_40_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_50_SEC"));
-	menu->ModifyMenu(ID_WAIT_50_SEC, MF_STRING, ID_WAIT_50_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_60_SEC"));
-	menu->ModifyMenu(ID_WAIT_60_SEC, MF_STRING, ID_WAIT_60_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_90_SEC"));
-	menu->ModifyMenu(ID_WAIT_90_SEC, MF_STRING, ID_WAIT_90_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_120_SEC"));
-	menu->ModifyMenu(ID_WAIT_120_SEC, MF_STRING, ID_WAIT_120_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_150_SEC"));
-	menu->ModifyMenu(ID_WAIT_150_SEC, MF_STRING, ID_WAIT_150_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_180_SEC"));
-	menu->ModifyMenu(ID_WAIT_180_SEC, MF_STRING, ID_WAIT_180_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_210_SEC"));
-	menu->ModifyMenu(ID_WAIT_210_SEC, MF_STRING, ID_WAIT_210_SEC, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_240_SEC"));
-	menu->ModifyMenu(ID_WAIT_240_SEC, MF_STRING, ID_WAIT_240_SEC, cstr);
+	cstr = i18n(_T("Menu"), _T("SECOND"));
+	menu->ModifyMenu(ID_WAIT_0_SEC, MF_STRING, ID_WAIT_0_SEC, _T("0 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_5_SEC, MF_STRING, ID_WAIT_5_SEC, _T("5 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_10_SEC, MF_STRING, ID_WAIT_10_SEC, _T("10 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_15_SEC, MF_STRING, ID_WAIT_15_SEC, _T("15 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_20_SEC, MF_STRING, ID_WAIT_20_SEC, _T("20 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_30_SEC, MF_STRING, ID_WAIT_30_SEC, _T("30 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_40_SEC, MF_STRING, ID_WAIT_40_SEC, _T("40 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_50_SEC, MF_STRING, ID_WAIT_50_SEC, _T("50 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_60_SEC, MF_STRING, ID_WAIT_60_SEC, _T("60 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_90_SEC, MF_STRING, ID_WAIT_90_SEC, _T("90 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_120_SEC, MF_STRING, ID_WAIT_120_SEC, _T("120 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_150_SEC, MF_STRING, ID_WAIT_150_SEC, _T("150 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_180_SEC, MF_STRING, ID_WAIT_180_SEC, _T("180 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_210_SEC, MF_STRING, ID_WAIT_210_SEC, _T("210 ") + cstr);
+	menu->ModifyMenu(ID_WAIT_240_SEC, MF_STRING, ID_WAIT_240_SEC, _T("240 ") + cstr);
 
 	CheckRadioWaitTime();
 
-	subMenu.Attach(menu->GetSubMenu(2)->GetSubMenu(19)->GetSafeHmenu());
+	subMenu.Attach(menu->GetSubMenu(2)->GetSubMenu(20)->GetSafeHmenu());
+	cstr = i18n(_T("Menu"), _T("AUTO_DTECTION"));
+	subMenu.ModifyMenu(3, MF_BYPOSITION, 3, cstr);
 	cstr = i18n(_T("Dialog"), _T("LIST_RAW_VALUES"));
-	subMenu.ModifyMenu(7, MF_BYPOSITION, 7, cstr);
+	subMenu.ModifyMenu(8, MF_BYPOSITION, 8, cstr);
 	subMenu.Detach();
 
+	cstr = i18n(_T("Menu"), _T("SECOND"));
+	menu->ModifyMenu(ID_AUTO_DETECTION_05_SEC, MF_STRING, ID_AUTO_DETECTION_05_SEC, _T("5 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_DETECTION_10_SEC, MF_STRING, ID_AUTO_DETECTION_10_SEC, _T("10 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_DETECTION_20_SEC, MF_STRING, ID_AUTO_DETECTION_20_SEC, _T("20 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_DETECTION_30_SEC, MF_STRING, ID_AUTO_DETECTION_30_SEC, _T("30 ") + cstr);
+	cstr = i18n(_T("TrayMenu"), _T("DISABLE"));
+	menu->ModifyMenu(ID_AUTO_DETECTION_DISABLE, MF_STRING, ID_AUTO_DETECTION_DISABLE, cstr);
+
+
+	CheckRadioAutoDetection();
 	CheckRadioRawValues();
 
 	cstr = i18n(_T("Menu"), _T("CELSIUS"));
@@ -1291,6 +1325,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	else
 	{
 		menu->CheckMenuItem(ID_DUMP_SMART_READ_THRESHOLD, MF_UNCHECKED);
+	}
+
+	if(m_FlagAsciiView)
+	{
+		menu->CheckMenuItem(ID_ASCII_VIEW, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_ASCII_VIEW, MF_UNCHECKED);
 	}
 
 	if(m_FlagHideSerialNumber)
@@ -1509,6 +1552,8 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	WritePrivateProfileString(_T("Setting"), _T("Language"), LangName, m_Ini);
 }
+
+HRESULT CDiskInfoDlg::OnDiskStatus(IHTMLElement* /*pElement*/){OnHealthStatus();return S_FALSE;}
 
 
 HRESULT CDiskInfoDlg::OnPreDisk(IHTMLElement* /*pElement*/){SelectDrive(m_SelectDisk - 1);return S_FALSE;}

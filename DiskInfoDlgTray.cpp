@@ -384,37 +384,37 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 // Auto Refresh
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	subMenuInfo.fType = MFT_RADIOCHECK;
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_01_MIN"));
+	cstr = _T("1 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_01_MIN;
 	if(m_AutoRefreshStatus == 1){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_03_MIN"));
+	cstr = _T("3 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_03_MIN;
 	if(m_AutoRefreshStatus == 3){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_05_MIN"));
+	cstr = _T("5 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_05_MIN;
 	if(m_AutoRefreshStatus == 5){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_10_MIN"));
+	cstr = _T("10 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_10_MIN;
 	if(m_AutoRefreshStatus == 10){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_30_MIN"));
+	cstr = _T("30 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_30_MIN;
 	if(m_AutoRefreshStatus == 30){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
-	cstr = i18n(_T("TrayMenu"), _T("AUTO_REFRESH_60_MIN"));
+	cstr = _T("60 ") + i18n(_T("Menu"), _T("MINUTE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_60_MIN;
 	if(m_AutoRefreshStatus == 60){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}

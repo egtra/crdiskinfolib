@@ -39,6 +39,10 @@ void CSettingDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_DHtml_ElementInnerText(pDX, _T("AamStatus"), m_AamStatus);
 	DDX_DHtml_ElementInnerText(pDX, _T("ApmStatus"), m_ApmStatus);
 
+	DDX_DHtml_ElementInnerText(pDX, _T("LabelAam"), m_LabelAam);
+	DDX_DHtml_ElementInnerText(pDX, _T("LabelApm"), m_LabelApm);
+
+
 	DDX_DHtml_ElementInnerText(pDX, _T("AamLow"), m_AamLow);
 	DDX_DHtml_ElementInnerText(pDX, _T("AamHigh"), m_AamHigh);
 	DDX_DHtml_ElementInnerText(pDX, _T("AamRecommend"), m_AamRecommend);
@@ -116,6 +120,9 @@ void CSettingDlg::InitLang()
 
 	m_ApmLow = i18n(_T("AamApm"), _T("APM_LOW"));
 	m_ApmHigh = i18n(_T("AamApm"), _T("APM_HIGH"));
+
+	m_LabelAam = i18n(_T("AamApm"), _T("AUTOMATIC_ACOUSTIC_MANAGEMENT"));
+	m_LabelApm = i18n(_T("AamApm"), _T("ADVANCED_POWER_MANAGEMENT"));
 
 	m_EnableAam = i18n(_T("TrayMenu"), _T("ENABLE"));
 	m_DisableAam = i18n(_T("TrayMenu"), _T("DISABLE"));

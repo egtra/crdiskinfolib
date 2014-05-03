@@ -113,13 +113,13 @@ BOOL CDiskInfoDlg::OnInitDialog()
 		InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
 	//	SetWindowTitle(_T("Initializing..."));
 	}
-/*
+/**/
 	DEV_BROADCAST_DEVICEINTERFACE filter;
 	filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
 	filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 	filter.dbcc_classguid = StrageGUID;
 	m_hDevNotify = RegisterDeviceNotification(m_hWnd, &filter, DEVICE_NOTIFY_WINDOW_HANDLE);
-*/
+
 
 	return TRUE; 
 }
@@ -171,20 +171,12 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 	}
 }
 
-VOID CDiskInfoDlg::UpdateThreshold()
-{
-	m_Ata.Threshold05     = GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCaution05"), 1, m_Ini);
-	m_Ata.ThresholdC5     = GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCautionC5"), 1, m_Ini);
-	m_Ata.ThresholdC6     = GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCautionC6"), 1, m_Ini);
-}
-
 BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 {
 	KillTimer(TIMER_SET_POWER_ON_UNIT);
 	SetWindowTitle(i18n(_T("Message"), _T("DETECT_DISK")));
 	m_PowerOnHoursClass = _T("valueR");
 	m_NowDetectingUnitPowerOnHours = FALSE;
-	UpdateThreshold();
 
 	if(m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk))
 	{
@@ -211,6 +203,11 @@ BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 			m_Ata.vars[i].AlarmTemperature = GetPrivateProfileInt(_T("AlarmTemperature"), m_Ata.vars[i].ModelSerial, 50, m_Ini);
 			m_Ata.vars[i].AlarmHealthStatus = GetPrivateProfileInt(_T("AlarmHealthStatus"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
 
+			m_Ata.vars[i].Threshold05     = GetPrivateProfileInt(_T("ThreasholdOfCaution05"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+			m_Ata.vars[i].ThresholdC5     = GetPrivateProfileInt(_T("ThreasholdOfCautionC5"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+			m_Ata.vars[i].ThresholdC6     = GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+
+			m_Ata.vars[i].DiskStatus = m_Ata.CheckDiskStatus(i);
 			SaveSmartInfo(i);
 
 #ifdef BENCHMARK
@@ -382,10 +379,10 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 				}
 			}
 			else
-			if(m_Ata.vars[index].Attribute[j].Id == 0xBB && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_MTRON
-			|| m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INDILINX
-			|| m_Ata.vars[index].Attribute[j].Id == 0xE8 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL
-			|| m_Ata.vars[index].Attribute[j].Id == 0xB4 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_SAMSUNG
+			if(m_Ata.vars[index].Attribute[j].Id == 0xBB && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MTRON
+			|| m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX
+			|| m_Ata.vars[index].Attribute[j].Id == 0xE8 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INTEL
+			|| m_Ata.vars[index].Attribute[j].Id == 0xB4 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG
 			)
 			{
 				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);

@@ -36,6 +36,9 @@ protected:
 	CString m_AamStatus;
 	CString m_ApmStatus;
 
+	CString m_LabelAam;
+	CString m_LabelApm;
+
 	CString m_CurrentAam;
 	CString m_RecommendAam;
 	CString m_CurrentApm;

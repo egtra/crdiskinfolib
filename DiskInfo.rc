@@ -335,8 +335,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,0,2010
- PRODUCTVERSION 3,3,0,2010
+ FILEVERSION 3,5,0,2010
+ PRODUCTVERSION 3,5,0,2010
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -354,12 +354,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "3.3.0.2010"
+            VALUE "FileVersion", "3.5.0.2010"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2010 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "3.3.0.2010"
+            VALUE "ProductVersion", "3.5.0.2010"
         END
     END
     BLOCK "VarFileInfo"
@@ -437,6 +437,8 @@ BEGIN
             MENUITEM "IDENTIFY_DEVICE",             ID_DUMP_IDENTIFY_DEVICE
             MENUITEM "SMART_READ_DATA",             ID_DUMP_SMART_READ_DATA
             MENUITEM "SMART_READ_THRESHOLD",        ID_DUMP_SMART_READ_THRESHOLD
+            MENUITEM SEPARATOR
+            MENUITEM "ASCII View",                  ID_ASCII_VIEW
         END
     END
     POPUP "F&unction"
@@ -497,12 +499,21 @@ BEGIN
         MENUITEM "Open ""Disk Management""",    ID_OPEN_DISK_MANAGEMENT
         MENUITEM "Open ""Device Manager""",     ID_OPEN_DEVICE_MANAGER
         MENUITEM SEPARATOR
+        MENUITEM "Health Status Setting",       ID_HEALTH_STATUS
         POPUP "For Advanced Users"
         BEGIN
             MENUITEM "AAM/APM Setting",             ID_AAM_APM
-            MENUITEM "Health Status Setting",       ID_HEALTH_STATUS
-            MENUITEM SEPARATOR
             MENUITEM "Auto AAM/APM Adaptation",     ID_AUTO_AAM_APM
+            MENUITEM SEPARATOR
+            POPUP "Auto Detection"
+            BEGIN
+                MENUITEM "5 sec.",                      ID_AUTO_DETECTION_05_SEC
+                MENUITEM "10 sec.",                     ID_AUTO_DETECTION_10_SEC
+                MENUITEM "20 sec.",                     ID_AUTO_DETECTION_20_SEC
+                MENUITEM "30 sec.",                     ID_AUTO_DETECTION_30_SEC
+                MENUITEM "Disable",                     ID_AUTO_DETECTION_DISABLE
+            END
+            MENUITEM SEPARATOR
             MENUITEM "&Advanced Disk Search",       ID_ADVANCED_DISK_SEARCH
             MENUITEM "Event Log",                   ID_EVENT_LOG
             MENUITEM SEPARATOR

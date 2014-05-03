@@ -78,6 +78,7 @@ BEGIN_DHTML_EVENT_MAP(CDiskInfoDlg)
 	DHTML_EVENT_ONCLICK(_T("Disk7"), OnDisk7)
 	DHTML_EVENT_ONCLICK(_T("PreDisk"), OnPreDisk)
 	DHTML_EVENT_ONCLICK(_T("NextDisk"), OnNextDisk)
+	DHTML_EVENT_ONCLICK(_T("DiskStatus"), OnDiskStatus)
 #ifdef BENCHMARK
 	DHTML_EVENT_ONCLICK(_T("Benchmark"), OnBenchmark)
 #endif
@@ -157,6 +158,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_DriveMenuPage = 0;
 	m_AutoRefreshStatus = 0;
 	m_WaitTimeStatus = 0;
+	m_AutoDetectionStatus = 0;
 	m_RawValues = 0;
 	
 	m_NowDetectingUnitPowerOnHours = FALSE;
@@ -176,6 +178,13 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagDumpSmartReadThreshold = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadThreshold"), 0, m_Ini);
 	m_FlagResidentMinimize = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ResidentMinimize"), 0, m_Ini);
 	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
+	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
+
+	m_AutoDetectionStatus = GetPrivateProfileInt(_T("Setting"), _T("AutoDetection"), 0, m_Ini);
+	if(m_AutoDetectionStatus < 0)
+	{
+		m_AutoDetectionStatus = 0;
+	}
 
 	m_ZoomType = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
 
@@ -231,12 +240,10 @@ void CDiskInfoDlg::OnCancel()
 	if(! m_FlagResident)
 	{
 		KillGraphDlg();
-		/*
 		if(m_hDevNotify)
 		{
 			UnregisterDeviceNotification(m_hDevNotify);
 		}
-		*/
 		CDHtmlMainDialog::OnCancel();
 	}
 }
@@ -377,8 +384,8 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
 
-//	ON_MESSAGE(WM_POWERBROADCAST, OnPowerBroadcast)
-//	ON_MESSAGE(WM_DEVICECHANGE, OnDeviceChange)
+	ON_MESSAGE(WM_POWERBROADCAST, &CDiskInfoDlg::OnPowerBroadcast)
+	ON_MESSAGE(WM_DEVICECHANGE, &CDiskInfoDlg::OnDeviceChange)
 
 	// Task Tray
 	ON_REGISTERED_MESSAGE(gRegMessageId, OnRegMessage)
@@ -436,6 +443,13 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_WAIT_180_SEC, &CDiskInfoDlg::OnWait180Sec)
 	ON_COMMAND(ID_WAIT_210_SEC, &CDiskInfoDlg::OnWait210Sec)
 	ON_COMMAND(ID_WAIT_240_SEC, &CDiskInfoDlg::OnWait240Sec)
+
+	ON_COMMAND(ID_AUTO_DETECTION_05_SEC, &CDiskInfoDlg::OnAutoDetection05Sec)
+	ON_COMMAND(ID_AUTO_DETECTION_10_SEC, &CDiskInfoDlg::OnAutoDetection10Sec)
+	ON_COMMAND(ID_AUTO_DETECTION_20_SEC, &CDiskInfoDlg::OnAutoDetection20Sec)
+	ON_COMMAND(ID_AUTO_DETECTION_30_SEC, &CDiskInfoDlg::OnAutoDetection30Sec)
+	ON_COMMAND(ID_AUTO_DETECTION_DISABLE, &CDiskInfoDlg::OnAutoDetectionDisable)
+
 	ON_COMMAND(ID_EVENT_LOG, &CDiskInfoDlg::OnEventLog)
 	ON_COMMAND(ID_CELSIUS, &CDiskInfoDlg::OnCelsius)
 	ON_COMMAND(ID_FAHRENHEIT, &CDiskInfoDlg::OnFahrenheit)
@@ -465,6 +479,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_RAW_VALUES_10_ALL, &CDiskInfoDlg::OnRawValues10All)
 	ON_COMMAND(ID_RAW_VALUES_2BYTE, &CDiskInfoDlg::OnRawValues2byte)
 	ON_COMMAND(ID_RAW_VALUES_1BYTE, &CDiskInfoDlg::OnRawValues1byte)
+	ON_COMMAND(ID_ASCII_VIEW, &CDiskInfoDlg::OnAsciiView)
 	END_MESSAGE_MAP()
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -858,6 +873,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 {
 	TCHAR str[256];
 	CString cstr, alarm, name, id;
+	DWORD niifType = NIIF_INFO;
 	int pre = -1;
 	
 	name.Format(_T("(%d) %s / %s / %s\r\n"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].SerialNumber, m_Ata.vars[i].DriveMap);
@@ -869,6 +885,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		cstr.Format(_T("%s: [%s] -> [%s]\r\n"), i18n(_T("Dialog"), _T("HEALTH_STATUS")),
 					GetDiskStatus(pre), GetDiskStatus(m_Ata.vars[i].DiskStatus));
 		alarm += cstr;
+		niifType = NIIF_WARNING;
 		AddEventLog(601, 2, name + cstr);
 	}
 	else if(m_Ata.vars[i].DiskStatus < (DWORD)pre && pre != 0)
@@ -876,6 +893,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		cstr.Format(_T("%s: [%s] -> [%s]\r\n"), i18n(_T("Dialog"), _T("HEALTH_STATUS")),
 					GetDiskStatus(pre), GetDiskStatus(m_Ata.vars[i].DiskStatus));
 		alarm += cstr;
+		niifType = NIIF_INFO;
 		AddEventLog(701, 4, name + cstr);
 	}
 
@@ -919,6 +937,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("DEGRADATION")),
 					m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
 				alarm += cstr;
+				niifType = NIIF_WARNING;
 				AddEventLog(eventId, 2, name + cstr);
 			}
 			else if(rawValue < pre && pre != -1)
@@ -926,6 +945,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("RECOVERY")),
 					m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
 				alarm += cstr;
+				niifType = NIIF_INFO;
 				AddEventLog(eventId + 100, 4, name + cstr);
 			}
 		}
@@ -937,6 +957,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 			{
 				cstr.Format(_T("%s: %d C\r\n"), i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), m_Ata.vars[i].Temperature);
 				AddEventLog(606, 2, name + cstr);
+				niifType = NIIF_WARNING;
 				preTime[i] = CTime::GetTickCount();
 			}
 		}
@@ -945,7 +966,14 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 	if(! alarm.IsEmpty())
 	{
 		cstr.Format(_T("(%d) %s\n"), i + 1, m_Ata.vars[i].Model);
-		ShowBalloon(m_MainIconId, NIIF_WARNING, i18n(_T("Alarm"), _T("ALARM_HEALTH_STATUS")), cstr + alarm);
+		if(niifType == NIIF_WARNING)
+		{
+			ShowBalloon(m_MainIconId, niifType, i18n(_T("Alarm"), _T("ALARM_HEALTH_STATUS")), cstr + alarm);
+		}
+		else
+		{
+			ShowBalloon(m_MainIconId, niifType, i18n(_T("Alarm"), _T("INFO_HEALTH_STATUS")), cstr + alarm);
+		}
 	}
 }
 
@@ -1045,14 +1073,44 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 
 		AutoAamApmAdaption();
 	}
-	/*
 	else if(nIDEvent == TIMER_AUTO_DETECT)
 	{
 		CWaitCursor wait;
 		BOOL flagChangeDisk = FALSE;
 		KillTimer(TIMER_AUTO_DETECT);
-		m_SelectDisk = 0;
 
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
+
+		if(flagChangeDisk)
+		{
+			// Update Menu and Dialog
+			m_SelectDisk = 0;
+			m_DriveMenuPage = 0;
+			ChangeLang(m_CurrentLang);
+			if(m_FlagResident)
+			{
+				for(int i = 0; i < CAtaSmart::MAX_DISK; i++)
+				{
+					RemoveTemperatureIcon(i);
+				}
+				CheckTrayTemperatureIcon();
+			}
+
+			if(m_SettingDlg != NULL)
+			{
+				::SendMessage(m_SettingDlg->m_hWnd, WM_CLOSE, 0, 0);
+			}
+			if(m_HealthDlg != NULL)
+			{
+				::SendMessage(m_HealthDlg->m_hWnd, WM_CLOSE, 0, 0);
+			}
+		}
+		else
+		{
+			Refresh(TRUE);
+		}
+
+/*
 		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
 
 		if(flagChangeDisk)
@@ -1068,8 +1126,8 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 				::SendMessage(m_SettingDlg->m_hWnd, WM_CLOSE, 0, 0);
 			}
 		}
+*/
 	}
-	*/
 	else if(nIDEvent == TIMER_UPDATE_TRAY_ICON)
 	{
 		KillTimer(TIMER_UPDATE_TRAY_ICON);
@@ -1086,10 +1144,15 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 
 LRESULT CDiskInfoDlg::OnPowerBroadcast(WPARAM wParam, LPARAM lParam)
 {
+	if(m_AutoDetectionStatus <= 0)
+	{
+		return FALSE;
+	}
+
 	switch(wParam)
 	{
 	case PBT_APMRESUMESUSPEND:
-		SetTimer(TIMER_FORCE_REFRESH, 1000 * 10, 0);
+		SetTimer(TIMER_FORCE_REFRESH, m_AutoDetectionStatus * 1000, 0);
 //		MessageBox(_T("PBT_APMRESUMESUSPEND"));
 		break;
 //	case PBT_APMSUSPEND:
@@ -1104,26 +1167,31 @@ LRESULT CDiskInfoDlg::OnPowerBroadcast(WPARAM wParam, LPARAM lParam)
 
 LRESULT CDiskInfoDlg::OnDeviceChange(WPARAM wParam, LPARAM lParam)
 {
-/*
+	if(m_AutoDetectionStatus <= 0)
+	{
+		return FALSE;
+	}
+
+	//CString cstr;
 	switch(wParam)
 	{
 	case DBT_DEVICEARRIVAL:
 		{
-			// cstr.Format(_T("DBT_DEVICEARRIVAL: LPARAM=%08X\n"), lParam);
+			//cstr.Format(_T("DBT_DEVICEARRIVAL: LPARAM=%08X\n"), lParam);
 			PDEV_BROADCAST_HDR pdbh = (PDEV_BROADCAST_HDR)lParam;
 			switch(pdbh->dbch_devicetype)
 			{
 			case DBT_DEVTYP_DEVICEINTERFACE:
 				{
-				//	cstr += _T("DBT_DEVTYP_DEVICEINTERFACE");
+					//cstr += _T("DBT_DEVTYP_DEVICEINTERFACE");
 					PDEV_BROADCAST_DEVICEINTERFACE pdbd = (PDEV_BROADCAST_DEVICEINTERFACE)lParam;
 					if(pdbd->dbcc_classguid == StrageGUID)
 					{
 					//	AfxMessageBox(pdbd->dbcc_name);
 					
 					// Disabled 2008/11/20 (This feature will be enabled on future release...)
-					//	KillTimer(TIMER_AUTO_DETECT);
-					//	SetTimer(TIMER_AUTO_DETECT, 1000 * 10, 0);
+						KillTimer(TIMER_AUTO_DETECT);
+						SetTimer(TIMER_AUTO_DETECT, m_AutoDetectionStatus * 1000, 0);
 					}
 				}
 				break;
@@ -1161,8 +1229,11 @@ LRESULT CDiskInfoDlg::OnDeviceChange(WPARAM wParam, LPARAM lParam)
 					{
 					//	AfxMessageBox(pdbd->dbcc_name);
 					// Disabled 2008/11/20 (This feature will be enabled on future release...)
-					//	KillTimer(TIMER_AUTO_DETECT);
-					//	SetTimer(TIMER_AUTO_DETECT, 1000 * 10, 0);
+						KillTimer(TIMER_AUTO_DETECT);
+						if(m_AutoDetectionStatus > 0)
+						{
+							SetTimer(TIMER_AUTO_DETECT, m_AutoDetectionStatus * 1000, 0);
+						}
 					}
 				}
 				break;
@@ -1191,7 +1262,6 @@ LRESULT CDiskInfoDlg::OnDeviceChange(WPARAM wParam, LPARAM lParam)
 	//	AfxMessageBox(cstr);
 		break;
 	}
-*/
 	return TRUE;
 }
 
@@ -1264,4 +1334,9 @@ void CDiskInfoDlg::ReExecute()
 	}
 	KillGraphDlg();
 	EndDialog(RE_EXEC);
+}
+
+DWORD CDiskInfoDlg::GetSelectDisk()
+{
+	return m_SelectDisk;
 }

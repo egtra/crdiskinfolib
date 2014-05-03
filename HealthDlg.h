@@ -15,7 +15,7 @@ class CHealthDlg : public CDHtmlDialogEx
 	DECLARE_DYNCREATE(CHealthDlg)
 
 	static const int SIZE_X = 444;
-	static const int SIZE_Y = 235;
+	static const int SIZE_Y = 280;
 
 public:
 	CHealthDlg(CWnd* pParent = NULL);
@@ -24,6 +24,9 @@ public:
 	enum { IDD = IDD_HEALTH, IDH = IDR_HTML_DUMMY };
 
 protected:
+	DWORD m_DiskIndex;
+	CString m_SelectDisk;
+
 	CString m_Value05;
 	CString m_ValueC5;
 	CString m_ValueC6;
@@ -43,7 +46,11 @@ protected:
 	virtual BOOL OnInitDialog();
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 
+	void InitSelectDisk();
 	void InitLang();
+
+	HRESULT OnSelectDisk(IHTMLElement* /*pElement*/);
+	void UpdateSelectDisk(DWORD index);
 
 	HRESULT OnApply(IHTMLElement* /*pElement*/);
 	HRESULT OnDefault(IHTMLElement* /*pElement*/);

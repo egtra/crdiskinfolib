@@ -73,6 +73,7 @@ public:
 	{
 		CMD_TYPE_PHYSICAL_DRIVE = 0,
 		CMD_TYPE_SCSI_MINIPORT,
+//		CMD_TYPE_SILICON_IMAGE,
 		CMD_TYPE_SAT,				// SAT = SCSI_ATA_TRANSLATION
 		CMD_TYPE_SUNPLUS,
 		CMD_TYPE_IO_DATA,
@@ -85,13 +86,14 @@ public:
 
 	enum VENDOR_ID
 	{
-		HDD_GENERAL         = 0,
-		SSD_GENERAL         = 1,
-		SSD_VENDOR_MTRON    = 2,
-		SSD_VENDOR_INDILINX = 3,
-		SSD_VENDOR_JMICRON  = 4,
-		SSD_VENDOR_INTEL    = 5,
-		SSD_VENDOR_SAMSUNG  = 6,
+		HDD_GENERAL           = 0,
+		SSD_GENERAL           = 1,
+		SSD_VENDOR_MTRON      = 2,
+		SSD_VENDOR_INDILINX   = 3,
+		SSD_VENDOR_JMICRON    = 4,
+		SSD_VENDOR_INTEL      = 5,
+		SSD_VENDOR_SAMSUNG    = 6,
+		SSD_VENDOR_SANDFORCE  = 7,
 
 		VENDOR_UNKNOWN      = 0x0000,
 		USB_VENDOR_BUFFALO  = 0x0411,
@@ -208,6 +210,15 @@ protected:
 		IDEREGS			IdeRegs;
 		BYTE			Data[512];
 	};
+
+	typedef struct {
+		SRB_IO_CONTROL sic ;
+		USHORT port ;
+		USHORT maybe_always1 ;
+		ULONG unknown[5] ;
+		//IDENTIFY_DEVICE id_data ;
+		WORD id_data[256] ;
+	} SilIdentDev ;
 
 	struct IDENTIFY_DEVICE
 	{
@@ -408,9 +419,14 @@ public:
 		INTERFACE_TYPE		InterfaceType;
 		COMMAND_TYPE		CommandType;
 
-		DWORD				VendorId;
-		DWORD				ProductId;
+		DWORD				DiskVendorId;
+		DWORD				UsbVendorId;
+		DWORD				UsbProductId;
 		BYTE				Target;
+
+		WORD				Threshold05;
+		WORD				ThresholdC5;
+		WORD				ThresholdC6;
 
 		CString				SerialNumber;
 		CString				SerialNumberReverse;
@@ -437,8 +453,8 @@ public:
 	struct EXTERNAL_DISK_INFO
 	{
 		CString Enclosure;
-		DWORD	VendorId;
-		DWORD	ProductId;
+		DWORD	UsbVendorId;
+		DWORD	UsbProductId;
 	};
 
 	CArray<ATA_SMART_INFO, ATA_SMART_INFO> vars;
@@ -448,6 +464,9 @@ public:
 	CStringArray m_ScsiController;
 	CStringArray m_UsbController;
 	CString m_ControllerMap;
+	CStringArray m_BlackIdeController;
+	CStringArray m_BlackScsiController;
+	CArray<INT, INT> m_BlackPhysicalDrive;
 
 	BOOL IsAdvancedDiskSearch;
 	BOOL IsEnabledWmi;
@@ -460,9 +479,7 @@ public:
 	BOOL FlagUsbJmicron;
 	BOOL FlagUsbCypress;
 
-	WORD Threshold05;
-	WORD ThresholdC5;
-	WORD ThresholdC6;
+	DWORD CheckDiskStatus(DWORD index);
 
 protected:
 	OSVERSIONINFOEX m_Os;
@@ -502,8 +519,6 @@ protected:
 	BOOL ControlSmartStatusSat(INT physicalDriveId, BYTE target, BYTE command, COMMAND_TYPE commandType);
 	BOOL SendAtaCommandSat(INT physicalDriveId, BYTE target, BYTE main, BYTE sub, BYTE param, COMMAND_TYPE commandType);
 
-	DWORD CheckDiskStatus(SMART_ATTRIBUTE* attribute, SMART_THRESHOLD* threshold, DWORD attributeCount, DWORD vendorId, BOOL isSmartCorrect, BOOL isSsd);
-
 	DWORD GetTransferMode(WORD w63, WORD w76, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
 	DWORD GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode);
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
@@ -517,6 +532,7 @@ protected:
 	BOOL IsSsdJMicron(ATA_SMART_INFO &asi);
 	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
+	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
 };

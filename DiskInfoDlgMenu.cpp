@@ -127,8 +127,12 @@ void CDiskInfoDlg::OnAamApm()
 
 void CDiskInfoDlg::OnHealthStatus()
 {
-	m_HealthDlg = new CHealthDlg(this);
-	m_HealthDlg->Create(CHealthDlg::IDD, m_HealthDlg, ID_HEALTH_STATUS, this);
+	CMenu *menu = GetMenu();
+	if(! (menu->GetMenuState(ID_HEALTH_STATUS, MF_BYCOMMAND) & MF_GRAYED))
+	{
+		m_HealthDlg = new CHealthDlg(this);
+		m_HealthDlg->Create(CHealthDlg::IDD, m_HealthDlg, ID_HEALTH_STATUS, this);
+	}
 }
 
 void CDiskInfoDlg::OnGraph()
@@ -833,7 +837,7 @@ void CDiskInfoDlg::OnUsbLogitec()
 
 void CDiskInfoDlg::OnUsbJmicron()
 {
-		CMenu *menu = GetMenu();
+	CMenu *menu = GetMenu();
 	if(m_Ata.FlagUsbJmicron)
 	{
 		m_Ata.FlagUsbJmicron = FALSE;
@@ -960,6 +964,27 @@ void CDiskInfoDlg::OnDumpSmartReadThreshold()
 	DrawMenuBar();
 }
 
+
+void CDiskInfoDlg::OnAsciiView()
+{
+	CMenu *menu = GetMenu();
+	if(m_FlagAsciiView)
+	{
+		m_FlagAsciiView = FALSE;
+		menu->CheckMenuItem(ID_ASCII_VIEW, MF_UNCHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AsciiView"), _T("0"), m_Ini);
+	}
+	else
+	{
+		m_FlagAsciiView = TRUE;
+		menu->CheckMenuItem(ID_ASCII_VIEW, MF_CHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AsciiView"), _T("1"), m_Ini);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+}
+
+
 void CDiskInfoDlg::OnResidentHide()
 {
 	CMenu *menu = GetMenu();
@@ -1059,4 +1084,47 @@ void CDiskInfoDlg::CheckRadioZoomType()
 	menu->CheckMenuRadioItem(ID_ZOOM_100, ID_ZOOM_AUTO, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
+}
+
+void CDiskInfoDlg::CheckRadioAutoDetection()
+{
+	int id = ID_AUTO_DETECTION_DISABLE;
+
+	switch(m_AutoDetectionStatus)
+	{
+	case   5: id = ID_AUTO_DETECTION_05_SEC;	break;
+	case  10: id = ID_AUTO_DETECTION_10_SEC;	break;
+	case  20: id = ID_AUTO_DETECTION_20_SEC;	break;
+	case  30: id = ID_AUTO_DETECTION_30_SEC;	break;
+	default:  id = ID_AUTO_DETECTION_DISABLE;	break;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_AUTO_DETECTION_05_SEC, ID_AUTO_DETECTION_DISABLE, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+}
+
+void CDiskInfoDlg::OnAutoDetectionDisable()
+{
+	CheckRadioAutoDetection(ID_AUTO_DETECTION_DISABLE, 0);
+}
+
+void CDiskInfoDlg::OnAutoDetection05Sec(){	CheckRadioAutoDetection(ID_AUTO_DETECTION_05_SEC, 5);}
+void CDiskInfoDlg::OnAutoDetection10Sec(){	CheckRadioAutoDetection(ID_AUTO_DETECTION_10_SEC, 10);	}
+void CDiskInfoDlg::OnAutoDetection20Sec(){	CheckRadioAutoDetection(ID_AUTO_DETECTION_20_SEC, 20);	}
+void CDiskInfoDlg::OnAutoDetection30Sec(){	CheckRadioAutoDetection(ID_AUTO_DETECTION_30_SEC, 30);	}
+
+void CDiskInfoDlg::CheckRadioAutoDetection(int id, int value)
+{
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_AUTO_DETECTION_05_SEC, ID_AUTO_DETECTION_DISABLE, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+
+	m_AutoDetectionStatus = value;
+
+	CString cstr;
+	cstr.Format(_T("%d"), value);
+	WritePrivateProfileString(_T("Setting"), _T("AutoDetection"), cstr, m_Ini);
 }

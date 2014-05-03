@@ -39,6 +39,15 @@ CString CDiskInfoDlg::__Number(DWORD value)
 	return cstr;
 }
 
+CHAR CDiskInfoDlg::AsciiFilter(BYTE ch)
+{
+	if((0x00 <= ch && ch < 0x20) || ch >= 0x7f)
+	{
+		return '.';
+	}
+	return ch;
+}
+
 void CDiskInfoDlg::OnEditCopy()
 {
 	CString cstr, clip, driveTemplate, drive, feature, temp, line, csd;
@@ -102,10 +111,10 @@ void CDiskInfoDlg::OnEditCopy()
 		}
 		else if(m_Ata.vars[i].ScsiPort < 0)
 		{
-			if(m_Ata.vars[i].VendorId > 0 && m_Ata.vars[i].ProductId > 0)
+			if(m_Ata.vars[i].UsbVendorId > 0 && m_Ata.vars[i].UsbProductId > 0)
 			{
 				temp.Format(_T(" [%d-X-X, %s] (VID=%04Xh, PID=%04Xh)"),
-					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString, m_Ata.vars[i].VendorId, m_Ata.vars[i].ProductId);
+					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString, m_Ata.vars[i].UsbVendorId, m_Ata.vars[i].UsbProductId);
 			}
 			else
 			{
@@ -174,7 +183,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		else
 		{
 			cstr.Format(_T("        Enclosure : %s (VID=%04Xh, PID=%04Xh, %s)\r\n"),
-				m_Ata.vars[i].Enclosure, m_Ata.vars[i].VendorId, m_Ata.vars[i].ProductId, m_Ata.vars[i].CommandTypeString);		
+				m_Ata.vars[i].Enclosure, m_Ata.vars[i].UsbVendorId, m_Ata.vars[i].UsbProductId, m_Ata.vars[i].CommandTypeString);		
 			drive.Replace(_T("%ENCLOSURE%"), cstr);
 		}
 		drive.Replace(_T("%MODEL%"), m_Ata.vars[i].Model);
@@ -474,7 +483,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
 				}
 
-				if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
 				{
 					cstr.Format(_T("%02X %s %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,
@@ -490,7 +499,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 						str
 						);
 				}
-				else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+				else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 				{
 					cstr.Format(_T("%02X %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,
@@ -543,7 +552,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 			line += _T("     +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\r\n");
 			for(int k = 0; k < 32; k++)
 			{
-				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n"),
+				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
 								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
 								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
@@ -553,6 +562,23 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
 								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
 								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+				line += cstr;
+				if(m_FlagAsciiView)
+				{
+					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
+									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
+									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
+									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
+									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
+									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
+									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
+									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
+									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+				}
+				else
+				{
+					cstr = _T("\r\n");
+				}
 				line += cstr;
 			}
 			clip += line;
@@ -567,7 +593,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 			line += _T("     +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\r\n");
 			for(int k = 0; k < 32; k++)
 			{
-				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n"),
+				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
 								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
 								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
@@ -577,6 +603,23 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
 								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
 								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+				line += cstr;
+				if(m_FlagAsciiView)
+				{
+					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
+									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
+									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
+									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
+									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
+									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
+									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
+									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
+									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+				}
+				else
+				{
+					cstr = _T("\r\n");
+				}
 				line += cstr;
 			}
 			clip += line;
@@ -591,7 +634,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 			line += _T("     +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F\r\n");
 			for(int k = 0; k < 32; k++)
 			{
-				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n"),
+				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
 								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
 								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
@@ -601,6 +644,23 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
 								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
 								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+				line += cstr;
+				if(m_FlagAsciiView)
+				{
+					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
+									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
+									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
+									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
+									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
+									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
+									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
+									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
+									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+				}
+				else
+				{
+					cstr = _T("\r\n");
+				}
 				line += cstr;
 			}
 			clip += line;
