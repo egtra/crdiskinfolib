@@ -673,7 +673,7 @@ void CDiskInfoDlg::InitDriveList()
 			m_ButtonDisk[i % 8].SetToolTipText(cstr);
 			className.Replace(L"Status", L"");
 			m_ButtonDisk[i % 8].ReloadImage(IP(className), 4);
-			m_ButtonDisk[i].SetHandCursor(TRUE);
+			m_ButtonDisk[i % 8].SetHandCursor(TRUE);
 		//	m_ButtonDisk[i % 8].EnableWindow(TRUE);
 		}
 	}
