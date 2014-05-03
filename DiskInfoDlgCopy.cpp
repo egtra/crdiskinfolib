@@ -175,7 +175,7 @@ void CDiskInfoDlg::CopySave(CString fileName)
 %NAND_WRITES%\
 %GBYTES_ERASED%\
 %WEAR_LEVELING_COUNT%\
-     Temparature : %TEMPERATURE%\r\n\
+     Temperature : %TEMPERATURE%\r\n\
    Health Status : %DISK_STATUS%\r\n\
         Features : %SUPPORTED_FEATURE%\r\n\
        APM Level : %APM_LEVEL%\r\n\

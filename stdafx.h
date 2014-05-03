@@ -80,8 +80,8 @@
 	#endif
 #endif
 
-#define PRODUCT_VERSION			_T("6.1.1")
-#define PRODUCT_RELEASE			_T("2014/01/29")
+#define PRODUCT_VERSION			_T("6.1.7")
+#define PRODUCT_RELEASE			_T("2014/02/07")
 #define PRODUCT_COPY_YEAR		_T("2008-2014")
 #define PRODUCT_COPYRIGHT		_T("Copyright © 2008-2014 hiyohiyo")
 #define PRODUCT_LICENSE			_T("Simplified BSD License")

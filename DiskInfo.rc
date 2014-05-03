@@ -372,7 +372,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTI
 CAPTION "AAM/APM Control"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SELECT_DISK,7,7,319,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SELECT_DISK,7,7,319,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     SCROLLBAR       IDC_AAM_SCROLLBAR,20,68,240,11
     PUSHBUTTON      "Disable",IDC_BUTTON_DISABLE_AAM,67,103,50,14,BS_CENTER
     PUSHBUTTON      "Enable",IDC_BUTTON_ENABLE_AAM,171,104,50,14,BS_CENTER
@@ -398,7 +398,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Health Status Setting"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SELECT_DISK,7,7,319,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_SELECT_DISK,7,7,319,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     SCROLLBAR       IDC_SCROLLBAR_05,20,46,134,11
     SCROLLBAR       IDC_SCROLLBAR_C5,17,86,134,11
     SCROLLBAR       IDC_SCROLLBAR_C6,15,128,134,11
@@ -456,8 +456,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,1,0,2014
- PRODUCTVERSION 6,1,0,2014
+ FILEVERSION 6,1,2,2014
+ PRODUCTVERSION 6,1,2,2014
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -474,9 +474,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, Simplified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "6.1.0.2014"
+            VALUE "FileVersion", "6.1.2.2014"
             VALUE "LegalCopyright", "Copyright (C) 2008-2014 hiyohiyo. All rights reserved."
-            VALUE "ProductVersion", "6.1.0.2014"
+            VALUE "ProductVersion", "6.1.2.2014"
             VALUE "ProductName", "CrystalDiskInfo"
             VALUE "FileDescription", "CrystalDiskInfo"
             VALUE "OriginalFilename", "DiskInfo.exe"
