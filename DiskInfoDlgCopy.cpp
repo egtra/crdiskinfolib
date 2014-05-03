@@ -167,7 +167,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		drive.Replace(_T("%I%"), cstr);
 		if(m_Ata.vars[i].Enclosure.IsEmpty())
 		{
-			drive.Replace(_T("%ENCLODURE%"), _T(""));
+			drive.Replace(_T("%ENCLOSURE%"), _T(""));
 		}
 		else
 		{
