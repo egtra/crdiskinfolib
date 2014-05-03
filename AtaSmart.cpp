@@ -122,13 +122,10 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 		case CMD_TYPE_LOGITEC:
 		case CMD_TYPE_JMICRON:
 		case CMD_TYPE_CYPRESS:
+			WakeUp(vars[i].PhysicalDriveId);
 			if(! GetSmartAttributeSat(vars[i].PhysicalDriveId, vars[i].Target, &(vars[i])))
 			{
-				WakeUp(vars[i].PhysicalDriveId);
-				if(! GetSmartAttributeSat(vars[i].PhysicalDriveId, vars[i].Target, &(vars[i])))
-				{
-					return SMART_STATUS_NO_CHANGE;
-				}
+				return SMART_STATUS_NO_CHANGE;
 			}
 			vars[i].DiskStatus = CheckDiskStatus(i);
 			break;
@@ -245,6 +242,7 @@ BOOL CAtaSmart::DisableApm(DWORD i)
 
 BOOL CAtaSmart::SendAtaCommand(DWORD i, BYTE main, BYTE sub, BYTE param)
 {
+	WakeUp(vars[i].PhysicalDriveId);
 	switch(vars[i].CommandType)
 	{
 	case CMD_TYPE_PHYSICAL_DRIVE:

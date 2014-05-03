@@ -1297,7 +1297,7 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 			m_Ata.EnableAam(i, value);
 			m_Ata.UpdateIdInfo(i);
 		}
-		if(status == 0 /* Disalbed */
+		if(status == 0 /* Disabled */
 		&& m_Ata.vars[i].IsAamEnabled)
 		{
 			m_Ata.DisableAam(i);
@@ -1321,7 +1321,7 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 			m_Ata.EnableApm(i, value);
 			m_Ata.UpdateIdInfo(i);
 		}
-		if(status == 0 /* Disalbed */
+		if(status == 0 /* Disabled */
 		&& m_Ata.vars[i].IsApmEnabled)
 		{
 			m_Ata.DisableApm(i);
