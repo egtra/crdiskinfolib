@@ -326,13 +326,13 @@ BEGIN
     SCROLLBAR       IDC_SCROLLBAR_C6,20,79,134,11
 END
 
-IDD_FONT DIALOGEX 0, 0, 215, 49
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_FONT DIALOGEX 0, 0, 180, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Font Setting"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
+FONT 12, "MS UI Gothic", 400, 0, 0x80
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,76,28,64,14
-    COMBOBOX        IDC_FONT_COMBO,7,6,200,30,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_SORT | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,48,41,83,14
+    COMBOBOX        IDC_FONT_COMBO,7,6,166,148,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_SORT | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
 END
 
 
@@ -342,8 +342,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,0,0,2011
- PRODUCTVERSION 4,0,0,2011
+ FILEVERSION 4,0,1,2011
+ PRODUCTVERSION 4,0,1,2011
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -361,12 +361,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.0.0.2011"
+            VALUE "FileVersion", "4.0.1.2011"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2011 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.0.0.2011"
+            VALUE "ProductVersion", "4.0.1.2011"
         END
     END
     BLOCK "VarFileInfo"
@@ -425,9 +425,9 @@ BEGIN
     IDD_FONT, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 208
+        RIGHTMARGIN, 173
         TOPMARGIN, 6
-        BOTTOMMARGIN, 42
+        BOTTOMMARGIN, 55
     END
 END
 #endif    // APSTUDIO_INVOKED

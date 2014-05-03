@@ -95,12 +95,20 @@ COLORREF CListCtrlEx::GetLineColor() {return m_LineColor;}
 
 void CListCtrlEx::SetFontEx(CString face, double zoomRatio)
 {
-	LOGFONT logFont;
+	LOGFONT logFont = {0};
 
-	GetFont()->GetLogFont(&logFont);
+//	GetFont()->GetLogFont(&logFont);
+	logFont.lfCharSet = DEFAULT_CHARSET;
 	logFont.lfHeight = (LONG)(-12 * zoomRatio);
 	logFont.lfQuality = 6;
-	wsprintf(logFont.lfFaceName, _T("%s"), face.GetString());
+	if(face.GetLength() < 32)
+	{
+		wsprintf(logFont.lfFaceName, _T("%s"), face.GetString());
+	}
+	else
+	{
+		wsprintf(logFont.lfFaceName, _T(""));
+	}
 
 	m_Font.DeleteObject();
 	m_Font.CreateFontIndirect(&logFont);

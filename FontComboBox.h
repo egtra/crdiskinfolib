@@ -23,8 +23,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
-
-	CString fontFace;
+	virtual int CompareItem(LPCOMPAREITEMSTRUCT lpCompareItemStruct);
 };
 
 
