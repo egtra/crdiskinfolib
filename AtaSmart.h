@@ -144,7 +144,8 @@ public:
 		INTERFACE_TYPE_PATA,
 		INTERFACE_TYPE_SATA,
 		INTERFACE_TYPE_USB,
-		INTERFACE_TYPE_IEEE1394
+		INTERFACE_TYPE_IEEE1394,
+		INTERFACE_TYPE_UASP,
 	};
 
 protected:
@@ -1387,6 +1388,7 @@ public:
 	CStringArray m_BlackIdeController;
 	CStringArray m_BlackScsiController;
 	CStringArray m_SiliconImageController;
+	CStringArray m_UASPController;
 	CArray<DWORD, DWORD> m_SiliconImageControllerType;
 	CArray<INT, INT> m_BlackPhysicalDrive;
 

@@ -541,6 +541,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	m_BlackIdeController.RemoveAll();
 	m_BlackScsiController.RemoveAll();
 	m_SiliconImageController.RemoveAll();
+	m_UASPController.RemoveAll();
 	m_SiliconImageControllerType.RemoveAll();
 
 	m_BlackPhysicalDrive.RemoveAll();
@@ -761,6 +762,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 				{
+					BOOL flagUASP = FALSE;
 					BOOL flagBlackList = FALSE;
 					BOOL flagSiliconImage = FALSE;
 					DWORD siliconImageType = 0;
@@ -779,6 +781,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						name1 = pVal.bstrVal;
 						m_ScsiController.Add(name1);
 						VariantClear(&pVal);
+
+						// UASP List
+						if(name1.Find(_T("USB")) >= 0 || name1.Find(_T("UAS")) >= 0)
+						{
+							flagUASP = TRUE;
+						}
 
 						// Black List
 						if(! IsAdvancedDiskSearch && name1.Find(_T("VIA VT6410")) == 0
@@ -817,6 +825,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						{
 							deviceId = pVal.bstrVal;
 							VariantClear(&pVal);
+
+							if(flagUASP)
+							{
+								m_UASPController.Add(deviceId);
+							}
+
 							if(flagBlackList)
 							{
 								m_BlackScsiController.Add(deviceId);
@@ -1071,6 +1085,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					INT physicalDriveId = -1, scsiPort = -1, scsiTargetId = -1, scsiBus = -1;
 					BOOL flagTarget = FALSE;
 					BOOL flagBlackList = FALSE;
+					BOOL flagInterfaceTypeUASP = FALSE;
 					DWORD siliconImageType = 0;
 					
 				try
@@ -1156,6 +1171,16 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						pnpDeviceId.MakeUpper();
 						VariantClear(&pVal);
 
+						// Is UAS Controller (5.2.0-)
+						for(int i = 0; i < m_UASPController.GetCount(); i++)
+						{
+							if(m_UASPController.GetAt(i).Find(pnpDeviceId) >= 0)
+							{
+								DebugPrint(_T("UASPController:") + pnpDeviceId);
+								flagInterfaceTypeUASP = TRUE;
+							}
+						}
+
 						// Is Silicon Image Controller
 						for(int i = 0; i < m_SiliconImageController.GetCount(); i++)
 						{
@@ -1198,7 +1223,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						VENDOR_ID usbVendorId = VENDOR_UNKNOWN;
 						DWORD usbProductId = 0;
 
-						if(interfaceTypeWmi.Find(_T("1394")) >= 0 || model.Find(_T(" IEEE 1394 SBP2 Device")) > 0)
+						if(flagInterfaceTypeUASP)
+						{
+							DebugPrint(_T("INTERFACE_TYPE_UASP"));
+							interfaceType = INTERFACE_TYPE_UASP;
+						}
+						else if(interfaceTypeWmi.Find(_T("1394")) >= 0 || model.Find(_T(" IEEE 1394 SBP2 Device")) > 0)
 						{
 							DebugPrint(_T("INTERFACE_TYPE_IEEE1394"));
 							interfaceType = INTERFACE_TYPE_IEEE1394;
@@ -1272,12 +1302,21 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							model.Replace(_T(" SATA Device"), _T(""));
 							model.Replace(_T(" ATA Device"), _T(""));
 
-							if(model.Replace(_T(" IEEE 1394 SBP2 Device"), _T("")) > 0 || interfaceTypeWmi.Find(_T("1394")) >= 0)
+							if(interfaceType == INTERFACE_TYPE_UASP)
 							{
 								flagSkipModelCheck = TRUE;
-								cstr.Format(_T("IEEE 1394 (%s)"), vars[index].Interface);
+								cstr.Format(_T("UASP (%s)"), vars[index].Interface);
 								vars[index].Interface = cstr;
-								vars[index].InterfaceType = INTERFACE_TYPE_IEEE1394;
+								vars[index].InterfaceType = INTERFACE_TYPE_UASP;
+							}
+
+							else if(model.Replace(_T(" USB Device"), _T("")) > 0 || interfaceTypeWmi.Find(_T("USB")) >= 0)
+							{
+								flagSkipModelCheck = TRUE;
+								cstr.Format(_T("USB (%s)"), vars[index].Interface);
+								vars[index].Interface = cstr;
+								vars[index].InterfaceType = INTERFACE_TYPE_USB;
+
 								for(int i = 0; i < externals.GetCount(); i++)
 								{
 									if(externals.GetAt(i).Enclosure.Find(vars[index].ModelWmi) == 0)
@@ -1288,13 +1327,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 									}
 								}
 							}
-							else if(model.Replace(_T(" USB Device"), _T("")) > 0 || interfaceTypeWmi.Find(_T("USB")) >= 0)
+							else if(model.Replace(_T(" IEEE 1394 SBP2 Device"), _T("")) > 0 || interfaceTypeWmi.Find(_T("1394")) >= 0)
 							{
 								flagSkipModelCheck = TRUE;
-								cstr.Format(_T("USB (%s)"), vars[index].Interface);
+								cstr.Format(_T("IEEE 1394 (%s)"), vars[index].Interface);
 								vars[index].Interface = cstr;
-								vars[index].InterfaceType = INTERFACE_TYPE_USB;
-
+								vars[index].InterfaceType = INTERFACE_TYPE_IEEE1394;
 								for(int i = 0; i < externals.GetCount(); i++)
 								{
 									if(externals.GetAt(i).Enclosure.Find(vars[index].ModelWmi) == 0)
@@ -1347,7 +1385,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 								DebugPrint(_T("Model: ") + vars[index].Model);
 								DebugPrint(_T("SerialNumber: ") + vars[index].SerialNumber);
 								DebugPrint(_T("vars.RemoveAt(index) - 2"));
-								vars.RemoveAt(index);
+							//	vars.RemoveAt(index);
 							}
 
 							// DEBUG
@@ -2511,6 +2549,13 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	&&((asi.Model.Find(_T("OCZ-VERTEX3")) == 0 && asi.FirmwareRev.Find(_T("2.02")) == 0) 
 	|| (asi.Model.Find(_T("OCZ-VERTEX2")) == 0 && asi.FirmwareRev.Find(_T("1.27")) == 0))
 	)
+	{
+		asi.IsThresholdBug = TRUE;
+	}
+
+	// SSD G2 Serieas Firmware Bug
+	// http://hardforum.com/showthread.php?t=1732629
+	if((asi.Model.Find(_T("SSD G2 Series")) == 0 && asi.FirmwareRev.Find(_T("3.6.5")) == 0))
 	{
 		asi.IsThresholdBug = TRUE;
 	}
