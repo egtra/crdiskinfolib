@@ -137,10 +137,12 @@ void CButtonCx::SetToolTipText(LPCTSTR pText)
 
 	// テキストが有効？
 	if (pText == NULL){ return; }
-	// テキストの内容が異なる？
-	if (m_ToolTipText.Find(pText) == 0){ return; }
 
-	m_ToolTipText = pText;
+	CString toolTipText = pText;
+	// テキストの内容が異なる？
+	if (! toolTipText.IsEmpty() && m_ToolTipText.Find(toolTipText) == 0){ return; }
+	m_ToolTipText = toolTipText;
+
 	// ツール ヒント コントロールに登録されているツールの数は無効？
 	if(m_ToolTip.GetToolCount() == 0)
 	{

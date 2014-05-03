@@ -307,6 +307,14 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	}
 
 	m_hShizukuVoice = LoadLibrary(m_ShizukuVoicePath);
+	if (m_hShizukuVoice != NULL)
+	{
+		DebugPrint(L"m_hShizukuVoice != NULL");
+	}
+	else
+	{
+		DebugPrint(L"m_hShizukuVoice == NULL");
+	}
 #endif
 }
 
@@ -1751,7 +1759,14 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		// For Japanese
 		if (m_CurrentLang.Find(_T("Japanese")) == 0 || GetUserDefaultLCID() == 0x0411)
 		{
-			hModule = m_hShizukuVoice;
+			if (m_hShizukuVoice != NULL)
+			{
+				hModule = m_hShizukuVoice;
+			}
+			else
+			{
+				return FALSE;
+			}
 			resource.Format(_T("CDI_VOICE_%03d"), soundId);
 		}
 		else

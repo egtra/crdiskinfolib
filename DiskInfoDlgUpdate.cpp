@@ -1113,27 +1113,30 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			cstr.Format(_T("%.3f TB"), m_Ata.vars[i].HostReads / 1024.0);
 		}
-		m_CtrlBufferSize.SetToolTipText(cstr);
 		m_BufferSize.Format(_T("%d GB"), m_Ata.vars[i].HostReads);
 		m_LabelBufferSize = i18n(_T("Dialog"), _T("TOTAL_HOST_READS"));
+		m_CtrlBufferSize.SetToolTipText(cstr);
 		m_CtrlLabelBufferSize.SetToolTipText(i18n(_T("Dialog"), _T("TOTAL_HOST_READS")));
 	}
 	else if(m_Ata.vars[i].BufferSize == 0xFFFF * 512)
 	{
 		m_BufferSize.Format(_T(">= 32 MB"));
 		m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
+		m_CtrlBufferSize.SetToolTipText(L"");
 		m_CtrlLabelBufferSize.SetToolTipText(i18n(_T("Dialog"), _T("BUFFER_SIZE")));
 	}
 	else if(m_Ata.vars[i].BufferSize > 0)
 	{
 		m_BufferSize.Format(_T("%d KB"), m_Ata.vars[i].BufferSize / 1024);
 		m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
+		m_CtrlBufferSize.SetToolTipText(L"");
 		m_CtrlLabelBufferSize.SetToolTipText(i18n(_T("Dialog"), _T("BUFFER_SIZE")));
 	}
 	else
 	{
 		m_BufferSize = _T("----");
 		m_LabelBufferSize = _T("----");
+		m_CtrlBufferSize.SetToolTipText(L"");
 		m_CtrlLabelBufferSize.SetToolTipText(L"");
 	}
 
@@ -1148,21 +1151,23 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			cstr.Format(_T("%.3f TB"), m_Ata.vars[i].HostWrites / 1024.0);
 		}
-		m_CtrlNvCacheSize.SetToolTipText(cstr);
 		m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].HostWrites);
 		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"));
+		m_CtrlNvCacheSize.SetToolTipText(cstr);
 		m_CtrlLabelNvCacheSize.SetToolTipText(i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES")));
 	}
 	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{
 		m_NvCacheSize.Format(_T("%d MB"), (DWORD)(m_Ata.vars[i].NvCacheSize / 1024 / 1024));
 		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
+		m_CtrlNvCacheSize.SetToolTipText(L"");
 		m_CtrlLabelNvCacheSize.SetToolTipText(i18n(_T("Dialog"), _T("NV_CACHE_SIZE")));
 	}
 	else
 	{
 		m_NvCacheSize = _T("----");
 		m_LabelNvCacheSize = _T("----");
+		m_CtrlNvCacheSize.SetToolTipText(L"");
 		m_CtrlLabelNvCacheSize.SetToolTipText(L"");
 	}
 
@@ -1177,9 +1182,9 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			cstr.Format(_T("%.3f TB"), m_Ata.vars[i].NandWrites / 1024.0);
 		}
-		m_CtrlRotationRate.SetToolTipText(cstr);
 		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].NandWrites);
 		m_LabelRotationRate = i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"));
+		m_CtrlRotationRate.SetToolTipText(cstr);
 		m_CtrlLabelRotationRate.SetToolTipText(i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES")));
 	}
 	else if(m_Ata.vars[i].GBytesErased >= 0)
@@ -1193,9 +1198,9 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			cstr.Format(_T("%.3f TB"), m_Ata.vars[i].GBytesErased / 1024.0);
 		}
-		m_CtrlRotationRate.SetToolTipText(cstr);
 		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);
 		m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
+		m_CtrlRotationRate.SetToolTipText(cstr);
 		m_CtrlLabelRotationRate.SetToolTipText(i18n(_T("SmartSandForce"), _T("64")));
 	}
 	/*
@@ -1211,6 +1216,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	{
 		m_RotationRate = _T("---- (SSD)");
 		m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
+		m_CtrlRotationRate.SetToolTipText(L"");
 		m_CtrlLabelRotationRate.SetToolTipText(i18n(_T("Dialog"), _T("ROTATION_RATE")));
 	}
 	else if(m_Ata.vars[i].NominalMediaRotationRate > 0)
@@ -1223,6 +1229,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	{
 		m_RotationRate = _T("----");
 		m_LabelRotationRate = _T("----");
+		m_CtrlRotationRate.SetToolTipText(L"");
 		m_CtrlLabelRotationRate.SetToolTipText(L"");
 	}
 

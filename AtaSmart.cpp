@@ -834,7 +834,13 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						{
 							flagBlackList = TRUE;
 						}
-
+						else if (!IsAdvancedDiskSearch
+							&& (name1.Find(_T("ITE IT8212")) == 0)
+							)
+						{
+							flagBlackList = TRUE;
+						}
+						
 						// NVIDIA SCSI Controller
 						if (name1.Find(_T("NVIDIA")) == 0)
 						{
@@ -2847,17 +2853,10 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.DiskVendorId = HDD_VENDOR_WESTERN_DIGITAL;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 	}
-	else if(IsSsdMtron(asi))
+	else if (IsSsdMtron(asi))
 	{
 		asi.SmartKeyName = _T("SmartMtron");
 		asi.DiskVendorId = SSD_VENDOR_MTRON;
-		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
-		asi.IsSsd = TRUE;
-	}
-	else if (IsSsdMicron(asi))
-	{
-		asi.SmartKeyName = _T("SmartMicron");
-		asi.DiskVendorId = SSD_VENDOR_MICRON;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
@@ -2898,6 +2897,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if (IsSsdMicron(asi))
+	{
+		asi.SmartKeyName = _T("SmartMicron");
+		asi.DiskVendorId = SSD_VENDOR_MICRON;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(IsSsdSandForce(asi))
 	{
 		asi.SmartKeyName = _T("SmartSandForce");
@@ -2913,6 +2919,14 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if(IsSsdOczVector(asi))
+	{
+		asi.SmartKeyName = _T("SmartOczVector");
+		asi.DiskVendorId = SSD_VENDOR_OCZ_VECTOR;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
+
 	else if(IsSsdPlextor(asi))
 	{
 		asi.SmartKeyName = _T("SmartPlextor");
@@ -2929,13 +2943,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
-	else if(IsSsdOczVector(asi))
-	{
-		asi.SmartKeyName = _T("SmartOczVector");
-		asi.DiskVendorId = SSD_VENDOR_OCZ_VECTOR;
-		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
-		asi.IsSsd = TRUE;
-	}
+
 	else if(asi.Model.Find(_T("TOSHIBA")) == 0 && asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
@@ -3642,6 +3650,8 @@ BOOL CAtaSmart::IsSsdMicron(ATA_SMART_INFO &asi)
 BOOL CAtaSmart::IsSsdOcz(ATA_SMART_INFO &asi)
 {
 	BOOL flagSmartType = FALSE;
+	CString modelUpper = asi.Model;
+	modelUpper.MakeUpper();
 
 	// 2012/3/11
 	// OCZ-PETROL - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=553;id=diskinfo#553
@@ -3660,7 +3670,47 @@ BOOL CAtaSmart::IsSsdOcz(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 	
-	return (flagSmartType);
+	return (modelUpper.Find(_T("OCZ")) == 0 && flagSmartType);
+}
+
+BOOL CAtaSmart::IsSsdOczVector(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+	CString modelUpper = asi.Model;
+	modelUpper.MakeUpper();
+
+	/*
+	// 2013/1/19
+	// OCZ-VECTOR - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1031;id=diskinfo#1031
+	if (asi.Attribute[0].Id == 0x05
+		&& asi.Attribute[1].Id == 0x09
+		&& asi.Attribute[2].Id == 0x0C
+		&& asi.Attribute[3].Id == 0xAB
+		&& asi.Attribute[4].Id == 0xAE
+		&& asi.Attribute[5].Id == 0xBB
+		&& asi.Attribute[6].Id == 0xC3
+		&& asi.Attribute[7].Id == 0xC4
+		)
+	{
+		flagSmartType = TRUE;
+	}
+	// 2013/3/24
+	// OCZ-VECTOR - FW 2.0
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1185;id=diskinfo#1185
+	if (asi.Attribute[0].Id == 0x05
+		&& asi.Attribute[1].Id == 0x09
+		&& asi.Attribute[2].Id == 0x0C
+		&& asi.Attribute[3].Id == 0xAB
+		&& asi.Attribute[4].Id == 0xAE
+		&& asi.Attribute[5].Id == 0xC3
+		&& asi.Attribute[6].Id == 0xC4
+		)
+	{
+		flagSmartType = TRUE;
+	}
+	*/
+
+	return (modelUpper.Find(_T("OCZ")) == 0);
 }
 
 BOOL CAtaSmart::IsSsdPlextor(ATA_SMART_INFO &asi)
@@ -3724,42 +3774,6 @@ BOOL CAtaSmart::IsSsdSanDisk(ATA_SMART_INFO &asi)
 	}
 
 	return (asi.Model.Find(_T("SanDisk")) >= 0 || flagSmartType == TRUE);
-}
-
-BOOL CAtaSmart::IsSsdOczVector(ATA_SMART_INFO &asi)
-{
-	BOOL flagSmartType = FALSE;
-
-	// 2013/1/19
-	// OCZ-VECTOR - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1031;id=diskinfo#1031
-	if(asi.Attribute[ 0].Id == 0x05
-	&& asi.Attribute[ 1].Id == 0x09
-	&& asi.Attribute[ 2].Id == 0x0C
-	&& asi.Attribute[ 3].Id == 0xAB
-	&& asi.Attribute[ 4].Id == 0xAE
-	&& asi.Attribute[ 5].Id == 0xBB
-	&& asi.Attribute[ 6].Id == 0xC3
-	&& asi.Attribute[ 7].Id == 0xC4
-	)
-	{
-		flagSmartType = TRUE;
-	}
-	// 2013/3/24
-	// OCZ-VECTOR - FW 2.0
-	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1185;id=diskinfo#1185
-	if(asi.Attribute[ 0].Id == 0x05
-	&& asi.Attribute[ 1].Id == 0x09
-	&& asi.Attribute[ 2].Id == 0x0C
-	&& asi.Attribute[ 3].Id == 0xAB
-	&& asi.Attribute[ 4].Id == 0xAE
-	&& asi.Attribute[ 5].Id == 0xC3
-	&& asi.Attribute[ 6].Id == 0xC4
-	)
-	{
-		flagSmartType = TRUE;
-	}
-
-	return (flagSmartType);
 }
 
 BOOL CAtaSmart::CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2)
