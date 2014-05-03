@@ -2,6 +2,9 @@
 // Microsoft Visual C++ generated include file.
 // Used by DiskInfo.rc
 //
+
+//#define ALERT_VOICE_SUPPORT
+
 #define IDD_DISKINFO_DIALOG             102
 #define IDR_HTML_DUMMY                  103
 #define IDR_HTML_GRAPHDLG               104
@@ -23,6 +26,7 @@
 #define IDI_TRAY_ICON                   145
 #define IDI_MINI_ICON                   145
 #define IDD_FONT                        146
+#define IDR_WAVE1                       150
 #define IDI_TEMP00                      200
 #define IDI_TEMP01                      201
 #define IDI_TEMP02                      202
@@ -403,7 +407,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        149
+#define _APS_NEXT_RESOURCE_VALUE        151
 #define _APS_NEXT_COMMAND_VALUE         33063
 #define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           107

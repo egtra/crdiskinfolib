@@ -210,6 +210,17 @@ void GetOsName(CString& OsFullName)
 				osName = _T("Windows 7");
 			}
 		}
+		else if(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 2)
+		{
+			if(osvi.wProductType != VER_NT_WORKSTATION)
+			{
+				osName = _T("Windows Server 8");
+			}
+			else
+			{
+				osName = _T("Windows 8");
+			}
+		}
 		else
 		{
 			osName.Format(_T("Windows NT %d.%d"), osvi.dwMajorVersion, osvi.dwMinorVersion);
@@ -567,4 +578,33 @@ BOOL IsDotNet2()
 	}
 
 	return (BOOL)dotNet2;
+}
+
+BOOL IsDotNet4()
+{
+	static INT dotNet4 = -1;
+
+	if(dotNet4 == -1)
+	{
+		dotNet4 = FALSE;
+		DWORD type = REG_DWORD;
+		ULONG size = sizeof(DWORD);
+		HKEY  hKey = NULL;
+		DWORD buf = 0;
+
+		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Client"), 0, KEY_READ, &hKey) == ERROR_SUCCESS
+		|| RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v4\\Full"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+		{
+			if(RegQueryValueEx(hKey, _T("Install"), NULL, &type, (LPBYTE)&buf, &size) == ERROR_SUCCESS)
+			{
+				if(buf == 1)
+				{
+					dotNet4 = TRUE;
+				}
+			}
+			RegCloseKey(hKey);			
+		}
+	}
+
+	return (BOOL)dotNet4;
 }

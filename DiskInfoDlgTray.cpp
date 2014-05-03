@@ -634,15 +634,15 @@ void CDiskInfoDlg::UpdateToolTip()
 			{
 				if(m_FlagFahrenheit)
 				{
-					if(m_Ata.vars[i].TotalDiskSize < 1000)
+					if(m_Ata.vars[i].TotalDiskSize >= 1000)
 					{
-						cstr.Format(_T("(%d) %s %.2f GB [%s] %d F\r\n"), i + 1, m_Ata.vars[i].Model,
+						cstr.Format(_T("(%d) %s %.1f GB [%s] %d F\r\n"), i + 1, m_Ata.vars[i].Model,
 							m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus, m_Ata.vars[i].Temperature * 9 / 5 + 32);
 					}
 					else
 					{
-						cstr.Format(_T("(%d) %s %.1f GB [%s] %d F\r\n"), i + 1, m_Ata.vars[i].Model,
-							m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus, m_Ata.vars[i].Temperature * 9 / 5 + 32);
+						cstr.Format(_T("(%d) %s %d MB [%s] %d F\r\n"), i + 1, m_Ata.vars[i].Model,
+							m_Ata.vars[i].TotalDiskSize, diskStatus, m_Ata.vars[i].Temperature * 9 / 5 + 32);
 					}
 					tipFull += cstr;
 					cstr.Format(_T("(%d) %s %d F\r\n"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].Temperature * 9 / 5 + 32);
@@ -652,15 +652,15 @@ void CDiskInfoDlg::UpdateToolTip()
 				}
 				else
 				{
-					if(m_Ata.vars[i].TotalDiskSize < 1000)
+					if(m_Ata.vars[i].TotalDiskSize >= 1000)
 					{
-						cstr.Format(_T("(%d) %s %.2f GB [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model,
+						cstr.Format(_T("(%d) %s %.1f GB [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model,
 							m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus, m_Ata.vars[i].Temperature);
 					}
 					else
 					{
-						cstr.Format(_T("(%d) %s %.1f GB [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model,
-							m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus, m_Ata.vars[i].Temperature);
+						cstr.Format(_T("(%d) %s %d MB [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model,
+							m_Ata.vars[i].TotalDiskSize, diskStatus, m_Ata.vars[i].Temperature);
 					}
 					tipFull += cstr;
 					cstr.Format(_T("(%d) %s %d C\r\n"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].Temperature);
@@ -671,15 +671,15 @@ void CDiskInfoDlg::UpdateToolTip()
 			}
 			else
 			{
-				if(m_Ata.vars[i].TotalDiskSize < 1000)
+				if(m_Ata.vars[i].TotalDiskSize >= 1000)
 				{
-					cstr.Format(_T("(%d) %s %.2f GB [%s]\r\n"), i + 1, m_Ata.vars[i].Model,
+					cstr.Format(_T("(%d) %s %.1f GB [%s]\r\n"), i + 1, m_Ata.vars[i].Model,
 						m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus);
 				}
 				else
 				{
-					cstr.Format(_T("(%d) %s %.1f GB [%s]\r\n"), i + 1, m_Ata.vars[i].Model,
-						m_Ata.vars[i].TotalDiskSize / 1000.0, diskStatus);
+					cstr.Format(_T("(%d) %s %d MB [%s]\r\n"), i + 1, m_Ata.vars[i].Model,
+						m_Ata.vars[i].TotalDiskSize, diskStatus);
 				}
 				tipFull += cstr;
 				cstr.Format(_T("(%d) %s [%s]\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus);

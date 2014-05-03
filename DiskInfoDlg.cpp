@@ -18,6 +18,11 @@
 #include "Benchmark.h"
 #endif
 
+#include <mmsystem.h>
+
+#pragma comment(lib, "winmm.lib")
+
+
 #include <complex>
 
 #ifdef _DEBUG
@@ -100,6 +105,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_SmartDir = ((CDiskInfoApp*)AfxGetApp())->m_SmartDir;
 	m_ExeDir = ((CDiskInfoApp*)AfxGetApp())->m_ExeDir;
 	m_AlertMailPath = ((CDiskInfoApp*)AfxGetApp())->m_AlertMailPath;
+
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
 
 	m_FlagStartupExit = flagStartupExit;
@@ -225,6 +231,10 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 		m_Ata.SetAtaPassThroughSmart(FALSE);
 	}
 
+#ifdef ALERT_VOICE_SUPPORT
+	AlertSound(1000, AS_SET_SOUND_ID);
+#endif
+
 	/*
 	CString cstr;
 	TCHAR str[MAX_PATH];
@@ -248,7 +258,11 @@ CDiskInfoDlg::~CDiskInfoDlg()
 	{
 		DestroyMenu(m_hMenu);
 	}
-	
+
+#ifdef ALERT_VOICE_SUPPORT
+	AlertSound(-1, AS_DEINIT);
+#endif
+
 	#ifdef GADGET_SUPPORT
 	DeleteShareInfo();
 	#endif
@@ -928,6 +942,9 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		niifType = NIIF_WARNING;
 		AddEventLog(601, 2, name + cstr);
 		SendMail(601, title, cstr);
+#ifdef ALERT_VOICE_SUPPORT
+		AlertSound(601, AS_SET_SOUND_ID);
+#endif
 	}
 	else if(m_Ata.vars[i].DiskStatus < (DWORD)pre && pre != 0)
 	{
@@ -937,6 +954,9 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		niifType = NIIF_INFO;
 		AddEventLog(701, 4, name + cstr);
 		SendMail(701, title, cstr);
+#ifdef ALERT_VOICE_SUPPORT
+		AlertSound(701, AS_SET_SOUND_ID);
+#endif
 	}
 
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
@@ -982,6 +1002,9 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				niifType = NIIF_WARNING;
 				AddEventLog(eventId, 2, name + cstr);
 				SendMail(eventId, title, cstr);
+#ifdef ALERT_VOICE_SUPPORT
+				AlertSound(eventId, AS_SET_SOUND_ID);
+#endif
 			}
 			else if(rawValue < pre && pre != -1)
 			{
@@ -991,6 +1014,9 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				niifType = NIIF_INFO;
 				AddEventLog(eventId + 100, 4, name + cstr);
 				SendMail(eventId + 100, title, cstr);
+#ifdef ALERT_VOICE_SUPPORT
+				AlertSound(eventId + 100, AS_SET_SOUND_ID);
+#endif
 			}
 		}
 
@@ -1002,6 +1028,9 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				cstr.Format(_T("%s: %d C\r\n"), i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), m_Ata.vars[i].Temperature);
 				AddEventLog(606, 2, name + cstr);
 				SendMail(606, title, cstr);
+#ifdef ALERT_VOICE_SUPPORT
+				AlertSound(606, AS_SET_SOUND_ID);
+#endif
 				niifType = NIIF_WARNING;
 				preTime[i] = CTime::GetTickCount();
 			}
@@ -1029,43 +1058,12 @@ BOOL CDiskInfoDlg::AddEventLog(DWORD eventId, WORD eventType, CString message)
 		return FALSE;
 	}
 
-//	BOOL result = FALSE;
-	/*
-	CString type;
-
-	switch(eventType)
-	{
-	case 0: type = _T("SUCCESS");		break;
-	case 1: type = _T("ERROR");			break;
-	case 2: type = _T("WARNING");		break;
-	case 4: type = _T("INFORMATION");	break;
-	default:
-		return FALSE;
-		break;
-	}
-
-	if(m_FlagUseEventCreate)
-	{
-		CString cstr; 
-		STARTUPINFO si = {0};
-		PROCESS_INFORMATION pi = {0};
-		si.cb			= sizeof(STARTUPINFO);
-		si.dwFlags		= STARTF_USESHOWWINDOW;
-		si.wShowWindow	= SW_HIDE;
-		cstr.Format(_T("eventcreate /ID %d /L APPLICATION /SO CrystalDiskinfo /T %s /D \"%s\""), eventId, type, message); 
-		result = ::CreateProcess(NULL, (LPWSTR)cstr.GetString(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-		WaitForSingleObject(pi.hProcess, 5000);
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
-	}
-	*/
-
 	return WriteEventLog(eventId, eventType, _T("CrystalDiskInfo"), message);
 }
 
 BOOL CDiskInfoDlg::SendMail(DWORD eventId, CString title, CString message)
 {
-	if(! m_FlagAlertMail)
+	if(! m_FlagAlertMail || m_AlertMailPath.IsEmpty())
 	{
 		return FALSE;
 	}
@@ -1089,6 +1087,122 @@ BOOL CDiskInfoDlg::SendMail(DWORD eventId, CString title, CString message)
 		return FALSE;
 	}
 }
+
+#ifdef ALERT_VOICE_SUPPORT
+BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
+{
+	// Play Sound
+	static MCI_OPEN_PARMS mop = {0};
+	static MCI_PLAY_PARMS mpp = {0};
+	static MCI_GENERIC_PARMS mgp = {0};
+	static DWORD soundId = 0;
+	MCIERROR error = 0;
+	TCHAR tempPath[MAX_PATH];
+
+	if(mode == AS_SET_SOUND_ID)
+	{
+		if(eventId == 0 || soundId == 0 || soundId > eventId)
+		{
+			soundId = eventId;
+		}
+		return TRUE;
+	}
+	else if(mode == AS_DEINIT)
+	{
+		error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, 0, (DWORD_PTR)&mop);
+		if(error)
+		{
+			return FALSE;
+		}
+		else
+		{
+			return TRUE;
+		}
+	}
+	else if(soundId == 0)
+	{
+		return TRUE;
+	}
+
+	// mode == AS_PLAY_SOUND
+	GetTempPath(MAX_PATH, tempPath);
+	CString tempFilePath = tempPath;
+	tempFilePath += _T("CrystalDiskInfo.mp3");
+
+	if(mop.wDeviceID != 0)
+	{
+		error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, 0, (DWORD_PTR)&mop);
+		if(error)
+		{
+			return FALSE;
+		}
+	}
+
+	// Choose MP3 resource
+	CString resource;
+	if(soundId == 1000)
+	{
+		resource =  _T("IDR_MP3_CRYSTAL_DISK_INFO");
+	}
+	else
+	{
+		resource.Format(_T("IDR_MP3_%d"), soundId);
+	}
+
+	// Resource to TempFile
+
+
+	HRSRC hrs = FindResource(NULL, resource, _T("MP3"));
+	if(hrs == NULL)
+	{
+		return FALSE;
+	}
+	HGLOBAL hMp3 = LoadResource(NULL, hrs);
+	LPBYTE lpMp3 = (LPBYTE)LockResource(hMp3);
+	DWORD dwWrite = 0;
+
+	HANDLE hFile = CreateFile(tempFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+    WriteFile(hFile, lpMp3, SizeofResource(NULL, hrs), &dwWrite, NULL);
+	CloseHandle(hFile);
+
+	mop.lpstrDeviceType = _T("MPEGVideo");
+	mop.lpstrElementName =  tempFilePath;
+	error = mciSendCommandW(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&mop);
+	if(error)
+	{
+		return FALSE;
+	//	TCHAR str[512];
+	//	mciGetErrorString(error, str, 512);
+	//	AfxMessageBox(str);
+	}
+	else
+	{
+		error = mciSendCommand(mop.wDeviceID, MCI_SEEK, MCI_SEEK_TO_START, (DWORD_PTR)&mgp);
+		if(error)
+		{
+			return FALSE;
+		//	TCHAR str[512];
+		//	mciGetErrorString(error, str, 512);
+		//	AfxMessageBox(str);
+		}
+		else
+		{
+			error = mciSendCommandW(mop.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&mpp);
+			if(error)
+			{
+				return FALSE;
+			//	TCHAR str[512];
+			//	mciGetErrorString(error, str, 512);
+			//	AfxMessageBox(str);
+			}
+		}
+	}
+
+	soundId = 0;
+
+	return TRUE;
+}
+#endif
 
 void CDiskInfoDlg::AlarmOverheat()
 {
@@ -1130,7 +1244,10 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 				WritePrivateProfileString(_T("PowerOnUnit"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
 				SaveSmartInfo(i);
 			}
-			
+
+#ifdef ALERT_VOICE_SUPPORT
+			AlertSound(0, AS_PLAY_SOUND);
+#endif
 			m_PowerOnHoursClass = _T("valueR");
 			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
 

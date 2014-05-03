@@ -280,6 +280,13 @@ protected:
 	BOOL AddEventLog(DWORD eventId, WORD eventType, CString message);
 	BOOL SendMail(DWORD eventId, CString title, CString message);
 
+#ifdef ALERT_VOICE_SUPPORT
+#define AS_SET_SOUND_ID 1
+#define AS_PLAY_SOUND   2
+#define AS_DEINIT       3
+	BOOL AlertSound(DWORD eventId, DWORD mode);
+#endif
+
 	void RebuildListHeader(DWORD index, BOOL forceUpdate = FALSE);
 
 	afx_msg void OnPaint();

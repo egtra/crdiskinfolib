@@ -1026,6 +1026,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						DebugPrint(_T("diskSize:") + diskSize);
 						VariantClear(&pVal);
 					}
+
 					if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 					{
 						deviceId = pVal.bstrVal;
@@ -1187,7 +1188,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 								DWORD totalDiskSize = (DWORD)(_ttoi64(diskSize) / 1000 / 1000 - 49);
 								if(0 < vars[index].TotalDiskSize && vars[index].TotalDiskSize < 1000) // < 1GB
 								{
-									// vars[index].TotalDiskSize == vars[index].DiskSizeChs;
+								//	vars[index].TotalDiskSize == vars[index].DiskSizeChs;
 								}
 								else if(vars[index].TotalDiskSize < 10 * 1000) // < 10GB
 								{
@@ -1965,15 +1966,18 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		asi.Is9126MB = TRUE;
 	}
 
-
 	if(identify->LogicalCylinders == 0 || identify->LogicalHeads == 0 || identify->LogicalSectors == 0)
 	{
 		return FALSE;
 	//	asi.DiskSizeChs   = 0;
 	}
+	else if(((ULONGLONG)(identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000) > 1000)
+	{
+		asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000 - 49);
+	}
 	else
 	{
-		asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000  - 49);
+		asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000);
 	}
 
 	asi.NumberOfSectors = (ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors;
@@ -2021,8 +2025,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	}
 	else
 	{
-		asi.TotalDiskSize = 0;
-	//	asi.TotalDiskSize = asi.DiskSizeChs;
+	//	asi.TotalDiskSize = 0;
+		asi.TotalDiskSize = asi.DiskSizeChs;
 	}
 
 	// Error Check for External ATA Controller

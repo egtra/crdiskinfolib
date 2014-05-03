@@ -787,6 +787,15 @@
     <None Include="res\F99.ico">
       <Filter>Resource Files\Temperature Icons</Filter>
     </None>
+    <None Include="res\CrystalDiskinfo.wav">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\mp31.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\mp32.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">

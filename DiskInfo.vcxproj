@@ -194,7 +194,8 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
-      <IgnoreSpecificDefaultLibraries>nafxcwd.lib</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -292,11 +293,14 @@
   <ItemGroup>
     <None Include="res\bad.ico" />
     <None Include="res\caution.ico" />
+    <None Include="res\CrystalDiskinfo.wav" />
     <None Include="res\DiskInfo.ico" />
     <None Include="res\DiskInfo.rc2" />
     <None Include="res\DiskInfo16.ico" />
     <None Include="res\dummy.html" />
     <None Include="res\good.ico" />
+    <None Include="res\mp31.bin" />
+    <None Include="res\mp32.bin" />
     <None Include="res\unknown.ico" />
     <None Include="res\00.ico" />
     <None Include="res\01.ico" />

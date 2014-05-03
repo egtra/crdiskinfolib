@@ -12,6 +12,8 @@
 #include "DiskInfoDlg.h"
 #include "GetFileVersion.h"
 
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -218,6 +220,9 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 		m_Ata.vars[i].Speed = Decode10X(str) / 1000.0;
 #endif
 	}
+#ifdef ALERT_VOICE_SUPPORT
+	AlertSound(0, AS_PLAY_SOUND);
+#endif	
 	if(errorCount)
 	{
 		SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);

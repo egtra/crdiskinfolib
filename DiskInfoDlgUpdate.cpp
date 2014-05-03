@@ -20,6 +20,7 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 	CWaitCursor wait;
 	BOOL flagUpdate = FALSE;
 	DWORD smartUpdate[CAtaSmart::MAX_DISK] = {0};
+	
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
 		if(flagForceUpdate || m_FlagAutoRefreshTarget[i])
@@ -40,7 +41,9 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 			}
 		}
 	}
-
+#ifdef ALERT_VOICE_SUPPORT
+	AlertSound(0, AS_PLAY_SOUND);
+#endif
 	if(flagForceUpdate || smartUpdate[m_SelectDisk] == CAtaSmart::SMART_STATUS_MAJOR_CHANGE)
 	{
 		ChangeDisk(m_SelectDisk);
@@ -117,13 +120,13 @@ void CDiskInfoDlg::UpdateShareInfo()
 		RegSetValueEx(hSubKey, _T("Model"), 0, REG_SZ, 
 			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
 
-		if(m_Ata.vars[i].TotalDiskSize < 1000)
+		if(m_Ata.vars[i].TotalDiskSize >= 1000)
 		{
-			_stprintf_s(str, 256, _T("%.2f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+			_stprintf_s(str, 256, _T("%.1f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
 		}
 		else
 		{
-			_stprintf_s(str, 256, _T("%.1f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+			_stprintf_s(str, 256, _T("%d MB"), m_Ata.vars[i].TotalDiskSize);
 		}
 		RegSetValueEx(hSubKey, _T("DiskSize"), 0, REG_SZ,
 			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
@@ -1199,13 +1202,13 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 
 	m_DriveMap = m_Ata.vars[i].DriveMap;
-	if(m_Ata.vars[i].TotalDiskSize < 1000)
+	if(m_Ata.vars[i].TotalDiskSize >= 1000)
 	{
-		m_Capacity.Format(_T("%.2f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+		m_Capacity.Format(_T("%.1f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
 	}
 	else if(m_Ata.vars[i].TotalDiskSize > 0)
 	{
-		m_Capacity.Format(_T("%.1f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+		m_Capacity.Format(_T("%d MB"), m_Ata.vars[i].TotalDiskSize);
 	}
 	else
 	{
@@ -1748,7 +1751,14 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
 		CString cstr;
-		cstr.Format(_T("(%d) %s %.1f GB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
+		if(m_Ata.vars[i].TotalDiskSize >= 1000)
+		{
+			cstr.Format(_T("(%d) %s %.1f GB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
+		}
+		else
+		{
+			cstr.Format(_T("(%d) %s %d MB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize);
+		}
 		subMenuInfo.wID = SELECT_DISK_BASE + i;
 		subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 		subMenu.InsertMenuItem(-1, &subMenuInfo);
@@ -1786,7 +1796,14 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	subSubMenu.AppendMenu(MF_SEPARATOR);
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
-		cstr.Format(_T("(%d) %s %.1f GB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
+		if(m_Ata.vars[i].TotalDiskSize >= 1000)
+		{
+			cstr.Format(_T("(%d) %s %.1f GB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
+		}
+		else
+		{
+			cstr.Format(_T("(%d) %s %d MB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize);
+		}
 		subSubMenuInfo.wID = AUTO_REFRESH_TARGET_BASE + i;
 		subSubMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 		if(m_FlagAutoRefreshTarget[i])
@@ -1891,6 +1908,9 @@ void CDiskInfoDlg::SelectDrive(DWORD i)
 	case CAtaSmart::SMART_STATUS_MAJOR_CHANGE:
 	case CAtaSmart::SMART_STATUS_MINOR_CHANGE:
 		SaveSmartInfo(i);
+#ifdef ALERT_VOICE_SUPPORT
+		AlertSound(0, AS_PLAY_SOUND);
+#endif
 		break;
 	default:
 		if(m_SelectDisk == i)

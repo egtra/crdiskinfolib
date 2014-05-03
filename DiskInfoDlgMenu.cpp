@@ -669,7 +669,10 @@ void CDiskInfoDlg::OnAlertMail()
 
 void CDiskInfoDlg::OnMailSettings()
 {
-	ShellExecuteW(NULL, NULL, m_AlertMailPath, _T("/Settings"), NULL, SW_SHOW);
+	if(! m_AlertMailPath.IsEmpty())
+	{
+		ShellExecuteW(NULL, NULL, m_AlertMailPath, _T("/Settings"), NULL, SW_SHOW);
+	}
 }
 
 void CDiskInfoDlg::CheckStartup()

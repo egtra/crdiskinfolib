@@ -18,6 +18,7 @@ BOOL IsSidebar();
 BOOL IsClassicSystem();
 BOOL IsIe556();
 BOOL IsDotNet2();
+BOOL IsDotNet4();
 DWORD GetIeVersion();
 
 #define PRODUCT_UNLICENSED                       0xABCDABCD

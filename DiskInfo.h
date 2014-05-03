@@ -22,6 +22,8 @@
 #define SMART_INI					_T("Smart.ini")
 #define EXCHANGE_INI				_T("Exchange.ini")
 #define ALERT_MAIL_PATH				_T("CdiResource\\AlertMail.exe")
+#define ALERT_MAIL_4_PATH			_T("CdiResource\\AlertMail4.exe")
+
 
 #define MENU_THEME_INDEX			3
 #define MENU_LANG_INDEX				6
