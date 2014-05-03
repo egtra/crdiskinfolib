@@ -342,8 +342,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,1,0,2011
- PRODUCTVERSION 4,1,0,2011
+ FILEVERSION 4,1,1,2011
+ PRODUCTVERSION 4,1,1,2011
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -361,12 +361,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.1.0.2011"
+            VALUE "FileVersion", "4.1.1.2011"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2011 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.1.0.2011"
+            VALUE "ProductVersion", "4.1.1.2011"
         END
     END
     BLOCK "VarFileInfo"
@@ -683,24 +683,6 @@ END
 //
 
 IDR_HTML_DUMMY          HTML                    "res\\dummy.html"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// MP3
-//
-
-IDR_MP3_CRYSTAL_DISK_INFO MP3                     "res\\CrystalDiskInfo.mp3"
-IDR_MP3_601             MP3                     "res\\601.mp3"
-IDR_MP3_602             MP3                     "res\\602.mp3"
-IDR_MP3_603             MP3                     "res\\603.mp3"
-IDR_MP3_604             MP3                     "res\\604.mp3"
-IDR_MP3_605             MP3                     "res\\605.mp3"
-IDR_MP3_606             MP3                     "res\\606.mp3"
-IDR_MP3_701             MP3                     "res\\701.mp3"
-IDR_MP3_702             MP3                     "res\\702.mp3"
-IDR_MP3_703             MP3                     "res\\703.mp3"
-IDR_MP3_704             MP3                     "res\\704.mp3"
-IDR_MP3_705             MP3                     "res\\705.mp3"
 #endif    // “ú–{Œê (“ú–{) resources
 /////////////////////////////////////////////////////////////////////////////
 

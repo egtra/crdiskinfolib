@@ -1506,6 +1506,12 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 			m_Ata.UpdateIdInfo(i);
 			DebugPrint(_T("m_Ata.EnableAam"));
 		}
+		else if(status == 0 /* Disabled */ )
+		{
+			m_Ata.DisableAam(i);
+			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.DisableAam"));
+		}
 	}
 
 	// APM
@@ -1523,6 +1529,12 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 			m_Ata.EnableApm(i, value);
 			m_Ata.UpdateIdInfo(i);
 			DebugPrint(_T("m_Ata.EnableApm"));
+		}
+		else if(status == 0 /* Disabled */ )
+		{
+			m_Ata.DisableApm(i);
+			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.DisableApm"));
 		}
 	}
 }
