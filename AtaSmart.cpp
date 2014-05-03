@@ -535,7 +535,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 				{
 					VARIANT  pVal;
-					VariantClear(&pVal);
+					VariantInit(&pVal);
 					CString name1, deviceId, channel;
 					if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 					{
@@ -573,7 +573,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 					{
 						VARIANT pVal;
-						VariantClear(&pVal);
+						VariantInit(&pVal);
 						CString name2, deviceId, channel;
 						if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 						{
@@ -658,7 +658,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 					{
 						VARIANT pVal;
-						VariantClear(&pVal);
+						VariantInit(&pVal);
 						CString name2, deviceId;
 						if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 						{
@@ -727,7 +727,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 					{
 						VARIANT pVal;
-						VariantClear(&pVal);
+						VariantInit(&pVal);
 						if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 						{
 							cstr = pVal.bstrVal;
@@ -845,7 +845,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					BOOL flagTarget = FALSE;
 
 					VARIANT pVal;
-					VariantClear(&pVal);
+					VariantInit(&pVal);
 					if(pCOMDev->Get(L"Size", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 					{
 						diskSize = pVal.bstrVal;
@@ -940,7 +940,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 							int index = (int)vars.GetCount() - 1;
 							if(! diskSize.IsEmpty())
 							{
-								DWORD totalDiskSize = (DWORD)(_ttoi64(diskSize) / 1000 / 1000 - 50);
+								DWORD totalDiskSize = (DWORD)(_ttoi64(diskSize) / 1000 / 1000 - 49);
 								if(0 < vars[index].TotalDiskSize && vars[index].TotalDiskSize < 1000) // < 1GB
 								{
 									// vars[index].TotalDiskSize == vars[index].DiskSizeChs;
@@ -1068,7 +1068,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					DWORD physicalDriveId = 0;
 					CString partition, drive, mapping, cstr;
 					VARIANT pVal;
-					VariantClear(&pVal);
+					VariantInit(&pVal);
 					if(pCOMDev->Get(L"DeviceID", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
 					{
 						partition = pVal.bstrVal;
@@ -1554,12 +1554,12 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	asi.Sector = identify->LogicalSectors;
 	asi.Sector28 = 0x0FFFFFFF & identify->TotalAddressableSectors;
 	asi.Sector48 = 0x0000FFFFFFFFFFFF & identify->MaxUserLba;
-	asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000  - 50);
+	asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000  - 49);
 
 	asi.NumberOfSectors = (ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors;
-	if(asi.Sector28 > 0 && ((ULONGLONG)asi.Sector28 * 512) / 1000 / 1000 > 50)
+	if(asi.Sector28 > 0 && ((ULONGLONG)asi.Sector28 * 512) / 1000 / 1000 > 49)
 	{
-		asi.DiskSizeLba28 = (DWORD)(((ULONGLONG)asi.Sector28 * 512) / 1000 / 1000 - 50);
+		asi.DiskSizeLba28 = (DWORD)(((ULONGLONG)asi.Sector28 * 512) / 1000 / 1000 - 49);
 		asi.NumberOfSectors = asi.Sector28;
 	}
 	else
@@ -1567,9 +1567,9 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 		asi.DiskSizeLba28 = 0;
 	}
 
-	if(asi.IsLba48Supported && (asi.Sector48 * 512) / 1000 / 1000 > 50)
+	if(asi.IsLba48Supported && (asi.Sector48 * 512) / 1000 / 1000 > 49)
 	{
-		asi.DiskSizeLba48 = (DWORD)((asi.Sector48 * 512) / 1000 / 1000 - 50);
+		asi.DiskSizeLba48 = (DWORD)((asi.Sector48 * 512) / 1000 / 1000 - 49);
 		asi.NumberOfSectors = asi.Sector48;
 	}
 	else
