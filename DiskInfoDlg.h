@@ -250,7 +250,7 @@ protected:
 
 	CString GetDiskStatus(DWORD statusCode);
 	CString GetDiskStatusClass(DWORD statusCode);
-	CString CDiskInfoDlg::GetDiskStatusReason(DWORD index);
+	CString GetDiskStatusReason(DWORD index);
 	CString GetTemperatureClass(DWORD temperature);
 	CString GetLogicalDriveInfo(DWORD index, INT maxLength = 65535);
 
@@ -460,6 +460,7 @@ public:
 	afx_msg void OnUsbLogitec();
 	afx_msg void OnUsbJmicron();
 	afx_msg void OnUsbCypress();
+	afx_msg void OnUsbMemory();
 	afx_msg void OnUsbEnableAll();
 	afx_msg void OnUsbDisableAll();
 	afx_msg void OnHealthStatus();

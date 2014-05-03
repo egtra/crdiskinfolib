@@ -121,6 +121,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	m_Ata.FlagUsbLogitec = ! GetPrivateProfileInt(_T("USB"), _T("Logitec"), 1, m_Ini);
 	m_Ata.FlagUsbJmicron = ! GetPrivateProfileInt(_T("USB"), _T("JMicron"), 1, m_Ini);
 	m_Ata.FlagUsbCypress = ! GetPrivateProfileInt(_T("USB"), _T("Cypress"), 1, m_Ini);
+	m_Ata.FlagUsbMemory  = ! GetPrivateProfileInt(_T("USB"), _T("UsbMemory"), 0, m_Ini);
 
 	OnUsbSat();
 	OnUsbIodata();
@@ -128,6 +129,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	OnUsbLogitec();
 	OnUsbJmicron();
 	OnUsbCypress();
+	OnUsbMemory();
 
 	InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
@@ -423,7 +425,7 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 			for(DWORD j = 0; j < m_Ata.vars[index].AttributeCount; j++)
 			{
 				if(((0x01 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0x0D)
-				||	m_Ata.vars[index].Attribute[j].Id == 0xB8
+//				||	m_Ata.vars[index].Attribute[j].Id == 0xB8
 				||	(0xBB <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xC1)
 				||	(0xC3 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xD1)
 				||	(0xD3 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xD4)
@@ -479,7 +481,7 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xE7 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xAA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[index].IsRawValues8
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xCA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MICRON)
-			|| (m_Ata.vars[index].Attribute[j].Id == 0xE9 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_OCZ)
+			|| (m_Ata.vars[index].Attribute[j].Id == 0xE9 && (m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_OCZ || m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_OCZ_VECTOR))
 			)
 			)
 			{

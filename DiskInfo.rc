@@ -363,8 +363,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,3,0,2013
- PRODUCTVERSION 5,3,0,2013
+ FILEVERSION 5,4,0,2013
+ PRODUCTVERSION 5,4,0,2013
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,9 +381,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, Simplified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "5.3.0.2013"
+            VALUE "FileVersion", "5.4.0.2013"
             VALUE "LegalCopyright", "Copyright (C) 2008-2013 hiyohiyo. All rights reserved."
-            VALUE "ProductVersion", "5.3.0.2013"
+            VALUE "ProductVersion", "5.4.0.2013"
 #ifdef SUISHO_SHIZUKU_SUPPORT
             VALUE "ProductName", "CrystalDiskInfo Shizuku Edition"
             VALUE "FileDescription", "CrystalDiskInfo Shizuku Edition"
@@ -597,6 +597,7 @@ BEGIN
                 MENUITEM "Logitec",                     ID_USB_LOGITEC
                 MENUITEM "JMicron",                     ID_USB_JMICRON
                 MENUITEM "Cypress",                     ID_USB_CYPRESS
+	            MENUITEM "USB Memory (SAT)",            ID_USB_MEMORY
                 MENUITEM SEPARATOR
                 MENUITEM "Enable All",                  ID_USB_ENABLE_ALL
                 MENUITEM "Disable All",                 ID_USB_DISABLE_ALL

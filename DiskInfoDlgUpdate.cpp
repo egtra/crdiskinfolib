@@ -382,6 +382,20 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 			}
+			// End-to-End Error
+			// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1090;id=diskinfo#1090
+			// http://h20000.www2.hp.com/bc/docs/support/SupportManual/c01159621/c01159621.pdf
+			else if(m_Ata.vars[i].Attribute[j].Id == 0xB8)
+			{
+					if(flag)
+					{
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
+					}
+					else
+					{
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
+					}
+			}
 			// Life
 			else if((m_Ata.vars[i].Attribute[j].Id == 0xE8 && (m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_PLEXTOR || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDISK))
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xBB && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
@@ -390,7 +404,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xE7 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xAA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[i].IsRawValues8)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xCA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MICRON)
-				||  (m_Ata.vars[i].Attribute[j].Id == 0xE9 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_OCZ)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xE9 && (m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_OCZ || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_OCZ_VECTOR))
 				)
 			{
 				if(m_Ata.vars[i].Attribute[j].CurrentValue == 0
@@ -470,7 +484,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			}
 			else if((m_Ata.vars[i].IsSsd && ! m_Ata.vars[i].IsRawValues8)
 				||	((0x01 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0x0D)
-				||	m_Ata.vars[i].Attribute[j].Id == 0xB8
+//				||	m_Ata.vars[i].Attribute[j].Id == 0xB8
 				||	(0xBB <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xC1)
 				||	(0xC3 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xD1)
 				||	(0xD3 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xD4)
@@ -1219,7 +1233,18 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 
 	if(m_Ata.vars[i].NandWrites >= 0)
 	{
-		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].NandWrites);
+		if(m_Ata.vars[i].NandWrites > 1024 * 1024)
+		{
+			m_RotationRate.Format(_T("%.2f PB"), m_Ata.vars[i].NandWrites / 1024.0 / 1024.0);
+		}
+		else if(m_Ata.vars[i].NandWrites > 1024)
+		{
+			m_RotationRate.Format(_T("%.2f TB"), m_Ata.vars[i].NandWrites / 1024.0);
+		}
+		else
+		{
+			m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].NandWrites);
+		}
 
 		SetLabel(m_LabelRotationRate, _T("RotationRate"), i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES")));
 	//	m_LabelRotationRate = i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"));
@@ -1227,7 +1252,19 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 	else if(m_Ata.vars[i].GBytesErased >= 0)
 	{
-		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);		
+		if(m_Ata.vars[i].GBytesErased > 1024 * 1024)
+		{
+			m_RotationRate.Format(_T("%.2f PB"), m_Ata.vars[i].GBytesErased / 1024.0 / 1024.0);
+		}
+		else if(m_Ata.vars[i].GBytesErased > 1024)
+		{
+			m_RotationRate.Format(_T("%.2f TB"), m_Ata.vars[i].GBytesErased / 1024.0);
+		}
+		else
+		{
+			m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);
+		}
+
 	//	m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
 		SetLabel(m_LabelRotationRate, _T("RotationRate"), i18n(_T("SmartSandForce"), _T("64")));
 	//	SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));

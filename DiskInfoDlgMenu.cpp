@@ -1134,6 +1134,25 @@ void CDiskInfoDlg::OnUsbCypress()
 	DrawMenuBar();
 }
 
+void CDiskInfoDlg::OnUsbMemory()
+{
+	CMenu *menu = GetMenu();
+	if(m_Ata.FlagUsbMemory)
+	{
+		m_Ata.FlagUsbMemory = FALSE;
+		menu->CheckMenuItem(ID_USB_MEMORY, MF_UNCHECKED);
+		WritePrivateProfileString(_T("USB"), _T("UsbMemory"), _T("0"), m_Ini);
+	}
+	else
+	{
+		m_Ata.FlagUsbMemory = TRUE;
+		menu->CheckMenuItem(ID_USB_MEMORY, MF_CHECKED);
+		WritePrivateProfileString(_T("USB"), _T("UsbMemory"), _T("1"), m_Ini);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+}
+
 void CDiskInfoDlg::OnUsbEnableAll()
 {
 	m_Ata.FlagUsbSat     = FALSE;
@@ -1142,6 +1161,7 @@ void CDiskInfoDlg::OnUsbEnableAll()
 	m_Ata.FlagUsbLogitec = FALSE;
 	m_Ata.FlagUsbJmicron = FALSE;
 	m_Ata.FlagUsbCypress = FALSE;
+	m_Ata.FlagUsbMemory  = FALSE;
 
 	OnUsbSat();
 	OnUsbIodata();
@@ -1149,6 +1169,7 @@ void CDiskInfoDlg::OnUsbEnableAll()
 	OnUsbLogitec();
 	OnUsbJmicron();
 	OnUsbCypress();
+	OnUsbMemory();
 }
 
 void CDiskInfoDlg::OnUsbDisableAll()
@@ -1159,6 +1180,7 @@ void CDiskInfoDlg::OnUsbDisableAll()
 	m_Ata.FlagUsbLogitec = TRUE;
 	m_Ata.FlagUsbJmicron = TRUE;
 	m_Ata.FlagUsbCypress = TRUE;
+	m_Ata.FlagUsbMemory  = TRUE;
 
 	OnUsbSat();
 	OnUsbIodata();
@@ -1166,6 +1188,7 @@ void CDiskInfoDlg::OnUsbDisableAll()
 	OnUsbLogitec();
 	OnUsbJmicron();
 	OnUsbCypress();
+	OnUsbMemory();
 }
 
 void CDiskInfoDlg::OnDumpIdentifyDevice()

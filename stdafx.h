@@ -80,9 +80,9 @@
 #endif
 #endif
 
-#define PRODUCT_VERSION			_T("5.3.0")
-#define PRODUCT_RELEASE			_T("2013/01/20")
-#define PRODUCT_COPY_YEAR		_T("2008-2012")
+#define PRODUCT_VERSION			_T("5.4.0")
+#define PRODUCT_RELEASE			_T("2013/02/24")
+#define PRODUCT_COPY_YEAR		_T("2008-2013")
 #define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2013 hiyohiyo.")
 
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")

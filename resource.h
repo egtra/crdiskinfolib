@@ -359,8 +359,9 @@
 #define ID_USB_LOGITEC                  32971
 #define ID_USB_JMICRON                  32972
 #define ID_USB_CYPRESS                  32973
-#define ID_USB_ALLON                    32974
-#define ID_USB_ALLOFF                   32975
+#define ID_USB_MEMORY                   32974
+#define ID_USB_ALLON                    32975
+#define ID_USB_ALLOFF                   32976
 #define ID_USB_ENABLE_ALL               32978
 #define ID_USB_DISABLE_ALL              32979
 #define ID_HEALTH_STATUS                32982

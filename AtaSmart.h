@@ -125,6 +125,7 @@ public:
 		SSD_VENDOR_PLEXTOR    = 12, 
 		SSD_VENDOR_SANDISK	  = 13,
 		SSD_VENDOR_OCZ_VECTOR = 14,
+		HDD_SSD_VENDOR_TOSHIBA= 15,
 		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
@@ -1408,6 +1409,7 @@ public:
 	BOOL FlagUsbLogitec;
 	BOOL FlagUsbJmicron;
 	BOOL FlagUsbCypress;
+	BOOL FlagUsbMemory;
 	DWORD CsmiType;
 
 	DWORD CheckDiskStatus(DWORD index);

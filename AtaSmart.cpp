@@ -51,6 +51,7 @@ static const TCHAR *ssdVendorString[] =
 	_T("px"), // PLEXTOR
 	_T("sd"), // SanDisk
 	_T("oz"), // OCZ Vector
+	_T("to"), // TOSHIABA
 };
 
 static const TCHAR *deviceFormFactorString[] = 
@@ -1157,6 +1158,11 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						{
 							flagTarget = TRUE;
 							detectUSBMemory = TRUE;
+						}						
+						else if(FlagUsbMemory)
+						{
+							flagTarget = TRUE;
+							detectUSBMemory = TRUE;
 						}
 						else if(mediaType.Find(_T("removable")) >= 0 || mediaType.IsEmpty())
 						{
@@ -2109,8 +2115,10 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			}
 		}
 	}
-	
-	if(asi.Model.Find(_T("ADATA SSD")) == 0 && asi.FirmwareRev.Find(_T("3.4.6")) == 0)
+
+	CString firmwareRevInt = asi.FirmwareRev;
+	firmwareRevInt.Replace(_T("."), _T(""));
+	if(asi.Model.Find(_T("ADATA SSD")) == 0 && _wtoi(firmwareRevInt) >= 346)
 	{
 		asi.TemperatureMultiplier = 0.5;
 	}
@@ -2647,7 +2655,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		}
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 	}
-	else if(asi.Model.Find(_T("WDC ")) == 0)
+	else if(asi.Model.Find(_T("WDC ")) == 0 && ! asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("Smart");
 		asi.DiskVendorId = HDD_VENDOR_WESTERN_DIGITAL;
@@ -2742,6 +2750,12 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if(asi.Model.Find(_T("TOSHIBA")) == 0 && asi.IsSsd)
+	{
+		asi.SmartKeyName = _T("SmartSsd");
+		asi.DiskVendorId = HDD_SSD_VENDOR_TOSHIBA;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+	}
 	else if(asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
@@ -2816,7 +2830,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			}
 			break;
 		case 0xF1:
-			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == HDD_SSD_VENDOR_TOSHIBA)
 			{
 				asi.HostWrites  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
@@ -2889,7 +2903,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			*/
 			break;
 		case 0xF2:
-			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == HDD_SSD_VENDOR_TOSHIBA)
 			{
 				asi.HostReads  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
@@ -5724,7 +5738,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				}
 				break;
 			case 0xF1:
-				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL || asi->DiskVendorId == HDD_SSD_VENDOR_TOSHIBA)
 				{
 					asi->HostWrites  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
@@ -5797,7 +5811,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				*/
 				break;
 			case 0xF2:
-				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL || asi->DiskVendorId == HDD_SSD_VENDOR_TOSHIBA)
 				{
 					asi->HostReads  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
@@ -6080,7 +6094,7 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 		}
 		else if((
 			(0x01 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0x0D)
-		||	vars[i].Attribute[j].Id == 0xB8
+//		||	vars[i].Attribute[j].Id == 0xB8
 		||	(0xBB <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xC1)
 		||	(0xC3 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xD1)
 		||	(0xD3 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xD4)
@@ -6146,7 +6160,7 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 		|| (vars[i].Attribute[j].Id == 0xE7 && vars[i].DiskVendorId == SSD_VENDOR_SANDFORCE)
 		|| (vars[i].Attribute[j].Id == 0xAA && vars[i].DiskVendorId == SSD_VENDOR_JMICRON && ! vars[i].IsRawValues8)
 		|| (vars[i].Attribute[j].Id == 0xCA && vars[i].DiskVendorId == SSD_VENDOR_MICRON)
-		|| (vars[i].Attribute[j].Id == 0xE9 && vars[i].DiskVendorId == SSD_VENDOR_OCZ)
+		|| (vars[i].Attribute[j].Id == 0xE9 && (vars[i].DiskVendorId == SSD_VENDOR_OCZ || vars[i].DiskVendorId == SSD_VENDOR_OCZ_VECTOR))
 		)
 		{
 			flagUnknown = FALSE;
