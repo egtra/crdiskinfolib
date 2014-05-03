@@ -67,6 +67,7 @@ public:
 		POWER_ON_MINUTES,
 		POWER_ON_HALF_MINUTES,
 		POWER_ON_SECONDS,
+		POWER_ON_10_MINUTES,
 	};
 
 	enum COMMAND_TYPE
@@ -559,6 +560,7 @@ protected:
 	BOOL IsSsdJMicron61x(ATA_SMART_INFO &asi);
 	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
+	BOOL IsSsdSamsung2(ATA_SMART_INFO &asi);
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
 	BOOL IsSsdMicron(ATA_SMART_INFO &asi);
 

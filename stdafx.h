@@ -59,10 +59,10 @@
 // Version Information
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("4.1.4")
-#define PRODUCT_RELEASE			_T("2011/12/3")
-#define PRODUCT_COPY_YEAR		_T("2008-2011")
-#define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2011 hiyohiyo.")
+#define PRODUCT_VERSION			_T("4.2.0")
+#define PRODUCT_RELEASE			_T("2012/1/22")
+#define PRODUCT_COPY_YEAR		_T("2008-2012")
+#define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2012 hiyohiyo.")
 
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")

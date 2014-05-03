@@ -371,7 +371,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			// Life
 			else if((m_Ata.vars[i].Attribute[j].Id == 0xE8 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xBB && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
-				||  (m_Ata.vars[i].Attribute[j].Id == 0xB4 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
+				||  ((m_Ata.vars[i].Attribute[j].Id == 0xB4 || m_Ata.vars[i].Attribute[j].Id == 0xB3) && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xD1 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xE7 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xAA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[i].IsRawValues8)
@@ -1119,7 +1119,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		}
 	}
 	
-		// Temp
+	// Temp
 	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE) && m_Ata.vars[i].HostReads >= 0)
 	{
 		if(m_Ata.vars[i].HostReads > 1024 * 1024)
@@ -1134,15 +1134,9 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			m_BufferSize.Format(_T("%d GB"), m_Ata.vars[i].HostReads);
 		}
+		
+		m_LabelBufferSize = i18n(_T("SmartIntel"), _T("F2"));
 
-		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
-		{
-			m_LabelBufferSize = i18n(_T("SmartIntel"), _T("F2"));
-		}
-		else
-		{
-			m_LabelBufferSize = i18n(_T("SmartSandForce"), _T("F2"));
-		}
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
 	else if(m_Ata.vars[i].IsSsd && m_Ata.vars[i].BufferSize == 0xFFFF * 512)
@@ -1165,7 +1159,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 
 	// Temp
-	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE) && m_Ata.vars[i].HostWrites >= 0)
+	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG) && m_Ata.vars[i].HostWrites >= 0)
 	{
 		if(m_Ata.vars[i].HostWrites > 1024 * 1024)
 		{
@@ -1180,14 +1174,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 			m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].HostWrites);
 		}
 
-		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
-		{
-			m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("F1"));
-		}
-		else
-		{
-			m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("F1"));
-		}		
+		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("F1"));
 	}
 	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{

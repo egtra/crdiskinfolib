@@ -399,7 +399,11 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 
 		DWORD test = vars[i].PowerOnRawValue - vars[i].PowerOnStartRawValue;
 
-		if(vars[i].DiskVendorId == SSD_VENDOR_INDILINX)
+		if(vars[i].DetectedTimeUnitType == POWER_ON_10_MINUTES)
+		{
+			vars[i].MeasuredTimeUnitType = POWER_ON_10_MINUTES;
+		}
+		else if(vars[i].DiskVendorId == SSD_VENDOR_INDILINX)
 		{
 			vars[i].MeasuredTimeUnitType = POWER_ON_HOURS;
 		}
@@ -1880,6 +1884,10 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 						identify->UltraDmaMode, asi.CurrentTransferMode, asi.MaxTransferMode,
 						asi.Interface, &asi.InterfaceType);
 	asi.DetectedTimeUnitType = GetTimeUnitType(asi.Model, asi.FirmwareRev, asi.Major, asi.TransferModeType);
+	if(asi.DetectedTimeUnitType == POWER_ON_10_MINUTES && asi.MeasuredTimeUnitType != POWER_ON_10_MINUTES)
+	{
+		asi.MeasuredTimeUnitType = POWER_ON_10_MINUTES;
+	}
 
 	// Feature
 	if(asi.Major >= 3 && asi.IdentifyDevice.CommandSetSupported1 & (1 << 0))
@@ -2313,6 +2321,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if(IsSsdSamsung2(asi))
+	{
+		asi.SmartKeyName = _T("SmartSamsung2");
+		asi.DiskVendorId = SSD_VENDOR_SAMSUNG;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(IsSsdSandForce(asi))
 	{
 		asi.SmartKeyName = _T("SmartSandForce");
@@ -2395,6 +2410,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					));
 			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+			{
+				asi.HostWrites  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
 			break;
 		case 0xF2:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -2421,6 +2448,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					);
 			}
 			break;
+		case 0xB3:
 		case 0xB4:
 			if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
 			{
@@ -2579,14 +2607,17 @@ BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
 	&& asi.Attribute[ 2].Id == 0x05
 	&& asi.Attribute[ 3].Id == 0x09
 	&& asi.Attribute[ 4].Id == 0x0C
-	&& asi.Attribute[ 5].Id == 0xC0
 	)
 	{
-		if(asi.Attribute[ 6].Id == 0xE8 && asi.Attribute[ 7].Id == 0xE9)
+		if(asi.Attribute[ 5].Id == 0xC0 && asi.Attribute[ 6].Id == 0xE8 && asi.Attribute[ 7].Id == 0xE9)
 		{
 			flagSmartType = TRUE;
 		}
-		else if(asi.Attribute[ 6].Id == 0xE1)
+		else if(asi.Attribute[ 5].Id == 0xC0 && asi.Attribute[ 6].Id == 0xE1)
+		{
+			flagSmartType = TRUE;
+		}
+		else if(asi.Attribute[ 5].Id == 0xAA && asi.Attribute[ 6].Id == 0xAB && asi.Attribute[ 7].Id == 0xAC)
 		{
 			flagSmartType = TRUE;
 		}
@@ -2618,6 +2649,26 @@ BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 	&& asi.Attribute[ 5].Id == 0xB2
 	&& asi.Attribute[ 6].Id == 0xB3
 	&& asi.Attribute[ 7].Id == 0xB4
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
+	return flagSmartType;
+}
+
+// http://www.samsung.com/us/business/oem-solutions/pdfs/General_NSSD_25_SATA_III_Spec_0.2.pdf
+BOOL CAtaSmart::IsSsdSamsung2(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+
+	if(asi.Attribute[ 0].Id == 0x05
+	&& asi.Attribute[ 1].Id == 0x09
+	&& asi.Attribute[ 2].Id == 0x0C
+	&& asi.Attribute[ 3].Id == 0xB1
+	&& asi.Attribute[ 4].Id == 0xB3
+	&& asi.Attribute[ 5].Id == 0xB5
+	&& asi.Attribute[ 6].Id == 0xB6
 	)
 	{
 		flagSmartType = TRUE;
@@ -4591,6 +4642,18 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						));
 				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->HostWrites  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
 				break;
 			case 0xF2:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -4617,6 +4680,7 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						);
 				}
 				break;
+			case 0xB3:
 			case 0xB4:
 				if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
 				{
@@ -4784,7 +4848,7 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 		else 
 		if((vars[i].Attribute[j].Id == 0xE8 && vars[i].DiskVendorId == SSD_VENDOR_INTEL)
 		|| (vars[i].Attribute[j].Id == 0xBB && vars[i].DiskVendorId == SSD_VENDOR_MTRON)
-		|| (vars[i].Attribute[j].Id == 0xB4 && vars[i].DiskVendorId == SSD_VENDOR_SAMSUNG)
+		||((vars[i].Attribute[j].Id == 0xB4 || vars[i].Attribute[j].Id == 0xB3) && vars[i].DiskVendorId == SSD_VENDOR_SAMSUNG)
 		|| (vars[i].Attribute[j].Id == 0xD1 && vars[i].DiskVendorId == SSD_VENDOR_INDILINX)
 		|| (vars[i].Attribute[j].Id == 0xE7 && vars[i].DiskVendorId == SSD_VENDOR_SANDFORCE)
 		|| (vars[i].Attribute[j].Id == 0xAA && vars[i].DiskVendorId == SSD_VENDOR_JMICRON && ! vars[i].IsRawValues8)
@@ -4875,6 +4939,9 @@ DWORD CAtaSmart::GetPowerOnHours(DWORD rawValue, DWORD timeUnitType)
 	case POWER_ON_SECONDS:
 		return rawValue / 60 / 60;
 		break;
+	case POWER_ON_10_MINUTES:
+		return rawValue / 6;
+		break;
 	default:
 		return rawValue;
 		break;
@@ -4900,6 +4967,9 @@ DWORD CAtaSmart::GetPowerOnHoursEx(DWORD i, DWORD timeUnitType)
 		break;
 	case POWER_ON_SECONDS:
 		return rawValue / 60 / 60;
+		break;
+	case POWER_ON_10_MINUTES:
+		return rawValue / 6;
 		break;
 	default:
 		return rawValue;
@@ -5012,6 +5082,15 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 		{
 			return POWER_ON_HOURS;
 		}
+	}
+	// 2012/1/15
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=504;id=diskinfo#504
+	else if(
+	   ((model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && firmware.Find(_T("VM21")) == 0)
+	|| ((model.Find(_T("PX-128M2P")) != -1 || model.Find(_T("PX-256M2P")) != -1) && _tstof(firmware) < 1.059)
+	)
+	{
+		return POWER_ON_10_MINUTES;
 	}
 	else
 	{
