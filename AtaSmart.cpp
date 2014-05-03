@@ -967,7 +967,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 				{
 					DebugPrint(_T("while(pEnumCOMDevs ..."));
 					CString mapping1, mapping2;
-					CString model, deviceId, diskSize, mediaType, interfaceTypeWmi, pnpDeviceId;
+					CString model, deviceId, diskSize, mediaType, interfaceTypeWmi, pnpDeviceId, firmware;
 					INT physicalDriveId = -1, scsiPort = -1, scsiTargetId = -1, scsiBus = -1;
 					BOOL flagTarget = FALSE;
 					BOOL flagBlackList = FALSE;
@@ -1002,6 +1002,11 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					{
 						model = pVal.bstrVal;
 						DebugPrint(_T("model:") + model);
+						VariantClear(&pVal);
+					}
+					if(pCOMDev->Get(L"FirmwareRevision", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
+					{
+						firmware = pVal.bstrVal;
 						VariantClear(&pVal);
 					}
 					if(pCOMDev->Get(L"SCSIPort", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
@@ -1124,7 +1129,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 						// [2010/12/05] Workaround for SAMSUNG HD204UI
 						// http://sourceforge.net/apps/trac/smartmontools/wiki/SamsungF4EGBadBlocks
-						if((model.Find(_T("SAMSUNG HD155UI")) == 0 || model.Find(_T("SAMSUNG HD204UI")) == 0) && IsWorkaroundHD204UI)
+						if((model.Find(_T("SAMSUNG HD155UI")) == 0 || model.Find(_T("SAMSUNG HD204UI")) == 0) && firmware.Find(_T("1AQ10003")) != 0 && IsWorkaroundHD204UI)
 						{
 							flagTarget = FALSE;
 						}
@@ -1432,7 +1437,7 @@ safeRelease:
 		BYTE*	pcbData;
 		STORAGE_DEVICE_DESCRIPTOR*	pDescriptor;
 		STORAGE_PROPERTY_QUERY		sQuery;
-		CString cstr;
+		CString model, firmware;
 
 		dwLen = 4096;
 		pcbData = new BYTE[dwLen];
@@ -1455,11 +1460,17 @@ safeRelease:
 
 		pDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)pcbData;
 		if(pDescriptor->ProductIdOffset)
-			cstr	= (char*)pDescriptor + pDescriptor->ProductIdOffset;
+		{
+			model	= (char*)pDescriptor + pDescriptor->ProductIdOffset;
+		}
+		if(pDescriptor->ProductRevisionOffset)
+		{
+			firmware	= (char*)pDescriptor + pDescriptor->ProductRevisionOffset;
+		}
 
 		delete	pcbData;
 
-		if((cstr.Find(_T("SAMSUNG HD155UI")) == 0 || cstr.Find(_T("SAMSUNG HD204UI")) == 0) && IsWorkaroundHD204UI)
+		if((model.Find(_T("SAMSUNG HD155UI")) == 0 || model.Find(_T("SAMSUNG HD204UI")) == 0) && firmware.Find(_T("1AQ10003")) != 0 && IsWorkaroundHD204UI)
 		{
 			continue;
 		}
