@@ -117,6 +117,7 @@ protected:
 	BOOL m_FlagHideSmartInfo;
 	BOOL m_FlagHideSerialNumber;
 	BOOL m_FlagAdvancedDiskSearch;
+	BOOL m_FlagWorkaroundHD204UI;
 	BOOL m_FlagEventLog;
 	BOOL m_FlagAtaPassThroughSmart;
 //	BOOL m_FlagUseEventCreate;		// Use eventcreate.exe (XP Pro or later)
@@ -185,7 +186,7 @@ protected:
 	void SelectDrive(DWORD index);
 	void InitDriveList();
 	void InitListCtrl();
-	void InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
+	void InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI);
 
 	void ChangeLang(CString LangName);
 	void UpdateDialogSize();
@@ -301,6 +302,7 @@ public:
 	afx_msg void OnOpenDiskManagement();
 	afx_msg void OnOpenDeviceManager();
 	afx_msg void OnAdvancedDiskSearch();
+	afx_msg void OnWorkaroundHD204UI();
 	afx_msg void OnResident();
 
 	// Task Tray

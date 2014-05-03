@@ -360,6 +360,7 @@ DWORD CAtaSmart::CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SM
 					}
 				}
 				break;
+			case 0xBE: // 3.9.4 or later
 			case 0xC2: // Temperature
 				if(pre[i].RawValue[0] != cur[i].RawValue[0]
 				|| pre[i].CurrentValue != cur[i].CurrentValue)
@@ -461,13 +462,15 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 }
 
 /* PUBLIC FUNCTION */
-VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
+VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI)
 {
 	// Debug
 	// useWmi = FALSE;
 
 	IsAdvancedDiskSearch = advancedDiskSearch;
 	IsEnabledWmi = FALSE;
+	IsWorkaroundHD204UI = workaroundHD204UI;
+
 	CArray<DISK_POSITION, DISK_POSITION> previous;
 	
 	if(flagChangeDisk != NULL)
@@ -1119,6 +1122,13 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 							flagTarget = TRUE;
 						}
 
+						// [2010/12/05] Workaround for SAMSUNG HD204UI
+						// http://sourceforge.net/apps/trac/smartmontools/wiki/SamsungF4EGBadBlocks
+						if((model.Find(_T("SAMSUNG HD155UI")) == 0 || model.Find(_T("SAMSUNG HD204UI")) == 0) && IsWorkaroundHD204UI)
+						{
+							flagTarget = FALSE;
+						}
+
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
 						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType))
 						{
@@ -1357,6 +1367,7 @@ safeRelease:
 	for(int i = 0; i < MAX_SEARCH_PHYSICAL_DRIVE; i++)
 	{
 
+
 ///		CString cstr;
 ///		cstr.Format(_T("Search Physical Drive : %d"), i);
 ///		DebugPrint(cstr);
@@ -1412,6 +1423,50 @@ safeRelease:
 			continue;
 		}
 
+
+		// [2010/12/05] Workaround for SAMSUNG HD204UI
+		// http://sourceforge.net/apps/trac/smartmontools/wiki/SamsungF4EGBadBlocks
+
+		DWORD	dwRet;
+		DWORD	dwLen;
+		BYTE*	pcbData;
+		STORAGE_DEVICE_DESCRIPTOR*	pDescriptor;
+		STORAGE_PROPERTY_QUERY		sQuery;
+		CString cstr;
+
+		dwLen = 4096;
+		pcbData = new BYTE[dwLen];
+		if(pcbData == NULL)
+		{
+			continue;
+		}
+		ZeroMemory(pcbData, dwLen);
+		sQuery.PropertyId	= StorageDeviceProperty;
+		sQuery.QueryType	= PropertyStandardQuery;
+		sQuery.AdditionalParameters[0] = NULL;
+		
+		bRet = ::DeviceIoControl(hIoCtrl, IOCTL_STORAGE_QUERY_PROPERTY, &sQuery, sizeof(STORAGE_PROPERTY_QUERY), pcbData,dwLen,&dwRet,NULL);
+		if(bRet == FALSE)
+		{
+			delete	pcbData;
+			::CloseHandle(hIoCtrl);
+			continue;
+		}
+
+		pDescriptor = (STORAGE_DEVICE_DESCRIPTOR*)pcbData;
+		if(pDescriptor->ProductIdOffset)
+			cstr	= (char*)pDescriptor + pDescriptor->ProductIdOffset;
+
+		delete	pcbData;
+
+		if((cstr.Find(_T("SAMSUNG HD155UI")) == 0 || cstr.Find(_T("SAMSUNG HD204UI")) == 0) && IsWorkaroundHD204UI)
+		{
+			continue;
+		}
+
+		// [2010/12/05] Workaround for SAMSUNG HD204UI
+		// http://sourceforge.net/apps/trac/smartmontools/wiki/SamsungF4EGBadBlocks
+		
 		// USB-HDD Check
 		if(! IsEnabledWmi)
 		{
@@ -4288,6 +4343,12 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 					rawValue = asi->Attribute[j].WorstValue * 256 + asi->Attribute[j].CurrentValue;
 				}
 				asi->PowerOnCount = rawValue;
+				break;
+			case 0xBE:
+				if(asi->Attribute[j].RawValue[0] > 0 && asi->Attribute[j].RawValue[0] < 100)
+				{
+					asi->Temperature = asi->Attribute[j].RawValue[0];
+				}
 				break;
 			case 0xC2: // Temperature
 				if(asi->Model.Find(_T("SAMSUNG SV")) == 0 && (asi->Attribute[j].RawValue[1] != 0 || asi->Attribute[j].RawValue[0] > 70))

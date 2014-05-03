@@ -95,7 +95,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	OnUsbJmicron();
 	OnUsbCypress();
 
-	InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL);
+	InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL, m_FlagWorkaroundHD204UI);
 
 	if(m_FlagStartupExit)
 	{
@@ -162,14 +162,14 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 	}
 }
 
-void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
+void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI)
 {
 	KillTimer(TIMER_SET_POWER_ON_UNIT);
 	SetWindowTitle(i18n(_T("Message"), _T("DETECT_DISK")));
 	m_PowerOnHoursClass = _T("valueR");
 	m_NowDetectingUnitPowerOnHours = FALSE;
 
-	m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk);
+	m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk, workaroundHD204UI);
 	
 	DWORD errorCount = 0;
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)

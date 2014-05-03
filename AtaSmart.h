@@ -335,7 +335,7 @@ public:
 	BYTE GetRecommendAamValue(DWORD index);
 	BYTE GetRecommendApmValue(DWORD index);
 
-	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
+	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI);
 	BOOL MeasuredTimeUnit();
 	DWORD GetPowerOnHours(DWORD rawValue, DWORD timeUnitType);
 	DWORD GetPowerOnHoursEx(DWORD index, DWORD timeUnitType);
@@ -481,6 +481,8 @@ public:
 
 	BOOL IsAdvancedDiskSearch;
 	BOOL IsEnabledWmi;
+
+	BOOL IsWorkaroundHD204UI;
 	DWORD MeasuredGetTickCount;
 
 	BOOL FlagUsbSat;

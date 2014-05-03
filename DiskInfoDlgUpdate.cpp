@@ -1391,7 +1391,10 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("WAIT_TIME_AT_STARTUP"));
 	subMenu.ModifyMenu(14, MF_BYPOSITION, 14, cstr);
 	cstr = i18n(_T("Menu"), _T("ADVANCED_FEATURE"));
-	subMenu.ModifyMenu(20, MF_BYPOSITION, 19, cstr);
+	subMenu.ModifyMenu(20, MF_BYPOSITION, 20, cstr);
+
+	cstr = i18n(_T("Menu"), _T("WORKAROUND"));
+	subMenu.ModifyMenu(22, MF_BYPOSITION, 22, cstr);
 	subMenu.Detach();
 
 	cstr = i18n(_T("Menu"), _T("OPEN_DISK_MANAGEMENT"));
@@ -1558,6 +1561,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		menu->CheckMenuItem(ID_ADVANCED_DISK_SEARCH, MF_UNCHECKED);
 	}
 
+	if(m_FlagWorkaroundHD204UI)
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_UNCHECKED);
+	}
+	
 	if(GetIeVersion() >= 600)
 	{
 		menu->EnableMenuItem(ID_GRAPH, MF_ENABLED);

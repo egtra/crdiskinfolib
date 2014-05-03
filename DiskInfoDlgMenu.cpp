@@ -282,7 +282,7 @@ void CDiskInfoDlg::OnRescan()
 	CWaitCursor wait;
 	BOOL flagChangeDisk = FALSE;
 
-	InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
+	InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
 
 	if(flagChangeDisk)
 	{
@@ -505,7 +505,7 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 	if(m_FlagAdvancedDiskSearch)
 	{
 		m_FlagAdvancedDiskSearch = FALSE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
 
 		if(flagChangeDisk)
 		{
@@ -522,7 +522,7 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 	else
 	{
 		m_FlagAdvancedDiskSearch = TRUE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
 
 		if(flagChangeDisk)
 		{
@@ -533,6 +533,56 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_ADVANCED_DISK_SEARCH, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+
+	if(m_FlagResident && flagChangeDisk)
+	{
+		for(int i = 0; i < CAtaSmart::MAX_DISK; i++)
+		{
+			RemoveTemperatureIcon(i);
+		}
+		CheckTrayTemperatureIcon();
+	}
+}
+
+void CDiskInfoDlg::OnWorkaroundHD204UI()
+{
+	CWaitCursor wait;
+	BOOL flagChangeDisk = FALSE;
+
+	if(m_FlagWorkaroundHD204UI)
+	{
+		m_FlagWorkaroundHD204UI = FALSE;
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+
+		if(flagChangeDisk)
+		{
+			// Update Menu and Dialog
+			ChangeLang(m_CurrentLang);
+		}
+		WritePrivateProfileString(_T("Workaround"), _T("HD204UI"), _T("0"), m_Ini);
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_UNCHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+	else
+	{
+		m_FlagWorkaroundHD204UI = TRUE;
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+
+		if(flagChangeDisk)
+		{
+			// Update Menu and Dialog
+			ChangeLang(m_CurrentLang);
+		}
+		WritePrivateProfileString(_T("Workaround"), _T("HD204UI"), _T("1"), m_Ini);
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_CHECKED);
 		SetMenu(menu);
 		DrawMenuBar();
 	}
