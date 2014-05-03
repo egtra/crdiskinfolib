@@ -201,7 +201,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		drive.Replace(_T("%NUMBER_OF_SECTORS%"), temp);
 		CString diskStatus;
 		diskStatus = GetDiskStatus(m_Ata.vars[i].DiskStatus);
-		if(m_Ata.vars[i].Life > 0)
+		if(m_Ata.vars[i].Life >= 0)
 		{
 			cstr.Format(_T(" (%d %%)"), m_Ata.vars[i].Life);
 			diskStatus += cstr; 

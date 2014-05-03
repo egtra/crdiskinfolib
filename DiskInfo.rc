@@ -335,8 +335,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,2,1,2009
- PRODUCTVERSION 3,2,1,2009
+ FILEVERSION 3,3,0,2010
+ PRODUCTVERSION 3,3,0,2010
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -354,12 +354,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "3.2.1.2009"
+            VALUE "FileVersion", "3.3.0.2010"
             VALUE "InternalName", "DiskInfo.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2008-2009 hiyohiyo. All rights reserved."
+            VALUE "LegalCopyright", "Copyright (C) 2008-2010 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "3.2.1.2009"
+            VALUE "ProductVersion", "3.3.0.2010"
         END
     END
     BLOCK "VarFileInfo"
@@ -508,10 +508,10 @@ BEGIN
             MENUITEM SEPARATOR
             POPUP "Raw Values"
             BEGIN
-                MENUITEM "16 [HEX]",                          ID_RAW_VALUES_16
-                MENUITEM "10 [DEC]",                          ID_RAW_VALUES_10_ALL
-				MENUITEM "10 [DEC] - 2byte",                  ID_RAW_VALUES_2BYTE
-                MENUITEM "10 [DEC] - 1byte",                  ID_RAW_VALUES_1BYTE
+                MENUITEM "16 [HEX]",                    ID_RAW_VALUES_16
+                MENUITEM "10 [DEC]",                    ID_RAW_VALUES_10_ALL
+                MENUITEM "10 [DEC] - 2byte",            ID_RAW_VALUES_2BYTE
+                MENUITEM "10 [DEC] - 1byte",            ID_RAW_VALUES_1BYTE
             END
             POPUP "[DEBUG] USB/IEEE 1394"
             BEGIN

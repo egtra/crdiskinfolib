@@ -360,12 +360,11 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 	{
 		for(DWORD j = 0; j < m_Ata.vars[index].AttributeCount; j++)
 		{
-			switch(m_Ata.vars[index].Attribute[j].Id)
+			if(m_Ata.vars[index].Attribute[j].Id == 0x05 // Reallocated Sectors Count
+			|| m_Ata.vars[index].Attribute[j].Id == 0xC5 // Current Pending Sector Count
+			|| m_Ata.vars[index].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
+			)
 			{
-			case 0x05: // Reallocated Sectors Count
-	//		case 0xC4: // Reallocation Event Count
-			case 0xC5: // Current Pending Sector Count
-			case 0xC6: // Off-Line Scan Uncorrectable Sector Count
 				value = MAKELONG(
 							MAKEWORD(
 								m_Ata.vars[index].Attribute[j].RawValue[0],
@@ -381,57 +380,25 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 					cstr.Format(_T(" : %d\n"), value);
 					result += cstr;
 				}
-				break;
-			case 0xBB:
-				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_MTRON)
+			}
+			else
+			if(m_Ata.vars[index].Attribute[j].Id == 0xBB && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_MTRON
+			|| m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INDILINX
+			|| m_Ata.vars[index].Attribute[j].Id == 0xE8 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL
+			|| m_Ata.vars[index].Attribute[j].Id == 0xB4 && m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_SAMSUNG
+			)
+			{
+				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
+				if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
 				{
-					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
-					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
-					{
-						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
-					{
-						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
-					result += cstr;
+					result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
 				}
-				break;
-			case 0xD1:
-				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+				else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
 				{
-					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
-					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
-					{
-						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
-					{
-						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
-					result += cstr;
+					result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
 				}
-				break;
-			case 0xE8:
-				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL)
-				{
-					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
-					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
-					{
-						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
-					{
-						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
-					}
-					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
-					result += cstr;
-				}
-				break;
-			default:
-				break;
+				cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
+				result += cstr;
 			}
 		}
 	}

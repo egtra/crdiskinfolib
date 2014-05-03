@@ -1,4 +1,4 @@
-Copyright (c) 2008 hiyohiyo. All rights reserved.
+Copyright (c) 2008-2010 hiyohiyo. All rights reserved.
 
 変更の有無にかかわらず、ソースおよびバイナリ形式の再配布および利用は、
 以下の条件を満たしていれば、これを許可する。

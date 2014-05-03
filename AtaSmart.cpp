@@ -1929,6 +1929,7 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.VendorId];
 		asi.IsSsd = TRUE;
 		asi.IsRawValues8 = TRUE;
+		return ;
 	}
 	else if(IsSsdIndlinx(asi))
 	{
@@ -1958,10 +1959,12 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 	else if(asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
+		return ;
 	}
 	else
 	{
 		asi.SmartKeyName = _T("Smart");
+		return ;
 	}
 
 // Update Life
@@ -1997,6 +2000,12 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					);
 			}
 			break;
+		case 0xB4:
+			if(asi.VendorId == SSD_VENDOR_SAMSUNG)
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
+			}
+			break;
 		default:
 			break;
 		}
@@ -2020,7 +2029,7 @@ BOOL CAtaSmart::IsSsdOld(ATA_SMART_INFO &asi)
 
 BOOL CAtaSmart::IsSsdMtron(ATA_SMART_INFO &asi)
 {
-	return asi.Model.Find(_T("MTRON")) == 0;
+	return (asi.Attribute[ 0].Id == 0xBB || asi.Model.Find(_T("MTRON")) == 0);
 }
 
 BOOL CAtaSmart::IsSsdJMicron(ATA_SMART_INFO &asi)
@@ -2121,7 +2130,32 @@ BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
 
 BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 {
-	return FALSE;
+	BOOL flagSmartType = FALSE;
+
+	if(asi.Attribute[ 0].Id == 0x09
+	&& asi.Attribute[ 1].Id == 0x0C
+	&& asi.Attribute[ 2].Id == 0xB2
+	&& asi.Attribute[ 3].Id == 0xB3
+	&& asi.Attribute[ 4].Id == 0xB4
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
+	if(asi.Attribute[ 0].Id == 0x09
+	&& asi.Attribute[ 1].Id == 0x0C
+	&& asi.Attribute[ 2].Id == 0xAF
+	&& asi.Attribute[ 3].Id == 0xB0
+	&& asi.Attribute[ 4].Id == 0xB1
+	&& asi.Attribute[ 5].Id == 0xB2
+	&& asi.Attribute[ 6].Id == 0xB3
+	&& asi.Attribute[ 7].Id == 0xB4
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
+	return flagSmartType;
 }
 
 BOOL CAtaSmart::CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2)
