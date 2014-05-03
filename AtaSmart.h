@@ -411,6 +411,7 @@ public:
 		INT					PowerOnStartRawValue;
 		DWORD				PowerOnCount;
 		DWORD				Temperature;
+		double				TemperatureMultiplier;
 		DWORD				NominalMediaRotationRate;
 //		double				Speed;
 		INT					HostWrites;
@@ -495,8 +496,6 @@ public:
 	BOOL FlagUsbLogitec;
 	BOOL FlagUsbJmicron;
 	BOOL FlagUsbCypress;
-
-	double m_TemperatureMultiplier;
 
 	DWORD CheckDiskStatus(DWORD index);
 

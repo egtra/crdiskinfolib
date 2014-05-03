@@ -150,9 +150,7 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 		default:
 			return SMART_STATUS_NO_CHANGE;
 		}
-
-		vars[i].Temperature = (DWORD)(vars[i].Temperature * m_TemperatureMultiplier);
-
+		
 		return CheckSmartAttributeUpdate(i, attribute[i], vars[i].Attribute);
 	}
 
@@ -1181,15 +1179,6 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							flagTarget = FALSE;
 						}
 
-						if(model.Find(_T("ADATA SSD")) == 0 && firmware.Find(_T("3.4.6")) == 0)// && IsWorkaroundAdataSsd
-						{
-							m_TemperatureMultiplier = 0.5;
-						}
-						else
-						{
-							m_TemperatureMultiplier = 1.0;
-						}
-
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
 						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType))
 						{
@@ -1259,9 +1248,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 									}
 								}
 							}
-							
-							vars[index].Temperature = (DWORD)(vars[index].Temperature * m_TemperatureMultiplier);
-							
+														
 							CString cmp, cmp1, cmp2, cmp3;
 							cmp = model;
 							cmp.Replace(_T(" "), _T(""));
@@ -1584,6 +1571,7 @@ safeRelease:
 		{
 			DebugPrint(_T("OK:GetDiskInfo"));
 			int index = (int)vars.GetCount() - 1;
+			
 			CString cmp;
 
 ///			cstr.Format(_T("index: %d"), index);
@@ -1625,6 +1613,7 @@ safeRelease:
 				if(GetDiskInfo(-1, i, j, INTERFACE_TYPE_UNKNOWN, VENDOR_UNKNOWN))
 				{
 					int index = (int)vars.GetCount() - 1;
+
 					CString cmp;
 					cmp = vars[index].Model;
 					if(cmp.Find(_T("DW C")) == 0 // WDC 
@@ -1772,6 +1761,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.PowerOnStartRawValue = -1;
 	asi.PowerOnCount = 0;
 	asi.Temperature = 0;
+	asi.TemperatureMultiplier = 1.0;
 	asi.NominalMediaRotationRate = 0;
 //	asi.Speed = 0.0;
 	asi.Life = -1;
@@ -1871,6 +1861,11 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	//	DebugPrint(_T("asi.Model.IsEmpty() || asi.FirmwareRev.IsEmpty()"));
 		asi.IsIdInfoIncorrect = TRUE;
 		return FALSE;
+	}
+	
+	if(asi.Model.Find(_T("ADATA SSD")) == 0 && asi.FirmwareRev.Find(_T("3.4.6")) == 0)
+	{
+		asi.TemperatureMultiplier = 0.5;
 	}
 
 // DEBUG
@@ -4532,7 +4527,7 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 					}
 					else
 					{
-						asi->Temperature = asi->Attribute[j].RawValue[0];
+						asi->Temperature = (DWORD)(asi->Attribute[j].RawValue[0] * asi->TemperatureMultiplier);
 					}
 				}
 				else if(asi->Attribute[j].RawValue[0] > 0)
