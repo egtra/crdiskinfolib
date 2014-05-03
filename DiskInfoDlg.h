@@ -240,6 +240,7 @@ protected:
 	void CheckStartup();
 	void AutoAamApmAdaption();
 	void ShowTemperatureIconOnly();
+	void WorkaroundIE8Mode();
 
 #ifdef GADGET_SUPPORT
 	void UpdateShareInfo(); // For Sidebar Gadget Support

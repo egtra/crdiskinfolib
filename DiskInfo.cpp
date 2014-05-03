@@ -181,15 +181,32 @@ BOOL CDiskInfoApp::InitInstance()
 	DefaultTheme.Format(_T("%s\\%s"), tmp, DEFAULT_THEME);
 	DefaultLanguage.Format(_T("%s\\%s"), tmp, DEFAULT_LANGUAGE);
 
+
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
+
 	if((BOOL)GetPrivateProfileInt(_T("Workaround"), _T("IE8MODE"), 0, m_Ini))
 	{
 		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR MAIN_DIALOG_IE8, tmp);
 		m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG_IE8, tmp);
+
+		if(! IsFileExistEx(m_MainDlgPath, MAIN_DIALOG_IE8))			{	return FALSE;	}
+		if(! IsFileExistEx(m_GraphDlgPath, GRAPH_DIALOG_IE8))		{	return FALSE;	}
 	}
 	else
 	{
 		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR MAIN_DIALOG, tmp);
 		m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG, tmp);
+		if(! IsFileExistEx(m_MainDlgPath, MAIN_DIALOG))				{	return FALSE;	}
+		if(! IsFileExistEx(m_GraphDlgPath, GRAPH_DIALOG))			{	return FALSE;	}
 	}
 
 	m_AboutDlgPath.Format(_T("%s\\") DIALOG_DIR ABOUT_DIALOG, tmp);
@@ -199,7 +216,6 @@ BOOL CDiskInfoApp::InitInstance()
 //	m_AlarmHistoryDlgPath.Format(_T("%s\\") DIALOG_DIR ALARM_HISTORY_DIALOG, tmp);
 	m_SoundSettingDlgPath.Format(_T("%s\\") DIALOG_DIR SOUND_SETTING_DIALOG, tmp);
 
-	if(! IsFileExistEx(m_MainDlgPath, MAIN_DIALOG))					{	return FALSE;	}
 	if(! IsFileExistEx(m_AboutDlgPath, ABOUT_DIALOG))				{	return FALSE;	}
 	if(! IsFileExistEx(m_SettingDlgPath, SETTING_DIALOG))			{	return FALSE;	}
 	if(! IsFileExistEx(m_HealthDlgPath, HEALTH_DIALOG))				{	return FALSE;	}
@@ -211,16 +227,7 @@ BOOL CDiskInfoApp::InitInstance()
 
 // for Windows NT family
 #ifdef _UNICODE
-	OSVERSIONINFOEX osvi;
-	BOOL bosVersionInfoEx;
 
-	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
-	{
-		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		GetVersionEx((OSVERSIONINFO *)&osvi);
-	}
 
 	if(! IsCurrentUserLocalAdministrator())
 	{

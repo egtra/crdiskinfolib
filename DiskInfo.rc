@@ -363,8 +363,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,4,2,2013
- PRODUCTVERSION 5,4,2,2013
+ FILEVERSION 5,5,0,2013
+ PRODUCTVERSION 5,5,0,2013
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,9 +381,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, Simplified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "5.4.2.2013"
+            VALUE "FileVersion", "5.5.0.2013"
             VALUE "LegalCopyright", "Copyright (C) 2008-2013 hiyohiyo. All rights reserved."
-            VALUE "ProductVersion", "5.4.2.2013"
+            VALUE "ProductVersion", "5.5.0.2013"
 #ifdef SUISHO_SHIZUKU_SUPPORT
             VALUE "ProductName", "CrystalDiskInfo Shizuku Edition"
             VALUE "FileDescription", "CrystalDiskInfo Shizuku Edition"

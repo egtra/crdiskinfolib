@@ -1290,21 +1290,18 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							int index = (int)vars.GetCount() - 1;
 							if(! diskSize.IsEmpty())
 							{
-								DWORD totalDiskSize = (DWORD)(_ttoi64(diskSize) / 1000 / 1000 - 49);
+								vars[index].DiskSizeWmi = (DWORD)(_ttoi64(diskSize) / 1000 / 1000 - 49);
 								if(0 < vars[index].TotalDiskSize && vars[index].TotalDiskSize < 1000) // < 1GB
 								{
 								//	vars[index].TotalDiskSize == vars[index].DiskSizeChs;
 								}
 								else if(vars[index].TotalDiskSize < 10 * 1000) // < 10GB
 								{
-									vars[index].TotalDiskSize = totalDiskSize;
+									vars[index].TotalDiskSize = vars[index].DiskSizeWmi;
 								}
-								else if((totalDiskSize < vars[index].TotalDiskSize - 100
-								|| vars[index].TotalDiskSize + 100 < totalDiskSize)
-								&& totalDiskSize > vars[index].DiskSizeLba48
-								)
+								else if(vars[index].TotalDiskSize < vars[index].DiskSizeWmi)
 								{
-									vars[index].TotalDiskSize = totalDiskSize;
+									vars[index].TotalDiskSize = vars[index].DiskSizeWmi;
 								}
 							}
 
@@ -1800,6 +1797,13 @@ safeRelease:
 		for (DWORD n = 0; n < volumeDiskExtents.NumberOfDiskExtents && volumeDiskExtents.NumberOfDiskExtents < 4; ++n)
 		{
 			PDISK_EXTENT pDiskExtent = &volumeDiskExtents.Extents[n];
+
+			// Workaround for RamPhantom EX 1.1
+			// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1178;id=diskinfo#1178
+			if(pDiskExtent->ExtentLength.QuadPart == 0)
+			{
+				continue;
+			}
 			if(0 <= pDiskExtent->DiskNumber && pDiskExtent->DiskNumber < 256)
 			{
 				driveLetterMap[pDiskExtent->DiskNumber] |= 1 << (c - 'A');
@@ -1970,6 +1974,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.DiskSizeChs = 0;
 	asi.DiskSizeLba28 = 0;
 	asi.DiskSizeLba48 = 0;
+	asi.DiskSizeWmi = 0;
 	asi.BufferSize = 0;
 	asi.NvCacheSize = 0;
 	asi.TransferModeType = 0;
@@ -2305,6 +2310,9 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	//	asi.TotalDiskSize = 0;
 		asi.TotalDiskSize = asi.DiskSizeChs;
 	}
+
+
+
 
 	// Error Check for External ATA Controller
 	if(asi.IsLba48Supported && (identify->TotalAddressableSectors < 268435455 && asi.DiskSizeLba28 != asi.DiskSizeLba48))
@@ -2837,7 +2845,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
 			}
-			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE || asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 			{
 				asi.HostWrites  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
@@ -2910,7 +2918,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
 			}
-			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE || asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 			{
 				asi.HostReads  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
@@ -3460,7 +3468,21 @@ BOOL CAtaSmart::IsSsdOczVector(ATA_SMART_INFO &asi)
 	{
 		flagSmartType = TRUE;
 	}
-	
+	// 2013/3/24
+	// OCZ-VECTOR - FW 2.0
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1185;id=diskinfo#1185
+	if(asi.Attribute[ 0].Id == 0x05
+	&& asi.Attribute[ 1].Id == 0x09
+	&& asi.Attribute[ 2].Id == 0x0C
+	&& asi.Attribute[ 3].Id == 0xAB
+	&& asi.Attribute[ 4].Id == 0xAE
+	&& asi.Attribute[ 5].Id == 0xC3
+	&& asi.Attribute[ 6].Id == 0xC4
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
 	return (flagSmartType);
 }
 
@@ -5645,8 +5667,12 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 					rawValue = asi->Attribute[j].WorstValue * 256 + asi->Attribute[j].CurrentValue;
 				}
 				// Intel SSD 520 Series
-				else if(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+				else if(
+					(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+				||  (asi->DetectedTimeUnitType == POWER_ON_HOURS && rawValue >= 0x0DA000)
+				)
 				{
+					asi->MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
 					int value = 0; 
 					rawValue = value = asi->Attribute[j].RawValue[2] * 256 * 256
 									 + asi->Attribute[j].RawValue[1] * 256
@@ -5762,7 +5788,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
 				}
-				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE || asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 				{
 					asi->HostWrites  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
@@ -5835,7 +5861,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
 				}
-				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE || asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 				{
 					asi->HostReads  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
@@ -6423,8 +6449,10 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 	{
 		return POWER_ON_10_MINUTES;
 	}
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1174;id=diskinfo#1174
 	else if(
 		   (model.Find(_T("INTEL SSDSC2CW")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 520 Series
+		|| (model.Find(_T("INTEL SSDSC2BW")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 520 Series
 		|| (model.Find(_T("INTEL SSDSC2CT")) == 0 && model.Find(_T("A3")) > 0) // Intel SSD 330 Series
 		)
 	{

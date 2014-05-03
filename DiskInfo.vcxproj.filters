@@ -181,13 +181,7 @@
     <None Include="res\caution.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\DiskInfo.ico">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\DiskInfo.rc2">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\dummy.html">
@@ -802,12 +796,6 @@
     <None Include="res\goodGreen.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="default1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resS\DiskInfoS.ico">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="resS\DiskInfo.ico">
       <Filter>Resource Files</Filter>
     </None>
@@ -823,7 +811,24 @@
     <None Include="resN\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\001soundkenjin.mp3" />
+    <None Include="resS\001igarashi.opus" />
+    <None Include="resS\601igarashi.opus" />
+    <None Include="resS\602igarashi.opus" />
+    <None Include="resS\603igarashi.opus" />
+    <None Include="resS\604igarashi.opus" />
+    <None Include="resS\605igarashi.opus" />
+    <None Include="resS\606igarashi.opus" />
+    <None Include="resS\701igarashi.opus" />
+    <None Include="resS\702igarashi.opus" />
+    <None Include="resS\703igarashi.opus" />
+    <None Include="resS\704igarashi.opus" />
+    <None Include="resS\705igarashi.opus" />
+    <None Include="resS\ShizukuAbout.png">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resS\ShizukuAboutIcon.png">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">

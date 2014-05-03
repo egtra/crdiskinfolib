@@ -372,26 +372,27 @@ void CDiskInfoDlg::OnEditCopy()
 
 		if(m_Ata.vars[i].TotalDiskSize < 1000)
 		{
-			cstr.Format(_T("%d MB (%.2f/----/----)"),
+			cstr.Format(_T("%d MB (%.2f/----/----/%.2f)"),
 				m_Ata.vars[i].TotalDiskSize,
-				m_Ata.vars[i].DiskSizeChs / 1000.0);
+				m_Ata.vars[i].DiskSizeChs / 1000.0,
+				m_Ata.vars[i].DiskSizeWmi / 1000.0);
 		}
 		else if(m_Ata.vars[i].IsLba48Supported)
 		{
-			cstr.Format(_T("%.1f GB (%.1f/%.1f/%.1f)"),
+			cstr.Format(_T("%.1f GB (%.1f/%.1f/%.1f/%.1f)"),
 				m_Ata.vars[i].TotalDiskSize / 1000.0,
 				m_Ata.vars[i].DiskSizeChs / 1000.0,
 				m_Ata.vars[i].DiskSizeLba28 / 1000.0,
-				m_Ata.vars[i].DiskSizeLba48 / 1000.0
-				);
+				m_Ata.vars[i].DiskSizeLba48 / 1000.0,
+				m_Ata.vars[i].DiskSizeWmi / 1000.0);
 		}
 		else
 		{
-			cstr.Format(_T("%.1f GB (%.1f/%.1f/----)"),
+			cstr.Format(_T("%.1f GB (%.1f/%.1f/----/%.1f)"),
 				m_Ata.vars[i].TotalDiskSize / 1000.0,
 				m_Ata.vars[i].DiskSizeChs / 1000.0,
-				m_Ata.vars[i].DiskSizeLba28 / 1000.0
-				);
+				m_Ata.vars[i].DiskSizeLba28 / 1000.0,
+				m_Ata.vars[i].DiskSizeWmi / 1000.0);
 		}
 		drive.Replace(_T("%TOTAL_DISK_SIZE%"), cstr);
 

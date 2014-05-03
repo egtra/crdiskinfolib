@@ -323,7 +323,7 @@ void CDHtmlDialogEx::SetElementInnerHtmlEx(LPCTSTR szElementId, CString innerHtm
 	}
 }
 
-void CDHtmlDialogEx::CallScript(CString function, CString argument)
+INT CDHtmlDialogEx::CallScript(CString function, CString argument)
 {
 	CComPtr<IHTMLDocument2> pDocument;
 	HRESULT hr = GetDHtmlDocument(&pDocument);
@@ -367,7 +367,15 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 	ASSERT( hr == S_OK );
 	if(hr != S_OK){DebugPrint(_T("CallScript - script->Invoke"));}
 
+	INT result = 0;
+
+	if(ret.vt == VT_I4)
+	{
+		result = ret.intVal;
+	}
 	VariantClear(&ret);
+
+	return result;
 }
 
 CString CDHtmlDialogEx::i18n(CString section, CString key, BOOL inEnglish)

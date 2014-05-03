@@ -38,6 +38,14 @@
     <ProjectGuid>{5496C268-D510-449C-8471-DE2B34898C28}</ProjectGuid>
     <RootNamespace>DiskInfo</RootNamespace>
     <Keyword>MFCProj</Keyword>
+    <SccProjectName>
+    </SccProjectName>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccProvider>
+    </SccProvider>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -412,9 +420,7 @@
     <ClInclude Include="SPTIUtil.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="default1.bin" />
     <None Include="icon1.ico" />
-    <None Include="opus1.bin" />
     <None Include="resN\DiskInfo.ico" />
     <None Include="resN\DiskInfo16.ico" />
     <None Include="resS\001igarashi.opus" />
@@ -431,15 +437,11 @@
     <None Include="resS\705igarashi.opus" />
     <None Include="resS\DiskInfo.ico" />
     <None Include="resS\DiskInfo16.ico" />
-    <None Include="resS\DiskInfoS.ico" />
-    <None Include="resS\Shizuku.png" />
     <None Include="resS\ShizukuAbout.png" />
     <None Include="resS\ShizukuAboutIcon.png" />
     <None Include="res\bad.ico" />
     <None Include="res\caution.ico" />
-    <None Include="res\DiskInfo.ico" />
     <None Include="res\DiskInfo.rc2" />
-    <None Include="res\DiskInfo16.ico" />
     <None Include="res\dummy.html" />
     <None Include="res\good.ico" />
     <None Include="res\goodGreen.ico" />

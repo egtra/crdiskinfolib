@@ -53,7 +53,7 @@ protected:
 	void SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, CString className);
 	void SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtml);
 	void SetElementInnerHtmlEx(LPCTSTR szElementId, CString innerHtml);
-	void CallScript(CString funcition, CString argument);
+	INT CallScript(CString funcition, CString argument);
 	void EnableDpiAware();
 	DWORD ChangeZoomType(DWORD zoomType);
 	double GetZoomRatio();

@@ -184,7 +184,6 @@ void CDiskInfoDlg::ChangeShizukuImage(DWORD index)
 		CallScript(_T("setShizukuCopyright"), arg);
 	}
 
-
 	cstr.Format(_T("%d"), index);
 	WritePrivateProfileString(_T("Setting"), _T("ShizukuImageType"), cstr, m_Ini);
 }
@@ -246,7 +245,29 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 			// Font Settings
 			CallScript(_T("setFont"), m_FontFace);
+
+			WorkaroundIE8Mode();
 		}
+	}
+}
+
+void CDiskInfoDlg::WorkaroundIE8Mode()
+{
+	// IE8 Mode Check
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
+	
+	if(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 1 && GetIeVersion() >= 100 && CallScript(_T("isScrollBar"), NULL))
+	{
+		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("1"), m_Ini);
+		ReExecute();
 	}
 }
 

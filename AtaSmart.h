@@ -1303,6 +1303,7 @@ public:
 		DWORD				DiskSizeChs;
 		DWORD				DiskSizeLba28;
 		DWORD				DiskSizeLba48;
+		DWORD				DiskSizeWmi;
 		DWORD				BufferSize;
 		ULONGLONG			NvCacheSize;
 		DWORD				TransferModeType;
