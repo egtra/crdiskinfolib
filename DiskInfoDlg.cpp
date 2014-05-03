@@ -179,6 +179,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 
 	m_FlagAdvancedDiskSearch = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AdvancedDiskSearch"), 0, m_Ini);
 	m_FlagWorkaroundHD204UI =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("HD204UI"), 1, m_Ini);
+	m_FlagWorkaroundAdataSsd =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("AdataSsd"), 1, m_Ini);
 	m_FlagEventLog = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("EventLog"), 0, m_Ini);
 	m_FlagAlertMail = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertMail"), 0, m_Ini);
 	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 0, m_Ini);
@@ -424,6 +425,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_OPEN_DEVICE_MANAGER, &CDiskInfoDlg::OnOpenDeviceManager)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
 	ON_COMMAND(ID_WORKAROUND_HD204UI, &CDiskInfoDlg::OnWorkaroundHD204UI)
+	ON_COMMAND(ID_WORKAROUND_ADATA_SSD, &CDiskInfoDlg::OnWorkaroundAdataSsd)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
 
 	ON_MESSAGE(WM_POWERBROADCAST, &CDiskInfoDlg::OnPowerBroadcast)
@@ -1297,7 +1299,7 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		BOOL flagChangeDisk = FALSE;
 		KillTimer(TIMER_AUTO_DETECT);
 
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 		if(flagChangeDisk)
 		{
@@ -1327,24 +1329,6 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		{
 			Refresh(TRUE);
 		}
-
-/*
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk);
-
-		if(flagChangeDisk)
-		{
-			ChangeLang(m_CurrentLang);
-
-			if(m_FlagResident)
-			{
-				SetTimer(TIMER_UPDATE_TRAY_ICON, 1000 * 1, 0);
-			}
-			if(m_SettingDlg != NULL)
-			{
-				::SendMessage(m_SettingDlg->m_hWnd, WM_CLOSE, 0, 0);
-			}
-		}
-*/
 	}
 	else if(nIDEvent == TIMER_UPDATE_TRAY_ICON)
 	{

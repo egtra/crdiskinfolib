@@ -282,7 +282,7 @@ void CDiskInfoDlg::OnRescan()
 	CWaitCursor wait;
 	BOOL flagChangeDisk = FALSE;
 
-	InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+	InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 	if(flagChangeDisk)
 	{
@@ -505,7 +505,7 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 	if(m_FlagAdvancedDiskSearch)
 	{
 		m_FlagAdvancedDiskSearch = FALSE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 		if(flagChangeDisk)
 		{
@@ -522,7 +522,7 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 	else
 	{
 		m_FlagAdvancedDiskSearch = TRUE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 		if(flagChangeDisk)
 		{
@@ -555,7 +555,7 @@ void CDiskInfoDlg::OnWorkaroundHD204UI()
 	if(m_FlagWorkaroundHD204UI)
 	{
 		m_FlagWorkaroundHD204UI = FALSE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 		if(flagChangeDisk)
 		{
@@ -572,7 +572,7 @@ void CDiskInfoDlg::OnWorkaroundHD204UI()
 	else
 	{
 		m_FlagWorkaroundHD204UI = TRUE;
-		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI);
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 		if(flagChangeDisk)
 		{
@@ -583,6 +583,57 @@ void CDiskInfoDlg::OnWorkaroundHD204UI()
 
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+
+	if(m_FlagResident && flagChangeDisk)
+	{
+		for(int i = 0; i < CAtaSmart::MAX_DISK; i++)
+		{
+			RemoveTemperatureIcon(i);
+		}
+		CheckTrayTemperatureIcon();
+	}
+}
+
+
+void CDiskInfoDlg::OnWorkaroundAdataSsd()
+{
+	CWaitCursor wait;
+	BOOL flagChangeDisk = FALSE;
+
+	if(m_FlagWorkaroundAdataSsd)
+	{
+		m_FlagWorkaroundAdataSsd = FALSE;
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
+
+		if(flagChangeDisk)
+		{
+			// Update Menu and Dialog
+			ChangeLang(m_CurrentLang);
+		}
+		WritePrivateProfileString(_T("Workaround"), _T("AdataSsd"), _T("0"), m_Ini);
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_ADATA_SSD, MF_UNCHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+	else
+	{
+		m_FlagWorkaroundAdataSsd = TRUE;
+		InitAta(TRUE, m_FlagAdvancedDiskSearch, &flagChangeDisk, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
+
+		if(flagChangeDisk)
+		{
+			// Update Menu and Dialog
+			ChangeLang(m_CurrentLang);
+		}
+		WritePrivateProfileString(_T("Workaround"), _T("AdataSsd"), _T("1"), m_Ini);
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_ADATA_SSD, MF_CHECKED);
 		SetMenu(menu);
 		DrawMenuBar();
 	}

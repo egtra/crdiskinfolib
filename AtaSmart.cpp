@@ -151,6 +151,8 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 			return SMART_STATUS_NO_CHANGE;
 		}
 
+		vars[i].Temperature = (DWORD)(vars[i].Temperature * m_TemperatureMultiplier);
+
 		return CheckSmartAttributeUpdate(i, attribute[i], vars[i].Attribute);
 	}
 
@@ -463,7 +465,7 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 }
 
 /* PUBLIC FUNCTION */
-VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI)
+VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI, BOOL workaroundAdataSsd)
 {
 	// Debug
 	// useWmi = FALSE;
@@ -471,6 +473,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	IsAdvancedDiskSearch = advancedDiskSearch;
 	IsEnabledWmi = FALSE;
 	IsWorkaroundHD204UI = workaroundHD204UI;
+	IsWorkaroundAdataSsd = workaroundAdataSsd;
 
 	CArray<DISK_POSITION, DISK_POSITION> previous;
 	
@@ -1178,6 +1181,15 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							flagTarget = FALSE;
 						}
 
+						if(model.Find(_T("ADATA SSD")) == 0 && firmware.Find(_T("3.4.6")) == 0)// && IsWorkaroundAdataSsd
+						{
+							m_TemperatureMultiplier = 0.5;
+						}
+						else
+						{
+							m_TemperatureMultiplier = 1.0;
+						}
+
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
 						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType))
 						{
@@ -1247,7 +1259,9 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 									}
 								}
 							}
-
+							
+							vars[index].Temperature = (DWORD)(vars[index].Temperature * m_TemperatureMultiplier);
+							
 							CString cmp, cmp1, cmp2, cmp3;
 							cmp = model;
 							cmp.Replace(_T(" "), _T(""));
@@ -1761,9 +1775,9 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.NominalMediaRotationRate = 0;
 //	asi.Speed = 0.0;
 	asi.Life = -1;
-	asi.HostWrites = 0;
-	asi.HostReads = 0;
-	asi.GBytesErased = 0;
+	asi.HostWrites = -1;
+	asi.HostReads = -1;
+	asi.GBytesErased = -1;
 
 	asi.Major = 0;
 	asi.Minor = 0;
@@ -2365,34 +2379,48 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		case 0xE1:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
 			{
-				asi.HostWrites  = MAKELONG(
+				asi.HostWrites  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
-					);
+					) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
 			}
 			break;
 		case 0xF1:
-			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
 			{
-				asi.HostWrites  = MAKELONG(
+				asi.HostWrites  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
-					);
+					) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
+			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.HostWrites  = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
 			}
 			break;
 		case 0xF2:
-			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
 			{
-				asi.HostReads  = MAKELONG(
+				asi.HostReads  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
-					);
+					) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
+			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.HostReads  = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
 			}
 			break;
 		case 0x64:
 			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
 			{
-				asi.GBytesErased  = MAKELONG(
+				asi.GBytesErased  = (INT)MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					);
@@ -4547,19 +4575,42 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 			case 0xE1:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
 				{
-					asi->HostWrites  = MAKELONG(
+					asi->HostWrites  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
-						);
+						) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
+				}
+				break;
+			case 0xF1:
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
+				{
+					asi->HostWrites  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
+				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->HostWrites  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
 				}
 				break;
 			case 0xF2:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
 				{
-					asi->HostReads  = MAKELONG(
+					asi->HostReads  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
-						);
+						) * 0.03125); //  0.03125 = 65536 * 512 / 1024 / 1024 / 1024;
+				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->HostReads  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
 				}
 				break;
 			case 0x64:

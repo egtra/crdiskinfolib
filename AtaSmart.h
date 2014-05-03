@@ -336,7 +336,7 @@ public:
 	BYTE GetRecommendAamValue(DWORD index);
 	BYTE GetRecommendApmValue(DWORD index);
 
-	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI);
+	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI, BOOL workaroundAdataSsd);
 	BOOL MeasuredTimeUnit();
 	DWORD GetPowerOnHours(DWORD rawValue, DWORD timeUnitType);
 	DWORD GetPowerOnHoursEx(DWORD index, DWORD timeUnitType);
@@ -413,9 +413,9 @@ public:
 		DWORD				Temperature;
 		DWORD				NominalMediaRotationRate;
 //		double				Speed;
-		ULONGLONG			HostWrites;
-		ULONGLONG			HostReads;
-		ULONG				GBytesErased;
+		INT					HostWrites;
+		INT					HostReads;
+		INT					GBytesErased;
 
 		INT					Life;
 
@@ -486,6 +486,7 @@ public:
 	BOOL IsEnabledWmi;
 
 	BOOL IsWorkaroundHD204UI;
+	BOOL IsWorkaroundAdataSsd;
 	DWORD MeasuredGetTickCount;
 
 	BOOL FlagUsbSat;
@@ -494,6 +495,8 @@ public:
 	BOOL FlagUsbLogitec;
 	BOOL FlagUsbJmicron;
 	BOOL FlagUsbCypress;
+
+	double m_TemperatureMultiplier;
 
 	DWORD CheckDiskStatus(DWORD index);
 

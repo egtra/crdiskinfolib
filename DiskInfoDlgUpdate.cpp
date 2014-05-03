@@ -1120,21 +1120,21 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 	
 		// Temp
-	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL && m_Ata.vars[i].HostReads > 0) || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE) && m_Ata.vars[i].HostReads >= 0)
 	{
-		double hostReads = (double)(m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024;
-		if(hostReads > 1000000.0)
+		if(m_Ata.vars[i].HostReads > 1024 * 1024)
 		{
-			m_BufferSize.Format(_T("%.2f PB"), hostReads / 1024 / 1024);
+			m_BufferSize.Format(_T("%.2f PB"), m_Ata.vars[i].HostReads / 1024.0 / 1024.0);
 		}
-		else if(hostReads > 1000.0)
+		else if(m_Ata.vars[i].HostReads > 1024)
 		{
-			m_BufferSize.Format(_T("%.2f TB"), hostReads / 1024);
+			m_BufferSize.Format(_T("%.2f TB"), m_Ata.vars[i].HostReads / 1024.0);
 		}
 		else
 		{
-			m_BufferSize.Format(_T("%.2f GB"), hostReads);
+			m_BufferSize.Format(_T("%d GB"), m_Ata.vars[i].HostReads);
 		}
+
 		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
 		{
 			m_LabelBufferSize = i18n(_T("SmartIntel"), _T("F2"));
@@ -1165,20 +1165,19 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 
 	// Temp
-	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE) && m_Ata.vars[i].HostWrites >= 0)
 	{
-		double hostWrites = (double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024;
-		if(hostWrites > 1000000.0)
+		if(m_Ata.vars[i].HostWrites > 1024 * 1024)
 		{
-			m_NvCacheSize.Format(_T("%.2f PB"), hostWrites / 1024 / 1024);
+			m_NvCacheSize.Format(_T("%.2f PB"), m_Ata.vars[i].HostWrites / 1024.0 / 1024.0);
 		}
-		else if(hostWrites > 1000.0)
+		else if(m_Ata.vars[i].HostWrites > 1024)
 		{
-			m_NvCacheSize.Format(_T("%.2f TB"), hostWrites / 1024);
+			m_NvCacheSize.Format(_T("%.2f TB"), m_Ata.vars[i].HostWrites / 1024.0);
 		}
 		else
 		{
-			m_NvCacheSize.Format(_T("%.2f GB"), hostWrites);
+			m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].HostWrites);
 		}
 
 		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
@@ -2105,17 +2104,17 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 		AppendLog(dir, disk, _T("Life"), time, m_Ata.vars[i].Life, flagFirst);
 	}
 
-	if(m_Ata.vars[i].HostWrites > 0)
+	if(m_Ata.vars[i].HostWrites >= 0)
 	{
-		AppendLog(dir, disk, _T("HostWrites"), time, (int)((m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
+		AppendLog(dir, disk, _T("HostWrites"), time, m_Ata.vars[i].HostWrites, flagFirst);
 	}
 
-	if(m_Ata.vars[i].HostReads > 0)
+	if(m_Ata.vars[i].HostReads >= 0)
 	{
-		AppendLog(dir, disk, _T("HostReads"), time, (int)((m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
+		AppendLog(dir, disk, _T("HostReads"), time, m_Ata.vars[i].HostReads, flagFirst);
 	}
 
-	if(m_Ata.vars[i].GBytesErased > 0)
+	if(m_Ata.vars[i].GBytesErased >= 0)
 	{
 		AppendLog(dir, disk, _T("GBytesErased"), time, m_Ata.vars[i].GBytesErased, flagFirst);
 	}

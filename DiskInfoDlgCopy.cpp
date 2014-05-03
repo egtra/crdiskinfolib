@@ -291,29 +291,27 @@ void CDiskInfoDlg::OnEditCopy()
 			drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
 		}
 
-		if(m_Ata.vars[i].HostWrites == 0)
+		if(m_Ata.vars[i].HostWrites == -1)
 		{
 			drive.Replace(_T("%HOST_WRITES%"), _T(""));
 		}
 		else
 		{
-			cstr.Format(_T("     Host Writes : %.2f GB\r\n"),
-				(double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
+			cstr.Format(_T("     Host Writes : %d GB\r\n"), m_Ata.vars[i].HostWrites);		
 			drive.Replace(_T("%HOST_WRITES%"), cstr);
 		}
 
-		if(m_Ata.vars[i].HostReads == 0)
+		if(m_Ata.vars[i].HostReads == -1)
 		{
 			drive.Replace(_T("%HOST_READS%"), _T(""));
 		}
 		else
 		{
-			cstr.Format(_T("      Host Reads : %.2f GB\r\n"),
-				(double)(m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024);		
+			cstr.Format(_T("      Host Reads : %d GB\r\n"), m_Ata.vars[i].HostReads);		
 			drive.Replace(_T("%HOST_READS%"), cstr);
 		}
 		
-		if(m_Ata.vars[i].GBytesErased == 0)
+		if(m_Ata.vars[i].GBytesErased == -1)
 		{
 			drive.Replace(_T("%GBYTES_ERASED%"), _T(""));
 		}
