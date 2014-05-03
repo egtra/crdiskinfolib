@@ -144,28 +144,28 @@ void CDiskInfoDlg::OnEditCopy()
  (%I%) %MODEL%\r\n\
 ----------------------------------------------------------------------------\r\n\
 %ENCLOSURE%\
-         Model : %MODEL%\r\n\
-      Firmware : %FIRMWARE%\r\n\
- Serial Number : %SERIAL_NUMBER%\r\n\
-     Disk Size : %TOTAL_DISK_SIZE%\r\n\
-   Buffer Size : %BUFFER_SIZE%\r\n\
- NV Cache Size : %NV_CACHE_SIZE%\r\n\
-   Queue Depth : %QUEUE_DEPTH%\r\n\
-  # of Sectors : %NUMBER_OF_SECTORS%\r\n\
- Rotation Rate : %ROTATION_RATE%\r\n\
-     Interface : %INTERFACE%\r\n\
- Major Version : %MAJOR_VERSION%\r\n\
- Minor Version : %MINOR_VERSION%\r\n\
- Transfer Mode : %TRANSFER_MODE%\r\n\
-Power On Hours : %POWER_ON_HOURS%\r\n\
-Power On Count : %POWER_ON_COUNT%\r\n\
+           Model : %MODEL%\r\n\
+        Firmware : %FIRMWARE%\r\n\
+   Serial Number : %SERIAL_NUMBER%\r\n\
+       Disk Size : %TOTAL_DISK_SIZE%\r\n\
+     Buffer Size : %BUFFER_SIZE%\r\n\
+%NV_CACHE_SIZE%\
+     Queue Depth : %QUEUE_DEPTH%\r\n\
+    # of Sectors : %NUMBER_OF_SECTORS%\r\n\
+   Rotation Rate : %ROTATION_RATE%\r\n\
+       Interface : %INTERFACE%\r\n\
+   Major Version : %MAJOR_VERSION%\r\n\
+   Minor Version : %MINOR_VERSION%\r\n\
+   Transfer Mode : %TRANSFER_MODE%\r\n\
+  Power On Hours : %POWER_ON_HOURS%\r\n\
+  Power On Count : %POWER_ON_COUNT%\r\n\
 %HOST_WRITES%\
 %GBYTES_ERASED%\
-   Temparature : %TEMPERATURE%\r\n\
- Health Status : %DISK_STATUS%\r\n\
-      Features : %SUPPORTED_FEATURE%\r\n\
-     APM Level : %APM_LEVEL%\r\n\
-     AAM Level : %AAM_LEVEL%\r\n\
+     Temparature : %TEMPERATURE%\r\n\
+   Health Status : %DISK_STATUS%\r\n\
+        Features : %SUPPORTED_FEATURE%\r\n\
+       APM Level : %APM_LEVEL%\r\n\
+       AAM Level : %AAM_LEVEL%\r\n\
 ");
 #ifdef BENCHMARK
 	driveTemplate += _T("  Sequential Read : %BENCHMARK%\r\n");
@@ -183,7 +183,7 @@ Power On Count : %POWER_ON_COUNT%\r\n\
 		}
 		else
 		{
-			cstr.Format(_T("     Enclosure : %s (V=%04X, P=%04X, %s)"),
+			cstr.Format(_T("       Enclosure : %s (V=%04X, P=%04X, %s)"),
 				m_Ata.vars[i].Enclosure, m_Ata.vars[i].UsbVendorId, m_Ata.vars[i].UsbProductId, m_Ata.vars[i].CommandTypeString);		
 			if(! m_Ata.vars[i].SsdVendorString.IsEmpty())
 			{
@@ -271,6 +271,24 @@ Power On Count : %POWER_ON_COUNT%\r\n\
 		}
 		drive.Replace(_T("%POWER_ON_COUNT%"), cstr);
 
+		if(m_Ata.vars[i].NvCacheSize > 0)
+		{
+			cstr.Format(_T("%d MB"), m_Ata.vars[i].NvCacheSize / 1024 / 1024);
+		}
+		else
+		{
+			cstr = _T("----");
+		}
+
+		if(m_Ata.vars[i].NvCacheSize == 0)
+		{
+			drive.Replace(_T("%NV_CACHE_SIZE%"), _T(""));
+		}
+		else
+		{
+			cstr.Format(_T("   NV Cache Size : %d MB\r\n"), m_Ata.vars[i].NvCacheSize / 1024 / 1024);
+			drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
+		}
 
 		if(m_Ata.vars[i].HostWrites == 0)
 		{
@@ -278,7 +296,7 @@ Power On Count : %POWER_ON_COUNT%\r\n\
 		}
 		else
 		{
-			cstr.Format(_T("   Host Writes : %.2f GB\r\n"),
+			cstr.Format(_T("     Host Writes : %.2f GB\r\n"),
 				(double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
 			drive.Replace(_T("%HOST_WRITES%"), cstr);
 		}
@@ -290,7 +308,7 @@ Power On Count : %POWER_ON_COUNT%\r\n\
 		}
 		else
 		{
-			cstr.Format(_T(" GBytes Erased : %d GB\r\n"), m_Ata.vars[i].GBytesErased);		
+			cstr.Format(_T("   GBytes Erased : %d GB\r\n"), m_Ata.vars[i].GBytesErased);		
 			drive.Replace(_T("%GBYTES_ERASED%"), cstr);
 		}
 
@@ -344,15 +362,6 @@ Power On Count : %POWER_ON_COUNT%\r\n\
 		}
 		drive.Replace(_T("%BUFFER_SIZE%"), cstr);
 
-		if(m_Ata.vars[i].NvCacheSize > 0)
-		{
-			cstr.Format(_T("%d MB"), m_Ata.vars[i].NvCacheSize / 1024 / 1024);
-		}
-		else
-		{
-			cstr = _T("----");
-		}
-		drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
 
 		if(0 <= m_Ata.vars[i].IdentifyDevice.QueueDepth && m_Ata.vars[i].IdentifyDevice.QueueDepth < 32)
 		{
