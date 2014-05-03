@@ -1335,3 +1335,52 @@ void CDiskInfoDlg::CheckRadioAutoDetection(int id, int value)
 	cstr.Format(_T("%d"), value);
 	WritePrivateProfileString(_T("Setting"), _T("AutoDetection"), cstr, m_Ini);
 }
+
+void CDiskInfoDlg::OnCsmiEnableAll()
+{
+	CheckRadioCsmiType(ID_CSMI_ENABLE_ALL, 2);
+}
+
+void CDiskInfoDlg::OnCsmiEnableRaid()
+{
+	CheckRadioCsmiType(ID_CSMI_ENABLE_RAID, 1);
+}
+
+void CDiskInfoDlg::OnCsmiDisable()
+{
+	CheckRadioCsmiType(ID_CSMI_DISABLE, 0);
+}
+
+void CDiskInfoDlg::CheckRadioCsmiType(int id, int value)
+{
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_CSMI_DISABLE, ID_CSMI_ENABLE_ALL, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+
+	m_Ata.CsmiType = value;
+
+	CString cstr;
+	cstr.Format(_T("%d"), value);
+	WritePrivateProfileString(_T("Setting"), _T("CsmiType"), cstr, m_Ini);
+
+	OnRescan();
+}
+
+void CDiskInfoDlg::CheckRadioCsmiType()
+{
+	int id = ID_CSMI_DISABLE;
+
+	switch(m_Ata.CsmiType)
+	{
+	case   0: id = ID_CSMI_DISABLE;	break;
+	case   1: id = ID_CSMI_ENABLE_RAID;	break;
+	case   2: id = ID_CSMI_ENABLE_ALL;	break;
+	default:  id = ID_CSMI_ENABLE_RAID;	break;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_CSMI_DISABLE, ID_CSMI_ENABLE_ALL, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+}

@@ -1571,6 +1571,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	CheckRadioAutoDetection();
 	CheckRadioRawValues();
+	CheckRadioCsmiType();
 
 	cstr = i18n(_T("Menu"), _T("CELSIUS"));
 	menu->ModifyMenu(ID_CELSIUS, MF_STRING, ID_CELSIUS, cstr);

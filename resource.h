@@ -391,6 +391,13 @@
 #define ID_FONT_SETTING                 33060
 #define ID_WORKAROUND_                  33063
 #define ID_WORKAROUND_ADATA_SSD         33064
+#define ID_ADVANCEDFEATURE_INTELRAID    33065
+#define ID_INTELRAID_ENABLED            33066
+#define ID_INTELRAID_ENABLE             33067
+#define ID_INTELRAID_DISABLE            33068
+#define ID_CSMI_DISABLE                 33070
+#define ID_CSMI_ENABLE_RAID             33071
+#define ID_CSMI_ENABLE_ALL              33072
 #define ID_Menu                         33109
 #define ID_RAW_VALUES_16                33110
 #define ID_RAW_VALUES_10_ALL            33111
@@ -408,7 +415,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        151
-#define _APS_NEXT_COMMAND_VALUE         33065
+#define _APS_NEXT_COMMAND_VALUE         33073
 #define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

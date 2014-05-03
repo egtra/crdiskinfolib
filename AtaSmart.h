@@ -88,6 +88,13 @@ public:
 		CMD_TYPE_DEBUG
 	};
 
+	enum CSMI_TYPE
+	{
+		CSMI_TYPE_DISABLE = 0,
+		CSMI_TYPE_ENABLE_RAID,
+		CSMI_TYPE_ENABLE_ALL
+	};
+
 	enum VENDOR_ID
 	{
 		HDD_GENERAL           = 0,
@@ -1378,6 +1385,7 @@ public:
 	BOOL FlagUsbLogitec;
 	BOOL FlagUsbJmicron;
 	BOOL FlagUsbCypress;
+	DWORD CsmiType;
 
 	DWORD CheckDiskStatus(DWORD index);
 

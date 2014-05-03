@@ -240,6 +240,8 @@ protected:
 	void CheckRadioZoomType();
 	void CheckRadioRawValues();
 	void CheckRadioAutoDetection();
+	void CheckRadioCsmiType(int id, int value);
+	void CheckRadioCsmiType();
 	void ReExecute();
 	void AlarmOverheat();
 	void AlarmHealthStatus(DWORD i, CString dir, CString disk);
@@ -443,4 +445,7 @@ public:
 	afx_msg void OnMailSettings();
 	afx_msg void OnSmartEnglish();
 	afx_msg void OnFontSetting();
+	afx_msg void OnCsmiEnableAll();
+	afx_msg void OnCsmiEnableRaid();
+	afx_msg void OnCsmiDisable();
 };	

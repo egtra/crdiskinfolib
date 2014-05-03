@@ -343,8 +343,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,6,1,2012
- PRODUCTVERSION 4,6,1,2012
+ FILEVERSION 4,6,2,2012
+ PRODUCTVERSION 4,6,2,2012
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -362,12 +362,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.6.1.2012"
+            VALUE "FileVersion", "4.6.2.2012"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2012 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.6.1.2012"
+            VALUE "ProductVersion", "4.6.2.2012"
         END
     END
     BLOCK "VarFileInfo"
@@ -542,7 +542,7 @@ BEGIN
                 MENUITEM "10 [DEC] - 2byte",            ID_RAW_VALUES_2BYTE
                 MENUITEM "10 [DEC] - 1byte",            ID_RAW_VALUES_1BYTE
             END
-            POPUP "[DEBUG] USB/IEEE 1394"
+            POPUP "USB/IEEE 1394"
             BEGIN
                 MENUITEM "SCSI_ATA_TRANSLATION (SAT)",  ID_USB_SAT
                 MENUITEM "I-O DATA",                    ID_USB_IODATA
@@ -554,7 +554,13 @@ BEGIN
                 MENUITEM "Enable All",                  ID_USB_ENABLE_ALL
                 MENUITEM "Disable All",                 ID_USB_DISABLE_ALL
             END
-            MENUITEM "[DEBUG] ATA_PASS_THROUGH for S.M.A.R.T.", ID_ATA_PASS_THROUGH_SMART
+            MENUITEM "ATA_PASS_THROUGH for S.M.A.R.T.", ID_ATA_PASS_THROUGH_SMART
+            POPUP "[Beta] Intel RAID (CSMI)"
+            BEGIN
+                MENUITEM "Enable (Access All Disks)",   ID_CSMI_ENABLE_ALL
+                MENUITEM "Enable (Access RAID Disks only, default)", ID_CSMI_ENABLE_RAID
+                MENUITEM "Disable",                     ID_CSMI_DISABLE
+            END
         END
         MENUITEM SEPARATOR
         POPUP "WORKAROUND"

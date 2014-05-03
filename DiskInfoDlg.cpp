@@ -10,6 +10,7 @@
 #include "stdafx.h"
 #include "DiskInfo.h"
 #include "DiskInfoDlg.h"
+#include "AtaSmart.h"
 
 #include "GetFileVersion.h"
 #include "GetOsInfo.h"
@@ -224,6 +225,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
 	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
+
 #ifdef GADGET_SUPPORT
 	m_FlagSidebar = IsSidebar();
 #endif
@@ -264,6 +266,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	{
 		m_Ata.SetAtaPassThroughSmart(FALSE);
 	}
+	m_Ata.CsmiType = GetPrivateProfileInt(_T("Setting"), _T("CsmiType"), 1, m_Ini);
 
 #ifdef ALERT_VOICE_SUPPORT
 	AlertSound(1000, AS_SET_SOUND_ID);
@@ -578,6 +581,9 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_MAIL_SETTINGS, &CDiskInfoDlg::OnMailSettings)
 	ON_COMMAND(ID_SMART_ENGLISH, &CDiskInfoDlg::OnSmartEnglish)
 	ON_COMMAND(ID_FONT_SETTING, &CDiskInfoDlg::OnFontSetting)
+	ON_COMMAND(ID_CSMI_ENABLE_ALL, &CDiskInfoDlg::OnCsmiEnableAll)
+	ON_COMMAND(ID_CSMI_ENABLE_RAID, &CDiskInfoDlg::OnCsmiEnableRaid)
+	ON_COMMAND(ID_CSMI_DISABLE, &CDiskInfoDlg::OnCsmiDisable)
 	END_MESSAGE_MAP()
 
 // If you add a minimize button to your dialog, you will need the code below
