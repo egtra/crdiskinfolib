@@ -65,6 +65,27 @@ BOOL IsIa64()
 	return FALSE;
 }
 
+BOOL IsSidebar()
+{
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
+
+	if(osvi.dwMajorVersion >= 6 && osvi.wProductType == VER_NT_WORKSTATION)
+	{
+		return TRUE;
+	}
+	
+	return FALSE;
+}
+
 void GetOsName(CString& OsFullName)
 {
 	CString osName, osType, osCsd, osVersion, osBuild, osFullName, osArchitecture;

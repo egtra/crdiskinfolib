@@ -231,6 +231,10 @@ BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 
 		AutoAamApmAdaption();
 
+		#ifdef GADGET_SUPPORT
+		UpdateShareInfo();
+		#endif
+
 		return TRUE;
 	}
 	else

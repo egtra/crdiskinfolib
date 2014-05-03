@@ -318,7 +318,9 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 	m_CurrentApm.Format(_T("%02Xh"), p->m_Ata.GetApmValue(index));
 //	m_RecommendApm.Format(_T("%02Xh"), p->m_Ata.GetRecommendApmValue(index));
 
-	if(p->m_Ata.vars.GetAt(index).IsAamSupported && p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT)
+	if(p->m_Ata.vars.GetAt(index).IsAamSupported 
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE)
 	{
 		m_AamScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsAamEnabled)
@@ -343,7 +345,9 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 		SetElementPropertyEx(_T("DisableAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
 	}
 
-	if(p->m_Ata.vars.GetAt(index).IsApmSupported && p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT)
+	if(p->m_Ata.vars.GetAt(index).IsApmSupported
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE)
 	{
 		m_ApmScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsApmEnabled)

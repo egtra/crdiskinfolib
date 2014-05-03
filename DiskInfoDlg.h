@@ -21,6 +21,7 @@
 
 #include <Dbt.h>
 
+#define REGISTRY_PATH _T("software\\Crystal Dew World\\CrystalDiskInfo")
 // CDiskInfoDlg dialog
 class CDiskInfoDlg : public CDHtmlMainDialog
 {
@@ -125,6 +126,7 @@ protected:
 	BOOL m_FlagDumpSmartReadThreshold;
 	BOOL m_FlagShowTemperatureIconOnly;
 	BOOL m_FlagAsciiView;
+	BOOL m_FlagSidebar;
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -189,6 +191,11 @@ protected:
 	void CheckStartup();
 	void AutoAamApmAdaption();
 	void ShowTemperatureIconOnly();
+
+#ifdef GADGET_SUPPORT
+	void UpdateShareInfo(); // For Sidebar Gadget Support
+	void DeleteShareInfo();
+#endif
 
 	BOOL AddTrayMainIcon();
 	BOOL RemoveTrayMainIcon();

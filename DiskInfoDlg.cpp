@@ -179,6 +179,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagResidentMinimize = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ResidentMinimize"), 0, m_Ini);
 	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
+	m_FlagSidebar = IsSidebar();
 
 	m_AutoDetectionStatus = GetPrivateProfileInt(_T("Setting"), _T("AutoDetection"), 0, m_Ini);
 	if(m_AutoDetectionStatus < 0)
@@ -231,6 +232,10 @@ CDiskInfoDlg::~CDiskInfoDlg()
 	{
 		DestroyMenu(m_hMenu);
 	}
+	
+	#ifdef GADGET_SUPPORT
+	DeleteShareInfo();
+	#endif
 }
 
 void CDiskInfoDlg::OnCancel()

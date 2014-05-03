@@ -253,7 +253,7 @@ void CDiskInfoDlg::OnEditCopy()
 			{
 				IsMinutes = _T("");
 			}
-			cstr.Format(_T("%d %s"), m_Ata.vars[i].DetectedPowerOnHours, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), IsMinutes);
+			cstr.Format(_T("%d %s%s"), m_Ata.vars[i].DetectedPowerOnHours, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), IsMinutes);
 		}
 		else
 		{
@@ -273,7 +273,7 @@ void CDiskInfoDlg::OnEditCopy()
 
 		if(m_Ata.vars[i].NvCacheSize > 0)
 		{
-			cstr.Format(_T("%d MB"), m_Ata.vars[i].NvCacheSize / 1024 / 1024);
+			cstr.Format(_T("%d MB"), (int)(m_Ata.vars[i].NvCacheSize / 1024 / 1024));
 		}
 		else
 		{
@@ -286,7 +286,7 @@ void CDiskInfoDlg::OnEditCopy()
 		}
 		else
 		{
-			cstr.Format(_T("   NV Cache Size : %d MB\r\n"), m_Ata.vars[i].NvCacheSize / 1024 / 1024);
+			cstr.Format(_T("   NV Cache Size : %d MB\r\n"), (int)(m_Ata.vars[i].NvCacheSize / 1024 / 1024));
 			drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
 		}
 
@@ -542,19 +542,37 @@ void CDiskInfoDlg::OnEditCopy()
 				}
 				else
 				{
-					cstr.Format(_T("%02X %s %s %s %02X%02X%02X%02X%02X%02X %s\r\n"),
-						m_Ata.vars[i].Attribute[j].Id,
-						__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
-						__Number(m_Ata.vars[i].Attribute[j].WorstValue),
-						__Number(m_Ata.vars[i].Threshold[j].ThresholdValue),
-						m_Ata.vars[i].Attribute[j].RawValue[5],
-						m_Ata.vars[i].Attribute[j].RawValue[4],
-						m_Ata.vars[i].Attribute[j].RawValue[3],
-						m_Ata.vars[i].Attribute[j].RawValue[2],
-						m_Ata.vars[i].Attribute[j].RawValue[1],
-						m_Ata.vars[i].Attribute[j].RawValue[0],
-						str
-						);
+					if(m_Ata.vars[i].IsThresholdCorrect)
+					{
+						cstr.Format(_T("%02X %s %s %s %02X%02X%02X%02X%02X%02X %s\r\n"),
+							m_Ata.vars[i].Attribute[j].Id,
+							__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
+							__Number(m_Ata.vars[i].Attribute[j].WorstValue),
+							__Number(m_Ata.vars[i].Threshold[j].ThresholdValue),
+							m_Ata.vars[i].Attribute[j].RawValue[5],
+							m_Ata.vars[i].Attribute[j].RawValue[4],
+							m_Ata.vars[i].Attribute[j].RawValue[3],
+							m_Ata.vars[i].Attribute[j].RawValue[2],
+							m_Ata.vars[i].Attribute[j].RawValue[1],
+							m_Ata.vars[i].Attribute[j].RawValue[0],
+							str
+							);
+					}
+					else
+					{
+						cstr.Format(_T("%02X %s %s --- %02X%02X%02X%02X%02X%02X %s\r\n"),
+							m_Ata.vars[i].Attribute[j].Id,
+							__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
+							__Number(m_Ata.vars[i].Attribute[j].WorstValue),
+							m_Ata.vars[i].Attribute[j].RawValue[5],
+							m_Ata.vars[i].Attribute[j].RawValue[4],
+							m_Ata.vars[i].Attribute[j].RawValue[3],
+							m_Ata.vars[i].Attribute[j].RawValue[2],
+							m_Ata.vars[i].Attribute[j].RawValue[1],
+							m_Ata.vars[i].Attribute[j].RawValue[0],
+							str
+							);
+					}
 				}
 				line += cstr;
 			}

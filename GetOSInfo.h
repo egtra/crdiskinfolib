@@ -14,10 +14,10 @@ void GetOsName(CString& OsFullName);
 BOOL IsX64();
 BOOL IsIa64();
 BOOL IsWow64();
-
+BOOL IsSidebar();
 BOOL IsClassicSystem();
-DWORD GetIeVersion();
 BOOL IsIe556();
+DWORD GetIeVersion();
 
 #define PRODUCT_UNLICENSED                       0xABCDABCD
 #define PRODUCT_BUSINESS                         0x00000006 // Business Edition

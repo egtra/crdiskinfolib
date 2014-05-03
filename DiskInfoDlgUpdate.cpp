@@ -61,8 +61,123 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 			AlarmOverheat();
 			UpdateTrayTemperatureIcon(TRUE);
 		}
+		#ifdef GADGET_SUPPORT
+		UpdateShareInfo();
+		#endif
 	}
 }
+
+#ifdef GADGET_SUPPORT
+void CDiskInfoDlg::UpdateShareInfo()
+{
+	if(! m_FlagSidebar || m_Ata.vars.GetCount() == 0)
+	{
+		return ;
+	}
+
+	HKEY hKey, hSubKey;
+	CString key;
+	DWORD result;
+	DWORD value;
+	TCHAR str[256];
+
+	SHDeleteKey(HKEY_CURRENT_USER, REGISTRY_PATH);
+	result = RegCreateKeyEx(HKEY_CURRENT_USER, REGISTRY_PATH, 0, _T(""),
+		REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
+
+	if(result != ERROR_SUCCESS)
+	{
+		return ;
+	}
+	
+	value = GetTickCount();
+	RegSetValueEx(hKey, _T("LastUpdate"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD)); 
+	value = m_Ata.vars.GetCount();
+	RegSetValueEx(hKey, _T("DiskCount"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD)); 
+
+	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
+	{
+		result = RegCreateKeyEx(hKey, m_Ata.vars[i].ModelSerial, 0, NULL,
+			REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &hSubKey, NULL);
+		if(result != ERROR_SUCCESS)
+		{
+			continue;
+		}
+
+		key.Format(_T("Disk%d"), i);
+		wsprintf(str, m_Ata.vars[i].ModelSerial);
+		RegSetValueEx(hKey, key, 0, REG_SZ,
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+
+
+		wsprintf(str, m_Ata.vars[i].DriveMap);
+		RegSetValueEx(hSubKey, _T("DriveLetter"), 0, REG_SZ,
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+		wsprintf(str, m_Ata.vars[i].Model);
+		RegSetValueEx(hSubKey, _T("Model"), 0, REG_SZ, 
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+
+		if(m_Ata.vars[i].TotalDiskSize < 1000)
+		{
+			_stprintf_s(str, 256, _T("%.2f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+		}
+		else
+		{
+			_stprintf_s(str, 256, _T("%.1f GB"), m_Ata.vars[i].TotalDiskSize / 1000.0);
+		}
+		RegSetValueEx(hSubKey, _T("DiskSize"), 0, REG_SZ,
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+		
+		if(m_FlagFahrenheit)
+		{
+			if(m_Ata.vars[i].Temperature > 0)
+			{
+				DWORD f = m_Ata.vars[i].Temperature * 9 / 5 + 32;
+				if(f > 100)
+				{
+					_stprintf_s(str, 256, _T("%dÅãF"), f);
+				}
+				else
+				{
+					_stprintf_s(str, 256, _T("%d ÅãF"), f);
+				}
+			}
+			else
+			{
+				_stprintf_s(str, 256, _T("-- ÅãF"));
+			}
+		}
+		else
+		{
+			if(m_Ata.vars[i].Temperature > 0)
+			{
+				_stprintf_s(str, 256, _T("%d ÅãC"), m_Ata.vars[i].Temperature);
+			}
+			else
+			{
+				_stprintf_s(str, 256, _T("-- ÅãC"));
+			}
+		}
+		RegSetValueEx(hSubKey, _T("Temperature"), 0, REG_SZ,
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+
+		_stprintf_s(str, 256, _T("%s"), GetTemperatureClass(m_Ata.vars[i].Temperature));
+		RegSetValueEx(hSubKey, _T("TemperatureClass"), 0, REG_SZ,
+			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+
+		value = m_Ata.vars[i].DiskStatus;
+		RegSetValueEx(hSubKey, _T("DiskStatus"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD));
+
+		RegCloseKey(hSubKey);
+	}
+	RegCloseKey(hKey);
+}
+
+void CDiskInfoDlg::DeleteShareInfo()
+{
+	SHDeleteKey(HKEY_CURRENT_USER, REGISTRY_PATH);
+}
+#endif
 
 void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 {
@@ -171,7 +286,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			continue;
 		}
 		
-		if(m_Ata.vars[i].IsSmartCorrect)
+		if(m_Ata.vars[i].IsSmartCorrect && m_Ata.vars[i].IsThresholdCorrect)
 		{
 			switch(m_Ata.vars[i].Attribute[j].Id)
 			{
@@ -565,9 +680,17 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 3, cstr);
 			cstr.Format(_T("%d"), m_Ata.vars[i].Attribute[j].WorstValue);							
 			m_List.SetItemText(k, 4, cstr);
-			cstr.Format(_T("%d"), m_Ata.vars[i].Threshold[j].ThresholdValue);							
+			if(m_Ata.vars[i].IsThresholdCorrect)
+			{
+				cstr.Format(_T("%d"), m_Ata.vars[i].Threshold[j].ThresholdValue);
+			}
+			else
+			{
+				cstr = _T("---");
+			}
 			m_List.SetItemText(k, 5, cstr);
-						switch(m_RawValues)
+			
+			switch(m_RawValues)
 			{
 			case 3:
 				cstr.Format(_T("%d %d %d %d %d %d"),  

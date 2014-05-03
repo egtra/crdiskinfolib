@@ -4,7 +4,7 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
+//                           Copyright 2008-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 // Reference : http://www.usefullcode.net/2007/02/hddsmart.html (ja)
 
@@ -73,7 +73,7 @@ public:
 	{
 		CMD_TYPE_PHYSICAL_DRIVE = 0,
 		CMD_TYPE_SCSI_MINIPORT,
-//		CMD_TYPE_SILICON_IMAGE,
+		CMD_TYPE_SILICON_IMAGE,
 		CMD_TYPE_SAT,				// SAT = SCSI_ATA_TRANSLATION
 		CMD_TYPE_SUNPLUS,
 		CMD_TYPE_IO_DATA,
@@ -350,18 +350,20 @@ public:
 	struct ATA_SMART_INFO
 	{
 		IDENTIFY_DEVICE		IdentifyDevice;
-		WORD				SmartReadData[256];
-		WORD				SmartReadThreshold[256];
+		BYTE				SmartReadData[512];
+		BYTE				SmartReadThreshold[512];
 		SMART_ATTRIBUTE		Attribute[MAX_ATTRIBUTE];
 		SMART_THRESHOLD		Threshold[MAX_ATTRIBUTE];
 
 		BOOL				IsSmartEnabled;
 		BOOL				IsIdInfoIncorrect;
 		BOOL				IsSmartCorrect;
+		BOOL				IsThresholdCorrect;
 		BOOL				IsCheckSumError;
 		BOOL				IsWord88;
 		BOOL				IsWord64_76;
 		BOOL				IsRawValues8;
+		BOOL				Is9126MB;
 
 		BOOL				IsSmartSupported;
 		BOOL				IsLba48Supported;
@@ -378,6 +380,8 @@ public:
 		INT					PhysicalDriveId;
 		INT					ScsiPort;
 		INT					ScsiTargetId;
+		INT					ScsiBus;
+		INT					SiliconImageType;
 //		INT					AccessType;
 
 		DWORD				TotalDiskSize;
@@ -468,6 +472,8 @@ public:
 	CString m_ControllerMap;
 	CStringArray m_BlackIdeController;
 	CStringArray m_BlackScsiController;
+	CStringArray m_SiliconImageController;
+	CArray<DWORD, DWORD> m_SiliconImageControllerType;
 	CArray<INT, INT> m_BlackPhysicalDrive;
 
 	BOOL IsAdvancedDiskSearch;
@@ -488,8 +494,8 @@ protected:
 	CString m_SerialNumberA_Z[26];
 	BOOL m_FlagAtaPassThrough;
 
-	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0);
-	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify);
+	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0);
+	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1);
 	DWORD CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SMART_ATTRIBUTE* cur);
 
 	BOOL CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2);
@@ -501,6 +507,7 @@ protected:
 	VOID ChangeByteOrder(PCHAR str, DWORD length);
 	BOOL CheckAsciiStringError(PCHAR str, DWORD length);
 	HANDLE GetIoCtrlHandle(BYTE index);
+	HANDLE GetIoCtrlHandle(INT scsiPort, DWORD siliconImageType);
 	BOOL SendAtaCommand(DWORD i, BYTE main, BYTE sub, BYTE param);
 
 	BOOL DoIdentifyDevicePd(INT physicalDriveId, BYTE target, IDENTIFY_DEVICE* identify);
@@ -521,11 +528,17 @@ protected:
 	BOOL ControlSmartStatusSat(INT physicalDriveId, BYTE target, BYTE command, COMMAND_TYPE commandType);
 	BOOL SendAtaCommandSat(INT physicalDriveId, BYTE target, BYTE main, BYTE sub, BYTE param, COMMAND_TYPE commandType);
 
+	BOOL DoIdentifyDeviceSi(INT physicalDriveId, INT scsiPort, INT scsiBus, DWORD siliconImageId, IDENTIFY_DEVICE* identify);
+	BOOL GetSmartAttributeSi(INT physicalDriveId, ATA_SMART_INFO* asi);
+	BOOL GetSmartThresholdSi(INT physicalDriveId, ATA_SMART_INFO* asi);
+
 	DWORD GetTransferMode(WORD w63, WORD w76, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
 	DWORD GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode);
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);
 //	DWORD GetMaxtorPowerOnHours(DWORD currentValue, DWORD rawValue);
+
+	BOOL FillSmartInfo(ATA_SMART_INFO* asi);
 
 	void CheckSsdSupport(ATA_SMART_INFO &asi);
 	BOOL IsSsdOld(ATA_SMART_INFO &asi);
