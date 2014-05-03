@@ -253,6 +253,8 @@ protected:
 	BOOL AppendLog(CString dir, CString disk, CString file, CTime time, int value, BOOL firstTime = FALSE, int threshold = 0);
 	BOOL AddEventLog(DWORD eventId, WORD eventType, CString message);
 
+	void RebuildListHeader(DWORD index);
+
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()

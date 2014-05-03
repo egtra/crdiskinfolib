@@ -450,10 +450,11 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
 				}
 
-				if(m_Ata.vars[i].IsRawValues8 && m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+				if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
 				{
-					cstr.Format(_T("%02X %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
+					cstr.Format(_T("%02X %s %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,
+						__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
 						m_Ata.vars[i].Attribute[j].Reserved,
 						m_Ata.vars[i].Attribute[j].RawValue[5],
 						m_Ata.vars[i].Attribute[j].RawValue[4],
@@ -465,7 +466,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 						str
 						);
 				}
-				else if(m_Ata.vars[i].IsRawValues8)
+				else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
 				{
 					cstr.Format(_T("%02X %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,

@@ -252,18 +252,18 @@ BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 
 void CDiskInfoDlg::InitListCtrl()
 {
-	DWORD width = 0;
+	// DWORD width = 0;
 	// Get Cntrol Width
 	// CRect cr;
 	// m_List.GetWindowRect(&cr);
-	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
+	//	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
 
 	DWORD style = ListView_GetExtendedListViewStyle(m_List.m_hWnd);
 	style |= LVS_EX_FULLROWSELECT | /*LVS_EX_GRIDLINES |*/ LVS_EX_LABELTIP ;
 	ListView_SetExtendedListViewStyle(m_List.m_hWnd, style);
 
 	m_List.SetImageList(&m_ImageList, LVSIL_SMALL);
-
+/*
 	while(m_List.DeleteColumn(0)){}
 	m_List.DeleteAllItems();
 	m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
@@ -271,8 +271,9 @@ void CDiskInfoDlg::InitListCtrl()
 	m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
 	m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
 	m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-	m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(124 * m_ZoomRatio), 0);
-	m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 372 * m_ZoomRatio - 25), 0);
+	m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
+	m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 388 * m_ZoomRatio - 25), 0);
+*/
 }
 
 CString CDiskInfoDlg::GetDiskStatus(DWORD statusCode)

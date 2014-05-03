@@ -1885,6 +1885,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	{
 		return FALSE;
 	}
+
 	vars.Add(asi);
 
 	return TRUE;

@@ -66,6 +66,56 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 	}
 }
 
+void CDiskInfoDlg::RebuildListHeader(DWORD i)
+{
+	static DWORD preVendorId = m_Ata.HDD_GENERAL;
+	DWORD width = 0;
+	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
+
+	m_List.DeleteAllItems();
+
+	if(preVendorId == m_Ata.vars[i].VendorId)
+	{
+		return ;
+	}
+
+	while(m_List.DeleteColumn(0)){}
+
+	if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+	{
+		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 244 * m_ZoomRatio - 25), 0);
+		preVendorId = m_Ata.SSD_VENDOR_JMICRON;
+	}
+	else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+	{
+		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 172 * m_ZoomRatio - 25), 0);
+		preVendorId = m_Ata.SSD_VENDOR_INDILINX;
+	}
+	else
+	{
+		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(108 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 356 * m_ZoomRatio - 25), 0);
+		preVendorId = m_Ata.HDD_GENERAL;
+	}
+}
+
 BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 {
 	static DWORD preSelectDisk = 0;
@@ -84,7 +134,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 	else
 	{
 		m_List.SetRedraw(FALSE);
-		m_List.DeleteAllItems();
+		RebuildListHeader(i);
 		preSelectDisk = i;
 	}
 
@@ -359,7 +409,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 
 		m_List.SetItemText(k, 2, str);
 
-		if(m_Ata.vars[i].IsRawValues8 && m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+		if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
 		{
 			cstr.Format(_T("%d"), m_Ata.vars[i].Attribute[j].CurrentValue);							
 			m_List.SetItemText(k, 3, cstr);
@@ -378,7 +428,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 6, cstr);
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDDDDDD"));
 		}
-		else if(m_Ata.vars[i].IsRawValues8)
+		else if(m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_INDILINX)
 		{
 			m_List.SetItemText(k, 3, _T("---"));
 			m_List.SetItemText(k, 4, _T("---"));
@@ -411,7 +461,8 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				m_Ata.vars[i].Attribute[j].RawValue[2],
 				m_Ata.vars[i].Attribute[j].RawValue[1],
 				m_Ata.vars[i].Attribute[j].RawValue[0]
-			);							
+			);
+		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDD"));
 			m_List.SetItemText(k, 6, cstr);
 		}
 
