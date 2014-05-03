@@ -97,6 +97,8 @@ public:
 		SSD_VENDOR_SAMSUNG    = 6,
 		SSD_VENDOR_SANDFORCE  = 7,
 		SSD_VENDOR_MICRON     = 8,
+		SSD_VENDOR_OCZ        = 9,
+		HDD_SSD_VENDOR_SEAGATE= 10,
 		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
@@ -168,8 +170,8 @@ protected:
 		DWORD   DataTransferLength;
 		DWORD   TimeOutValue;
 		DWORD   ReservedAsUlong;
-		DWORD   DataBufferOffset;
-	//	DWORD_PTR   DataBufferOffset;
+	//	DWORD   DataBufferOffset;
+		DWORD_PTR   DataBufferOffset;
 		IDEREGS PreviousTaskFile;
 		IDEREGS CurrentTaskFile;
 	} ATA_PASS_THROUGH_EX, *PCMD_ATA_PASS_THROUGH_EX;
@@ -420,6 +422,7 @@ public:
 		INT					HostReads;
 		INT					GBytesErased;
 		INT					NandWrites;
+		INT					WearLevelingCount;
 
 		INT					Life;
 
@@ -565,6 +568,9 @@ protected:
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
 	BOOL IsSsdMicron(ATA_SMART_INFO &asi);
+	BOOL IsSsdOcz(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
+
+	CString GetModelSerial(CString &model, CString &serialNumber);
 };

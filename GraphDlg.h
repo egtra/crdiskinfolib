@@ -142,6 +142,8 @@ protected:
 	void UpdateColor();
 	void UpdateBgImage();
 
+	CString GetModelSerial(CString &model, CString &serialNumber);
+
 	BOOL m_FlagFahrenheit;
 	BOOL m_FlagPaintWeekend;
 	DWORD m_MaxPlotPoint;

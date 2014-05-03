@@ -42,6 +42,8 @@ static const TCHAR *ssdVendorString[] =
 	_T("sg"), // SAMSUNG
 	_T("sf"), // SandForce
 	_T("mi"), // Micron
+	_T("oz"), // OCZ
+	_T("st"), // SEAGATE
 };
 
 static const TCHAR *deviceFormFactorString[] = 
@@ -744,7 +746,13 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 						// Black List
 						if(! IsAdvancedDiskSearch && name1.Find(_T("VIA VT6410")) == 0
-						//|| name1.Find(_T("")) == 0
+						)
+						{
+							flagBlackList = TRUE;
+						}
+
+						// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=614;id=diskinfo#614
+						if(! IsAdvancedDiskSearch && name1.Find(_T("WBT")) >= 0 && name1.Find(_T("6010")) >= 0
 						)
 						{
 							flagBlackList = TRUE;
@@ -830,6 +838,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			{
 				m_ControllerMap += csa.GetAt(i);
 			}
+
+			DebugPrint(_T("--ControllerMap--\r\n") + m_ControllerMap);
 
 			try
 			{// Win32_USBController
@@ -1290,8 +1300,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 								vars[index].SerialNumber = vars[index].SerialNumberReverse;
 								vars[index].FirmwareRev = vars[index].FirmwareRevReverse;
 								vars[index].Model = vars[index].ModelReverse;
-								vars[index].ModelSerial = vars[index].Model + vars[index].SerialNumber;
-								vars[index].ModelSerial.Replace(_T("/"), _T(""));
+								vars[index].ModelSerial = GetModelSerial(vars[index].Model, vars[index].SerialNumber);
 							}
 							else
 							{
@@ -1597,8 +1606,7 @@ safeRelease:
 				vars[index].SerialNumber = vars[index].SerialNumberReverse;
 				vars[index].FirmwareRev = vars[index].FirmwareRevReverse;
 				vars[index].Model = vars[index].ModelReverse;
-				vars[index].ModelSerial = vars[index].Model + vars[index].SerialNumber;
-				vars[index].ModelSerial.Replace(_T("/"), _T(""));
+				vars[index].ModelSerial = GetModelSerial(vars[index].Model, vars[index].SerialNumber);
 			}
 		}
 	}
@@ -1635,8 +1643,7 @@ safeRelease:
 						vars[index].SerialNumber = vars[index].SerialNumberReverse;
 						vars[index].FirmwareRev = vars[index].FirmwareRevReverse;
 						vars[index].Model = vars[index].ModelReverse;
-						vars[index].ModelSerial = vars[index].Model + vars[index].SerialNumber;
-						vars[index].ModelSerial.Replace(_T("/"), _T(""));
+						vars[index].ModelSerial = GetModelSerial(vars[index].Model, vars[index].SerialNumber);
 					}
 				}
 			}
@@ -1777,6 +1784,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.HostReads = -1;
 	asi.GBytesErased = -1;
 	asi.NandWrites = -1;
+	asi.WearLevelingCount = -1;
 
 	asi.Major = 0;
 	asi.Minor = 0;
@@ -1880,9 +1888,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 // DEBUG
 //	asi.Model = _T(" MTRON ") + asi.Model; 
 
-	asi.ModelSerial = asi.Model + asi.SerialNumber;
-	asi.ModelSerial.Replace(_T("/"), _T(""));
-
+	asi.ModelSerial = GetModelSerial(asi.Model, asi.SerialNumber);
 	asi.Major = GetAtaMajorVersion(identify->MajorVersion, asi.MajorVersion);
 	GetAtaMinorVersion(identify->MinorVersion, asi.MinorVersion);
 	asi.TransferModeType = GetTransferMode(identify->MultiWordDma, identify->SerialAtaCapabilities,
@@ -2344,6 +2350,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if(IsSsdOcz(asi))
+	{
+		asi.SmartKeyName = _T("SmartOcz");
+		asi.DiskVendorId = SSD_VENDOR_OCZ;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
@@ -2380,6 +2393,24 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			break;
 		case 0xE8:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
+			{
+				if(asi.Attribute[j].CurrentValue <= 100)
+				{
+					asi.Life = asi.Attribute[j].CurrentValue;
+				}
+			}
+			/*
+			else if(asi.DiskVendorId == SSD_VENDOR_OCZ)
+			{
+				asi.HostWrites  = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
+			}
+			*/
+			break;
+		case 0xE9:
+			if(asi.DiskVendorId == SSD_VENDOR_OCZ)
 			{
 				if(asi.Attribute[j].CurrentValue <= 100)
 				{
@@ -2423,6 +2454,20 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
+			/*
+			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
+			{
+				asi.HostWrites  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
+			*/
 			break;
 		case 0xF2:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -2451,6 +2496,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
+			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
+			{
+				asi.HostReads  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
 			break;
 		case 0xF9:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -2465,6 +2522,24 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
 			{
 				asi.GBytesErased  = (INT)MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
+			}
+			break;
+		case 0xAD:
+			if(asi.DiskVendorId == SSD_VENDOR_MICRON)
+			{
+				asi.WearLevelingCount  = (INT)MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
+			}
+			break;
+		case 0xB1:
+			if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+			{
+				asi.WearLevelingCount  = (INT)MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					);
@@ -2610,14 +2685,16 @@ BOOL CAtaSmart::IsSsdIndlinx(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
+	/*
+		asi.Model.Find(_T("OCZ-VERTEX")) == 0
+	|| asi.Model.Find(_T("G-Monster-V3")) == 0
+	|| asi.Model.Find(_T("G-Monster-V5")) == 0 
+	|| (asi.Model.Find(_T("STT_FTM")) == 0 && asi.Model.Find(_T("GX")) > 0)
+	|| asi.Model.Find(_T("Solidata")) == 0
+	*/
+
 	return flagSmartType;
-		/*
-		   asi.Model.Find(_T("OCZ-VERTEX")) == 0
-		|| asi.Model.Find(_T("G-Monster-V3")) == 0
-		|| asi.Model.Find(_T("G-Monster-V5")) == 0 
-		|| (asi.Model.Find(_T("STT_FTM")) == 0 && asi.Model.Find(_T("GX")) > 0)
-		|| asi.Model.Find(_T("Solidata")) == 0
-		*/
+
 }
 
 BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
@@ -2722,7 +2799,7 @@ BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
 	return (asi.Model.Find(_T("SandForce")) >= 0 || flagSmartType);
 }
 
-
+// Micron RealSSD & Crucial
 BOOL CAtaSmart::IsSsdMicron(ATA_SMART_INFO &asi)
 {
 	BOOL flagSmartType = FALSE;
@@ -2738,6 +2815,32 @@ BOOL CAtaSmart::IsSsdMicron(ATA_SMART_INFO &asi)
 	&& asi.Attribute[ 8].Id == 0xAE
 	&& asi.Attribute[ 9].Id == 0xB5
 	&& asi.Attribute[10].Id == 0xB7
+	)
+	{
+		flagSmartType = TRUE;
+	}
+	
+	return asi.Model.Find(_T("P500")) == 0 || asi.Model.Find(_T("C500")) == 0 || asi.Model.Find(_T("M5-")) == 0
+		|| asi.Model.Find(_T("P400")) == 0 || asi.Model.Find(_T("C400")) == 0 || asi.Model.Find(_T("M4-")) == 0
+		|| asi.Model.Find(_T("P300")) == 0 || asi.Model.Find(_T("C300")) == 0 || asi.Model.Find(_T("M3-")) == 0
+		|| flagSmartType;
+}
+
+BOOL CAtaSmart::IsSsdOcz(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+
+	// 2012/3/11
+	// OCZ-PETROL - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=553;id=diskinfo#553
+	// OCZ-OCTANE S2 - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=577;id=diskinfo#577
+	if(asi.Attribute[ 0].Id == 0x01
+	&& asi.Attribute[ 1].Id == 0x03
+	&& asi.Attribute[ 2].Id == 0x04
+	&& asi.Attribute[ 3].Id == 0x05
+	&& asi.Attribute[ 4].Id == 0x09
+	&& asi.Attribute[ 5].Id == 0x0C
+	&& asi.Attribute[ 6].Id == 0xE8
+	&& asi.Attribute[ 7].Id == 0xE9
 	)
 	{
 		flagSmartType = TRUE;
@@ -2907,12 +3010,14 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 		}
 
 		// 2009/7/30, 2009/8/21
-		// IO-DATA HDPS-U  (http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2918;id=report#2918)
-		//                 (http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2978;id=report#2978)
-		//                 (http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2985;id=report#2985)
-		if(interfaceType == INTERFACE_TYPE_USB && usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122)
+		// IO-DATA HDPS-U  http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2918;id=report#2918
+		//                 http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2978;id=report#2978
+		//                 http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2985;id=report#2985
+		// 2012/3/20
+		// StoreJet         http://btmn.jp/2012/02/25/storejet-320gb-crystal-diskinfo/
+		if(interfaceType == INTERFACE_TYPE_USB && (usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122 ||  usbVendorId == USB_VENDOR_JMICRON))
 		{
-			DebugPrint(_T("usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122"));
+			DebugPrint(_T("(usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122 ||  usbVendorId == USB_VENDOR_JMICRON"));
 			if(FlagUsbJmicron && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify,  CMD_TYPE_JMICRON))
 			{
 				DebugPrint(_T("AddDisk - USB0"));
@@ -2930,9 +3035,9 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			}
 		}
 
-		if(interfaceType == INTERFACE_TYPE_USB && (usbVendorId == USB_VENDOR_IO_DATA || usbVendorId == USB_VENDOR_ALL))
+		if(interfaceType == INTERFACE_TYPE_USB && usbVendorId == USB_VENDOR_IO_DATA)
 		{
-			DebugPrint(_T("usbVendorId == USB_VENDOR_IO_DATA || usbVendorId == USB_VENDOR_ALL"));
+			DebugPrint(_T("usbVendorId == USB_VENDOR_IO_DATA"));
 			if(FlagUsbIodata && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_IO_DATA))
 			{
 				DebugPrint(_T("AddDisk - USB2"));
@@ -4645,6 +4750,24 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						asi->Life = asi->Attribute[j].CurrentValue;
 					}
 				}
+				/*
+				else if(asi->DiskVendorId == SSD_VENDOR_OCZ)
+				{
+					asi->HostWrites  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
+				}
+				*/
+				break;
+			case 0xE9:
+				if(asi->DiskVendorId == SSD_VENDOR_OCZ)
+				{
+					if(asi->Attribute[j].CurrentValue <= 100)
+					{
+						asi->Life = asi->Attribute[j].CurrentValue;
+					}
+				}
 				break;
 			case 0xE1:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -4682,6 +4805,20 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
+				/*
+				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
+				{
+					asi->HostWrites  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
+				*/
 				break;
 			case 0xF2:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -4710,6 +4847,18 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
+				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
+				{
+					asi->HostReads  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
 				break;
 			case 0xF9:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -4724,6 +4873,24 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
 				{
 					asi->GBytesErased  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
+			case 0xAD:
+				if(asi->DiskVendorId == SSD_VENDOR_MICRON)
+				{
+					asi->WearLevelingCount  = (INT)MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
+			case 0xB1:
+				if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->WearLevelingCount  = (INT)MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						);
@@ -5141,7 +5308,7 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 	// 2012/1/15
 	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=504;id=diskinfo#504
 	else if(
-	   ((model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && firmware.Find(_T("VM21")) == 0)
+	   ((model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && (firmware.Find(_T("VM21")) == 0 || firmware.Find(_T("VN21")) == 0))
 	|| ((model.Find(_T("PX-128M2P")) != -1 || model.Find(_T("PX-256M2P")) != -1) && _tstof(firmware) < 1.059)
 	)
 	{
@@ -5264,4 +5431,21 @@ VOID CAtaSmart::GetAtaMinorVersion(WORD w81, CString &minor)
 	default:	//	minor.Format(_T("Reserved [%04Xh]"), w81);					break;
 					minor.Format(_T("---- [%04Xh]"), w81);						break;
 	}
+}
+
+CString CAtaSmart::GetModelSerial(CString &model, CString &serialNumber)
+{
+	CString modelSerial;
+	modelSerial = model + serialNumber;
+	modelSerial.Replace(_T("\\"), _T(""));
+	modelSerial.Replace(_T("/"), _T(""));
+	modelSerial.Replace(_T(":"), _T(""));
+	modelSerial.Replace(_T("*"), _T(""));
+	modelSerial.Replace(_T("?"), _T(""));
+	modelSerial.Replace(_T("\""), _T(""));
+	modelSerial.Replace(_T("<"), _T(""));
+	modelSerial.Replace(_T(">"), _T(""));
+	modelSerial.Replace(_T("|"), _T(""));
+
+	return modelSerial;
 }

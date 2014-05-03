@@ -705,7 +705,7 @@ void CGraphDlg::InitMenuBar()
 	for(int i = 0; i < m_DetectedDisk; i++)
 	{
 		dir = m_SmartDir;
-		disk = m_Model[i] + m_Serial[i];
+		disk = GetModelSerial(m_Model[i], m_Serial[i]);
 		dir += disk;
 		for(int j = 1; j < 255; j++)
 		{
@@ -860,7 +860,7 @@ void CGraphDlg::InitMenuBar()
 	// NandWrites
 	if(flagAttribute[0xF9])
 	{
-		cstr.Format(_T("<option value=\"505\">%s[F2] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"505\">%s[F9] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 505)
 		{
@@ -875,6 +875,30 @@ void CGraphDlg::InitMenuBar()
 		cstr.Format(_T("<option value=\"356\">%s[64] %s (GB)</option>"), space, i18n(_T("SmartSandForce"), _T("64"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 356)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
+	// Wear Leveling Count for Micron
+	if(flagAttribute[0xAD])
+	{
+		cstr.Format(_T("<option value=\"429\">%s[AD] %s</option>"), space, i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"), m_FlagSmartEnglish));
+		select += cstr;
+		if(SelectedAttributeId == 429)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
+	// Wear Leveling Count for SAMSUNG
+	if(flagAttribute[0xB1])
+	{
+		cstr.Format(_T("<option value=\"433\">%s[B1] %s</option>"), space, i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"), m_FlagSmartEnglish));
+		select += cstr;
+		if(SelectedAttributeId == 433)
 		{
 			index = counter;
 		}
@@ -966,6 +990,8 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1F2:fileName = _T("HostReads");					min = 0; break;
 		case 0x1F9:fileName = _T("NandWrites");					min = 0; break;
 		case 0x164:fileName = _T("GBytesErased");				min = 0; break;
+		case 0x1AD:fileName = _T("WearLevelingCount");			min = 0; break;
+		case 0x1B1:fileName = _T("WearLevelingCount");			min = 0; break;
 		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:
 			return FALSE;
@@ -1002,8 +1028,7 @@ BOOL CGraphDlg::UpdateGraph()
 		values = _T("");
 
 		smartFile = m_SmartDir + _T("\\");
-		smartFile += m_Model[i] + m_Serial[i];
-		smartFile.Replace(_T("/"), _T(""));
+		smartFile += GetModelSerial(m_Model[i], m_Serial[i]);
 		smartFile += _T("\\") + fileName + _T(".csv");
 		if(! inFile.Open(smartFile, CFile::modeRead | CFile::typeText))
 		{
@@ -1706,4 +1731,21 @@ void CGraphDlg::SetAttribute(DWORD id, DWORD type)
 	DrawMenuBar();
 
 	InitMenuBar();
+}
+
+CString CGraphDlg::GetModelSerial(CString &model, CString &serialNumber)
+{
+	CString modelSerial;
+	modelSerial = model + serialNumber;
+	modelSerial.Replace(_T("\\"), _T(""));
+	modelSerial.Replace(_T("/"), _T(""));
+	modelSerial.Replace(_T(":"), _T(""));
+	modelSerial.Replace(_T("*"), _T(""));
+	modelSerial.Replace(_T("?"), _T(""));
+	modelSerial.Replace(_T("\""), _T(""));
+	modelSerial.Replace(_T("<"), _T(""));
+	modelSerial.Replace(_T(">"), _T(""));
+	modelSerial.Replace(_T("|"), _T(""));
+
+	return modelSerial;
 }

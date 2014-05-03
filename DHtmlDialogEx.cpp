@@ -414,3 +414,9 @@ STDMETHODIMP CDHtmlDialogEx::GetOptionKeyPath(LPOLESTR *pchKey, DWORD dw)
 
     return hr;
 }
+
+void CDHtmlDialogEx::SetLabel(CString& label, CString element, CString title)
+{
+	label = title;
+	SetElementPropertyEx(element, DISPID_IHTMLELEMENT_TITLE, title);
+}

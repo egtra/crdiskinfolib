@@ -163,6 +163,7 @@ void CDiskInfoDlg::OnEditCopy()
 %HOST_WRITES%\
 %NAND_WRITES%\
 %GBYTES_ERASED%\
+%WEAR_LEVELING_COUNT%\
      Temparature : %TEMPERATURE%\r\n\
    Health Status : %DISK_STATUS%\r\n\
         Features : %SUPPORTED_FEATURE%\r\n\
@@ -328,8 +329,18 @@ void CDiskInfoDlg::OnEditCopy()
 		}
 		else
 		{
-			cstr.Format(_T("   GBytes Erased : %d GB\r\n"), m_Ata.vars[i].GBytesErased);		
+			cstr.Format(_T("   GBytes Erased : %d GB\r\n"), m_Ata.vars[i].GBytesErased);	
 			drive.Replace(_T("%GBYTES_ERASED%"), cstr);
+		}
+
+		if(m_Ata.vars[i].WearLevelingCount == -1)
+		{
+			drive.Replace(_T("%WEAR_LEVELING_COUNT%"), _T(""));
+		}
+		else
+		{
+			cstr.Format(_T("Wear Level Count : %d\r\n"), m_Ata.vars[i].WearLevelingCount);		
+			drive.Replace(_T("%WEAR_LEVELING_COUNT%"), cstr);
 		}
 
 		if(m_Ata.vars[i].Temperature > 0)

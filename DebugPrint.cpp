@@ -31,10 +31,11 @@ void SetDebugMode(DWORD mode)
 
 void DebugPrint(CString cstr)
 {
-
-
 	static int flag = TRUE;
 	static TCHAR file[MAX_PATH];
+
+	cstr.Append(_T("\n"));
+	cstr.Replace(_T("\r"), _T(""));
 
 	if(flag)
 	{
@@ -56,7 +57,7 @@ void DebugPrint(CString cstr)
 
 	FILE *fp;
 	_tfopen_s(&fp, file, _T("ac"));
-	_ftprintf(fp, _T("%s\n"), cstr);
+	_ftprintf(fp, _T("%s"), cstr);
 	fflush(fp);
 	fclose(fp);
 
