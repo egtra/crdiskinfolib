@@ -569,13 +569,16 @@ void CDiskInfoDlg::InitDriveList()
 {
 	CString cstr;
 	CString delimiter;
-
-	for(int i = m_Ata.vars.GetCount() % 8; i < 8; i++)
+	if (m_Ata.vars.GetCount() / 8 == m_DriveMenuPage)
 	{
-		m_LiDisk[i] = _T("");
-		m_ButtonDisk[i].ReloadImage(IP(L"noDisk"), 1);
-	//	m_ButtonDisk[i].EnableWindow(FALSE);
-		m_ButtonDisk[i].SetHandCursor(FALSE);
+		for(int i = m_Ata.vars.GetCount() % 8; i < 8; i++)
+		{
+			m_LiDisk[i] = _T("");
+			m_ButtonDisk[i].ReloadImage(IP(L"noDisk"), 1);
+			m_ButtonDisk[i].SetToolTipText(L"");
+		//	m_ButtonDisk[i].EnableWindow(FALSE);
+			m_ButtonDisk[i].SetHandCursor(FALSE);
+		}
 	}
 
 	for (int i = 0; i < 8; i++)
@@ -669,7 +672,8 @@ void CDiskInfoDlg::InitDriveList()
 			m_ButtonDisk[i % 8].SetToolTipText(cstr);
 			className.Replace(L"Status", L"");
 			m_ButtonDisk[i % 8].ReloadImage(IP(className), 4);
-			m_ButtonDisk[i % 8].EnableWindow(TRUE);
+			m_ButtonDisk[i].SetHandCursor(TRUE);
+		//	m_ButtonDisk[i % 8].EnableWindow(TRUE);
 		}
 	}
 

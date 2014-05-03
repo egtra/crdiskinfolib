@@ -677,8 +677,10 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					goto safeRelease;
 				}
 
-				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
+				int workaround = 0;
+				while (pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaround < 256)
 				{
+					workaround++;
 					BOOL flagBlackList = FALSE;
 					VARIANT  pVal;
 					VariantInit(&pVal);
@@ -718,11 +720,13 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						cstr += _T("\r\n");
 					}
 
+					int workaroundDevice = 0;
 					CString mapping;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_IDEController.DeviceID=\"%s\"} WHERE AssocClass = Win32_IDEControllerDevice"), deviceId);
 					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
-					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
+					while (pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaroundDevice < 256)
 					{
+						workaroundDevice++;
 						VARIANT pVal;
 						VariantInit(&pVal);
 						CString name2, deviceId, channel;
@@ -799,8 +803,10 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					goto safeRelease;
 				}
 
-				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
+				int workaroundController = 0;
+				while (pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaroundController < 256)
 				{
+					workaroundController++;
 					BOOL flagUASP = FALSE;
 					BOOL flagBlackList = FALSE;
 					BOOL flagSiliconImage = FALSE;
@@ -852,6 +858,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							FlagMarvellController = TRUE;
 						}
 
+						// Workaround for DVDFab Virtual Drive
+						if (name1.Find(_T("DVDFab Virtual Drive")) == 0)
+						{
+							continue;
+						}
+
 						// Silicon Image Controller
 						if(name1.Find(_T("Silicon Image SiI ")) == 0)
 						{
@@ -883,11 +895,13 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						cstr += _T("\r\n");
 					}
 
+					int workaroundDevice = 0;
 					CString mapping;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_SCSIController.DeviceID=\"%s\"} WHERE AssocClass = Win32_SCSIControllerDevice"), deviceId);
 					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
-					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
+					while (pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaroundDevice < 256)
 					{
+						workaroundDevice++;
 						VARIANT pVal;
 						VariantInit(&pVal);
 						CString name2, deviceId;
@@ -2820,7 +2834,6 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	}
 
 	vars.Add(asi);
-	
 
 	return TRUE;
 }
