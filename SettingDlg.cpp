@@ -322,7 +322,9 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 
 	if(p->m_Ata.vars.GetAt(index).IsAamSupported 
 		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT
-		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE)
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_CSMI
+		)
 	{
 		m_AamScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsAamEnabled)
@@ -349,7 +351,9 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 
 	if(p->m_Ata.vars.GetAt(index).IsApmSupported
 		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT
-		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE)
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SILICON_IMAGE
+		&& p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_CSMI
+		)
 	{
 		m_ApmScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsApmEnabled)

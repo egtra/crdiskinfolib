@@ -4,46 +4,35 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
+//                                Copyright 2012 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once
 
 #include "CompileOptions.h"
+#include "afxcmn.h"
+#include "ListCtrlEx.h"
 
-class CAboutDlg : public CDHtmlDialogEx
+class CAlarmHistoryDlg : public CDHtmlDialogEx
 {
-	DECLARE_DYNCREATE(CAboutDlg)
+	DECLARE_DYNCREATE(CAlarmHistoryDlg)
 
-
-
-#ifdef SUISYO_SHIZUKU_SUPPORT
 	static const int SIZE_X = 640;
-	static const int SIZE_Y = 660;
-#else
-	static const int SIZE_X = 640;
-	static const int SIZE_Y = 160;
-#endif
+	static const int SIZE_Y = 480;
 
 public:
-	CAboutDlg(CWnd* pParent = NULL);
-	virtual ~CAboutDlg();
+	CAlarmHistoryDlg(CWnd* pParent = NULL);
+	virtual ~CAlarmHistoryDlg();
 
-	enum { IDD = IDD_ABOUT, IDH = IDR_HTML_DUMMY };
+	enum { IDD = IDD_ALARM_HISTORY, IDH = IDR_HTML_DUMMY };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 
-	CString m_Version;
-	CString m_Edition;
-	CString m_Release;
-	CString m_Copyright;;
-
-	HRESULT OnCrystalDewWorld(IHTMLElement *pElement);
-	HRESULT OnProjectShizuku(IHTMLElement *pElement);
-
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()
+public:
+	CListCtrlEx m_List;
 };

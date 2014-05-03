@@ -57,18 +57,29 @@
 #include "CompileOptions.h"
 
 // Version Information
+#define PROJECT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
+
+#ifdef SUISYO_SHIZUKU_SUPPORT
+#define PRODUCT_SHORT_NAME		_T("CDI SE")
+#define PRODUCT_EDITION			_T("Shizuku Edition")
+#else
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("4.6.2")
-#define PRODUCT_RELEASE			_T("2012/4/29")
+#define PRODUCT_EDITION			_T("")
+#endif
+#define PRODUCT_VERSION			_T("5.0.0")
+#define PRODUCT_RELEASE			_T("2012/6/16")
 #define PRODUCT_COPY_YEAR		_T("2008-2012")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2012 hiyohiyo.")
 
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")
 
-#define HTML_HELP_JA		_T("manual-ja.chm")
-#define HTML_HELP_EN 		_T("manual-en.chm")
+#define	URL_PROJECT_SHIZUKU_JA		_T("http://crystalmark.info/Shizuku/")
+#define	URL_PROJECT_SHIZUKU_EN		_T("http://crystalmark.info/Shizuku/")
+
+#define URL_HTML_HELP_JA		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-ja/")
+#define URL_HTML_HELP_EN 		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-en/")
 
 // Command
 static const int TRAY_TEMPERATURE_ICON_BASE			= WM_APP + 0x1200;
@@ -80,17 +91,6 @@ static const int ALARM_SETTING_TEMPERATURE_BASE		= WM_APP + 0x2000; // Main Only
 static const int GRAPH_DISK_INDEX					= WM_APP + 0x2000; // Graph Only
 
 static const int RE_EXEC = 5963;
-
-#ifdef _UNICODE
-#if defined _M_IX86
-#define PRODUCT_EDITION			_T("NT - x86 - Unicode")
-#elif defined _M_IA64
-#define PRODUCT_EDITION			_T("NT - IA64 - Unicode")
-#elif defined _M_X64
-#define PRODUCT_EDITION			_T("NT - x64 - Unicode")
-#else
-#endif
-#endif
 
 #ifdef _UNICODE
 #if defined _M_IX86

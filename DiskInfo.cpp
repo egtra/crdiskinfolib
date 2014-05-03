@@ -86,6 +86,10 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 	m_Ini = ini;
 
+#ifdef SUISYO_SHIZUKU_SUPPORT
+	m_Ini.Replace(_T("DiskInfoS.ini"), _T("DiskInfo.ini"));
+#endif
+
 	CString cstr;
 	DWORD debugMode = GetPrivateProfileInt(_T("Setting"), _T("DebugMode"), 0, m_Ini);
 	SetDebugMode(debugMode);
@@ -133,7 +137,7 @@ BOOL CDiskInfoApp::InitInstance()
 	if(! flagEarthlight)
 	{
 		DebugPrint(_T("CreateMutex"));
-		hMutex = ::CreateMutex(NULL, FALSE, PRODUCT_NAME);
+		hMutex = ::CreateMutex(NULL, FALSE, PROJECT_NAME);
 		if(GetLastError() == ERROR_ALREADY_EXISTS)
 		{
 			DebugPrint(_T("ERROR_ALREADY_EXISTS"));
@@ -155,6 +159,7 @@ BOOL CDiskInfoApp::InitInstance()
 	m_ThemeDir.Format(_T("%s\\%s"), tmp, THEME_DIR);
 	m_LangDir.Format(_T("%s\\%s"), tmp, LANGUAGE_DIR);
 	m_SmartDir.Format(_T("%s\\%s"), tmp, SMART_DIR);
+	m_GadgetDir.Format(_T("%s\\%s"), tmp, GADGET_DIR);
 
 	if(IsDotNet4())
 	{
@@ -191,11 +196,16 @@ BOOL CDiskInfoApp::InitInstance()
 	m_HealthDlgPath.Format(_T("%s\\") DIALOG_DIR HEALTH_DIALOG, tmp);
 	m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG, tmp);
 	m_OptionDlgPath.Format(_T("%s\\") DIALOG_DIR OPTION_DIALOG, tmp);
+//	m_AlarmHistoryDlgPath.Format(_T("%s\\") DIALOG_DIR ALARM_HISTORY_DIALOG, tmp);
+	m_SoundSettingDlgPath.Format(_T("%s\\") DIALOG_DIR SOUND_SETTING_DIALOG, tmp);
 
 	if(! IsFileExistEx(m_MainDlgPath, MAIN_DIALOG))					{	return FALSE;	}
 	if(! IsFileExistEx(m_AboutDlgPath, ABOUT_DIALOG))				{	return FALSE;	}
 	if(! IsFileExistEx(m_SettingDlgPath, SETTING_DIALOG))			{	return FALSE;	}
 	if(! IsFileExistEx(m_HealthDlgPath, HEALTH_DIALOG))				{	return FALSE;	}
+//	if(! IsFileExistEx(m_AlarmHistoryDlgPath, ALARM_HISTORY_DIALOG)){	return FALSE;	}
+	if(! IsFileExistEx(m_SoundSettingDlgPath, SOUND_SETTING_DIALOG)){	return FALSE;	}
+
 	if(! IsFileExistEx(DefaultTheme, DEFAULT_THEME))				{	return FALSE;	}
 	if(! IsFileExistEx(DefaultLanguage, DEFAULT_LANGUAGE))			{	return FALSE;	}
 

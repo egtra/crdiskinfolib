@@ -135,6 +135,20 @@ void CDiskInfoDlg::OnHealthStatus()
 	}
 }
 
+/*
+void CDiskInfoDlg::OnAlarmHistory()
+{
+	m_AlarmHistoryDlg = new CAlarmHistoryDlg(this);
+	m_AlarmHistoryDlg->Create(CAlarmHistoryDlg::IDD, m_AlarmHistoryDlg, ID_ALARM_HISTORY, this);
+}
+*/
+
+void CDiskInfoDlg::OnSoundSetting()
+{
+	m_SoundSettingDlg = new CSoundSettingDlg(this);
+	m_SoundSettingDlg->Create(CSoundSettingDlg::IDD, m_SoundSettingDlg, ID_SOUND_SETTINGS, this);
+}
+
 void CDiskInfoDlg::OnGraph()
 {
 	ShowGraphDlg(-1);
@@ -166,14 +180,14 @@ void CDiskInfoDlg::CreateExchangeInfo()
 {
 	CString cstr;
 	cstr.Format(_T("%d"), m_Ata.vars.GetCount());
-	WritePrivateProfileString(_T("EXCHANGE"), _T("DetectedDisk"), cstr, m_SmartDir + _T("\\") + EXCHANGE_INI);
+	WritePrivateProfileString(_T("EXCHANGE"), _T("DetectedDisk"), cstr, m_SmartDir + EXCHANGE_INI);
 
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
 		cstr.Format(_T("%d"), i);
-		WritePrivateProfileString(_T("MODEL"), cstr, m_Ata.vars[i].Model, m_SmartDir + _T("\\") + EXCHANGE_INI);
-		WritePrivateProfileString(_T("SERIAL"), cstr, m_Ata.vars[i].SerialNumber, m_SmartDir + _T("\\") + EXCHANGE_INI);
-		WritePrivateProfileString(_T("DRIVE"), cstr, m_Ata.vars[i].DriveMap, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		WritePrivateProfileString(_T("MODEL"), cstr, m_Ata.vars[i].Model, m_SmartDir + EXCHANGE_INI);
+		WritePrivateProfileString(_T("SERIAL"), cstr, m_Ata.vars[i].SerialNumber, m_SmartDir + EXCHANGE_INI);
+		WritePrivateProfileString(_T("DRIVE"), cstr, m_Ata.vars[i].DriveMap, m_SmartDir + EXCHANGE_INI);
 	}
 }
 
@@ -249,11 +263,11 @@ void CDiskInfoDlg::OnCrystalDewWorld()
 {
 	if(GetUserDefaultLCID() == 0x0411) // Japanese
 	{
-		ShellExecute(NULL, NULL, URL_CRYSTAL_DEW_WORLD_JA, NULL, NULL, SW_SHOWNORMAL);
+		OpenUrl(URL_CRYSTAL_DEW_WORLD_JA);
 	}
 	else // Other Language
 	{
-		ShellExecute(NULL, NULL, URL_CRYSTAL_DEW_WORLD_EN, NULL, NULL, SW_SHOWNORMAL);
+		OpenUrl(URL_CRYSTAL_DEW_WORLD_EN);
 	}	
 }
 
@@ -262,13 +276,11 @@ void CDiskInfoDlg::OnHelp()
 	CString cstr;
 	if(GetUserDefaultLCID() == 0x0411) // Japanese
 	{
-		cstr.Format(_T("%s%s"), m_ExeDir, HTML_HELP_JA);
-		ShellExecute(NULL, NULL, cstr, NULL, NULL, SW_SHOWNORMAL);
+		OpenUrl(URL_HTML_HELP_JA);
 	}
 	else // Other Language
 	{
-		cstr.Format(_T("%s%s"), m_ExeDir, HTML_HELP_EN);
-		ShellExecute(NULL, NULL, cstr, NULL, NULL, SW_SHOWNORMAL);
+		OpenUrl(URL_HTML_HELP_EN);
 	}	
 }
 
@@ -308,10 +320,10 @@ void CDiskInfoDlg::OnRescan()
 
 void CDiskInfoDlg::OnHelpAboutSmart()
 {
-	TCHAR str[256];
-	GetPrivateProfileString(_T("Url"), _T("WIKIPEDIA_SMART"), _T("http://en.wikipedia.org/wiki/Self-Monitoring%2C_Analysis%2C_and_Reporting_Technology"), str, 256, m_CurrentLangPath);
+	TCHAR url[256];
+	GetPrivateProfileString(_T("Url"), _T("WIKIPEDIA_SMART"), _T("http://en.wikipedia.org/wiki/Self-Monitoring%2C_Analysis%2C_and_Reporting_Technology"), url, 256, m_CurrentLangPath);
 
-	ShellExecute(NULL, NULL, str, NULL, NULL, SW_SHOWNORMAL);
+	OpenUrl(url);
 }
 
 void CDiskInfoDlg::OnAutoRefreshDisable(){	CheckRadioAutoRefresh(ID_AUTO_REFRESH_DISABLE, 0);}
@@ -717,6 +729,49 @@ void CDiskInfoDlg::OnAlertMail()
 	DrawMenuBar();
 }
 
+void CDiskInfoDlg::OnAlertSound()
+{
+	CMenu *menu = GetMenu();
+	if(m_FlagAlertSound)
+	{
+		m_FlagAlertSound = FALSE;
+		menu->CheckMenuItem(ID_ALERT_SOUND, MF_UNCHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AlertSound"), _T("0"), m_Ini);
+		AlertSound(0, AS_SET_SOUND_ID);
+	}
+	else
+	{
+		m_FlagAlertSound = TRUE;
+		menu->CheckMenuItem(ID_ALERT_SOUND, MF_CHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AlertSound"), _T("1"), m_Ini);
+		AlertSound(0, AS_SET_SOUND_ID);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+}
+
+#ifdef GADGET_SUPPORT
+void CDiskInfoDlg::OnGadgetSupport()
+{
+	CMenu *menu = GetMenu();
+	if(m_FlagGadget)
+	{
+		m_FlagGadget = FALSE;
+		menu->CheckMenuItem(ID_GADGET_SUPPORT, MF_UNCHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("Gadget"), _T("0"), m_Ini);
+		DeleteShareInfo();
+	}
+	else
+	{
+		m_FlagGadget = TRUE;
+		menu->CheckMenuItem(ID_GADGET_SUPPORT, MF_CHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("Gadget"), _T("1"), m_Ini);
+		UpdateShareInfo();
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+}
+#endif
 
 void CDiskInfoDlg::OnMailSettings()
 {
@@ -1336,19 +1391,24 @@ void CDiskInfoDlg::CheckRadioAutoDetection(int id, int value)
 	WritePrivateProfileString(_T("Setting"), _T("AutoDetection"), cstr, m_Ini);
 }
 
-void CDiskInfoDlg::OnCsmiEnableAll()
+void CDiskInfoDlg::OnCsmiDisable()
 {
-	CheckRadioCsmiType(ID_CSMI_ENABLE_ALL, 2);
+	CheckRadioCsmiType(ID_CSMI_DISABLE, 0);
+}
+
+void CDiskInfoDlg::OnCsmiEnableAuto()
+{
+	CheckRadioCsmiType(ID_CSMI_ENABLE_AUTO, 1);
 }
 
 void CDiskInfoDlg::OnCsmiEnableRaid()
 {
-	CheckRadioCsmiType(ID_CSMI_ENABLE_RAID, 1);
+	CheckRadioCsmiType(ID_CSMI_ENABLE_RAID, 2);
 }
 
-void CDiskInfoDlg::OnCsmiDisable()
+void CDiskInfoDlg::OnCsmiEnableAll()
 {
-	CheckRadioCsmiType(ID_CSMI_DISABLE, 0);
+	CheckRadioCsmiType(ID_CSMI_ENABLE_ALL, 3);
 }
 
 void CDiskInfoDlg::CheckRadioCsmiType(int id, int value)
@@ -1374,13 +1434,19 @@ void CDiskInfoDlg::CheckRadioCsmiType()
 	switch(m_Ata.CsmiType)
 	{
 	case   0: id = ID_CSMI_DISABLE;	break;
-	case   1: id = ID_CSMI_ENABLE_RAID;	break;
-	case   2: id = ID_CSMI_ENABLE_ALL;	break;
-	default:  id = ID_CSMI_ENABLE_RAID;	break;
+	case   1: id = ID_CSMI_ENABLE_AUTO;	break;
+	case   2: id = ID_CSMI_ENABLE_RAID;	break;
+	case   3: id = ID_CSMI_ENABLE_ALL;	break;
+	default:  id = ID_CSMI_ENABLE_AUTO;	break;
 	}
 
 	CMenu *menu = GetMenu();
 	menu->CheckMenuRadioItem(ID_CSMI_DISABLE, ID_CSMI_ENABLE_ALL, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
+}
+
+void CDiskInfoDlg::OnInstallGadget()
+{
+	ShellExecute(NULL, _T("open"), m_GadgetDir, NULL, NULL, SW_SHOWNORMAL);
 }

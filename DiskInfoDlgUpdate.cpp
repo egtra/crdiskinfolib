@@ -73,7 +73,7 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 #ifdef GADGET_SUPPORT
 void CDiskInfoDlg::UpdateShareInfo()
 {
-	if(! m_FlagSidebar || m_Ata.vars.GetCount() == 0)
+	if(! m_FlagGadget || m_Ata.vars.GetCount() == 0)
 	{
 		return ;
 	}
@@ -1417,14 +1417,20 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_CUSTOMIZE, MF_STRING, ID_CUSTOMIZE, cstr);
 	menu->EnableMenuItem(ID_CUSTOMIZE, menuState);
 
+	//////////////////////////////////////////////////////////////////////////////////
+	// File
+	//////////////////////////////////////////////////////////////////////////////////
 	cstr = i18n(_T("Menu"), _T("EXIT"));
 	cstr += _T("\tAlt + F4");
 	menu->ModifyMenu(ID_FILE_EXIT, MF_STRING, ID_FILE_EXIT, cstr);
+
+	//////////////////////////////////////////////////////////////////////////////////
+	// Edit
+	//////////////////////////////////////////////////////////////////////////////////
 	cstr = i18n(_T("Menu"), _T("COPY"));
 	cstr += _T("\tCtrl + C");
 	menu->ModifyMenu(ID_EDIT_COPY, MF_STRING, ID_EDIT_COPY, cstr);
 
-	// Edit
 	subMenu.Attach(menu->GetSubMenu(1)->GetSafeHmenu());
 	cstr = i18n(_T("Menu"), _T("COPY_OPTION"));
 	subMenu.ModifyMenu(1, MF_BYPOSITION, 1, cstr);
@@ -1433,6 +1439,9 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("ASCII_VIEW"));
 	menu->ModifyMenu(ID_ASCII_VIEW, MF_STRING, ID_ASCII_VIEW, cstr);
 
+	//////////////////////////////////////////////////////////////////////////////////
+	// Function
+	//////////////////////////////////////////////////////////////////////////////////
 	cstr = i18n(_T("Menu"), _T("HIDE_SMART_INFO"));
 	menu->ModifyMenu(ID_HIDE_SMART_INFO, MF_STRING, ID_HIDE_SMART_INFO, cstr);
 	cstr = i18n(_T("Menu"), _T("HIDE_SERIAL_NUMBER"));
@@ -1442,7 +1451,27 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("EVENT_LOG"));
 	menu->ModifyMenu(ID_EVENT_LOG, MF_STRING, ID_EVENT_LOG, cstr);
 
-	if(IsDotNet2())
+	cstr = i18n(_T("Menu"), _T("ALERT_SOUND"));
+	menu->ModifyMenu(ID_ALERT_SOUND, MF_STRING, ID_ALERT_SOUND, cstr);
+	cstr = i18n(_T("Menu"), _T("ALERM_HISTORY"));
+	menu->ModifyMenu(ID_ALARM_HISTORY, MF_STRING, ID_ALARM_HISTORY, cstr);
+	cstr = i18n(_T("Menu"), _T("SOUND_SETTINGS"));
+	menu->ModifyMenu(ID_SOUND_SETTINGS, MF_STRING, ID_SOUND_SETTINGS, cstr);
+	cstr = i18n(_T("Menu"), _T("GADGET_SUPPORT"));
+	menu->ModifyMenu(ID_GADGET_SUPPORT, MF_STRING, ID_GADGET_SUPPORT, cstr);
+
+	cstr = i18n(_T("Menu"), _T("DISABLE"));
+	menu->ModifyMenu(ID_CSMI_DISABLE, MF_STRING, ID_CSMI_DISABLE, cstr);
+	cstr = i18n(_T("Menu"), _T("ENABLE_AUTO"));
+	menu->ModifyMenu(ID_CSMI_ENABLE_AUTO, MF_STRING, ID_CSMI_ENABLE_AUTO, cstr);
+	cstr = i18n(_T("Menu"), _T("ENABLE_RAID"));
+	menu->ModifyMenu(ID_CSMI_ENABLE_RAID, MF_STRING, ID_CSMI_ENABLE_RAID, cstr);
+	cstr = i18n(_T("Menu"), _T("ENABLE_ALL"));
+	menu->ModifyMenu(ID_CSMI_ENABLE_ALL, MF_STRING, ID_CSMI_ENABLE_ALL, cstr);
+	cstr = i18n(_T("Menu"), _T("INSTALL_GADGET"));
+	menu->ModifyMenu(ID_INSTALL_GADGET, MF_STRING, ID_INSTALL_GADGET, cstr);
+
+	if(IsDotNet4() || IsDotNet2())
 	{
 		cstr = i18n(_T("Menu"), _T("ALERT_MAIL"));
 		menu->ModifyMenu(ID_ALERT_MAIL, MF_STRING, ID_ALERT_MAIL, cstr);
@@ -1463,15 +1492,11 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	cstr = i18n(_T("Menu"), _T("RESIDENT"));
 	menu->ModifyMenu(ID_RESIDENT, MF_STRING, ID_RESIDENT, cstr);
-	
 	cstr = i18n(_T("Menu"), _T("HEALTH_STATUS_SETTING"));
 	menu->ModifyMenu(ID_HEALTH_STATUS, MF_STRING, ID_HEALTH_STATUS, cstr);
-
 	cstr = i18n(_T("Menu"), _T("AAM_APM_CONTROL"));
 	menuState = menu->GetMenuState(ID_AAM_APM, MF_BYCOMMAND);
 	menu->ModifyMenu(ID_AAM_APM, MF_STRING, ID_AAM_APM, cstr);
-//	menu->EnableMenuItem(ID_AAM_APM, menuState);
-
 	if(m_Ata.vars.GetCount() && menuState != MF_GRAYED)
 	{
 		menu->EnableMenuItem(ID_AAM_APM, MF_ENABLED);
@@ -1483,38 +1508,29 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	cstr = i18n(_T("Menu"), _T("AUTO_AAM_APM_ADAPTION"));
 	menu->ModifyMenu(ID_AUTO_AAM_APM, MF_STRING, ID_AUTO_AAM_APM, cstr);
-
 	cstr = i18n(_T("Menu"), _T("STARTUP"));
 	menu->ModifyMenu(ID_STARTUP, MF_STRING, ID_STARTUP, cstr);
 	cstr = i18n(_T("Menu"), _T("GRAPH"));
 	menu->ModifyMenu(ID_GRAPH, MF_STRING, ID_GRAPH, cstr);
-
 	cstr = i18n(_T("Menu"), _T("REFRESH"));
 	cstr += _T("\tF5");
 	menu->ModifyMenu(ID_REFRESH, MF_STRING, ID_REFRESH, cstr);
-
 	cstr = i18n(_T("Menu"), _T("RESCAN"));
 	cstr += _T("\tF6");
 	menu->ModifyMenu(ID_RESCAN, MF_STRING, ID_RESCAN, cstr);
 
-	// Function
 	subMenu.Attach(menu->GetSubMenu(2)->GetSafeHmenu());
 	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH"));
 	subMenu.ModifyMenu(1, MF_BYPOSITION, 1, cstr);
 	cstr = i18n(_T("Menu"), _T("AUTO_REFRESH_TARGET"));
 	subMenu.ModifyMenu(2, MF_BYPOSITION, 2, cstr);
 
-	cstr = i18n(_T("Menu"), _T("TEMPERATURE_TYPE"));
-	subMenu.ModifyMenu(9, MF_BYPOSITION, 9, cstr);
-	cstr = i18n(_T("Menu"), _T("RESIDENT_STYLE"));
-	subMenu.ModifyMenu(12, MF_BYPOSITION, 12, cstr);
-	cstr = i18n(_T("Menu"), _T("WAIT_TIME_AT_STARTUP"));
-	subMenu.ModifyMenu(14, MF_BYPOSITION, 14, cstr);
+	cstr = i18n(_T("Menu"), _T("ALERT_FEATURES"));
+	subMenu.ModifyMenu(11, MF_BYPOSITION, 11, cstr);
 	cstr = i18n(_T("Menu"), _T("ADVANCED_FEATURE"));
-	subMenu.ModifyMenu(20, MF_BYPOSITION, 20, cstr);
-
+	subMenu.ModifyMenu(12, MF_BYPOSITION, 12, cstr);
 	cstr = i18n(_T("Menu"), _T("WORKAROUND"));
-	subMenu.ModifyMenu(22, MF_BYPOSITION, 22, cstr);
+	subMenu.ModifyMenu(13, MF_BYPOSITION, 13, cstr);
 	subMenu.Detach();
 
 	cstr = i18n(_T("Menu"), _T("OPEN_DISK_MANAGEMENT"));
@@ -1553,11 +1569,18 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	CheckRadioWaitTime();
 
-	subMenu.Attach(menu->GetSubMenu(2)->GetSubMenu(20)->GetSafeHmenu());
+	// Advanced Features
+	subMenu.Attach(menu->GetSubMenu(2)->GetSubMenu(12)->GetSafeHmenu());
 	cstr = i18n(_T("Menu"), _T("AUTO_DTECTION"));
-	subMenu.ModifyMenu(3, MF_BYPOSITION, 3, cstr);
+	subMenu.ModifyMenu(6, MF_BYPOSITION, 6, cstr);
 	cstr = i18n(_T("Dialog"), _T("LIST_RAW_VALUES"));
-	subMenu.ModifyMenu(10, MF_BYPOSITION, 10, cstr);
+	subMenu.ModifyMenu(7, MF_BYPOSITION, 7, cstr);
+	cstr = i18n(_T("Menu"), _T("TEMPERATURE_TYPE"));
+	subMenu.ModifyMenu(5, MF_BYPOSITION, 5, cstr);
+	cstr = i18n(_T("Menu"), _T("RESIDENT_STYLE"));
+	subMenu.ModifyMenu(9, MF_BYPOSITION, 9, cstr);
+	cstr = i18n(_T("Menu"), _T("WAIT_TIME_AT_STARTUP"));
+	subMenu.ModifyMenu(8, MF_BYPOSITION, 8, cstr);
 	subMenu.Detach();
 
 	cstr = i18n(_T("Menu"), _T("SECOND"));
@@ -1567,7 +1590,6 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_AUTO_DETECTION_30_SEC, MF_STRING, ID_AUTO_DETECTION_30_SEC, _T("30 ") + cstr);
 	cstr = i18n(_T("TrayMenu"), _T("DISABLE"));
 	menu->ModifyMenu(ID_AUTO_DETECTION_DISABLE, MF_STRING, ID_AUTO_DETECTION_DISABLE, cstr);
-
 
 	CheckRadioAutoDetection();
 	CheckRadioRawValues();
@@ -1610,16 +1632,12 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	cstr = i18n(_T("Menu"), _T("HELP_ABOUT_SMART"));
 	menu->ModifyMenu(ID_HELP_ABOUT_SMART, MF_STRING, ID_HELP_ABOUT_SMART, cstr);
-
 	cstr = i18n(_T("TrayMenu"), _T("ENABLE_ALL"));
 	menu->ModifyMenu(ID_USB_ENABLE_ALL, MF_STRING, ID_USB_ENABLE_ALL, cstr);
-
 	cstr = i18n(_T("TrayMenu"), _T("DISABLE_ALL"));
 	menu->ModifyMenu(ID_USB_DISABLE_ALL, MF_STRING, ID_USB_DISABLE_ALL, cstr);
-
 	cstr = i18n(_T("Menu"), _T("SMART_IN_ENGLISH"));
 	menu->ModifyMenu(ID_SMART_ENGLISH, MF_STRING, ID_SMART_ENGLISH, cstr);
-
 	cstr = i18n(_T("Menu"), _T("FONT_SETTING"));
 	menu->ModifyMenu(ID_FONT_SETTING, MF_STRING, ID_FONT_SETTING, cstr);
 
@@ -1743,6 +1761,17 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		menu->CheckMenuItem(ID_ATA_PASS_THROUGH_SMART, MF_UNCHECKED);
 	}
 
+	#ifdef GADGET_SUPPORT
+	if(m_FlagGadget)
+	{
+		menu->CheckMenuItem(ID_GADGET_SUPPORT, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_GADGET_SUPPORT, MF_UNCHECKED);
+	}
+	#endif
+
 	if(m_FlagAutoAamApm)
 	{
 		menu->CheckMenuItem(ID_AUTO_AAM_APM, MF_CHECKED);
@@ -1770,7 +1799,22 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		menu->CheckMenuItem(ID_STARTUP, MF_UNCHECKED);
 	}
 
+	if(m_FlagAlertSound)
+	{
+		menu->CheckMenuItem(ID_ALERT_SOUND, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_ALERT_SOUND, MF_UNCHECKED);
+	}
+
+//	menu->EnableMenuItem(ID_ALARM_HISTORY, MF_GRAYED);
+//	menu->EnableMenuItem(ID_ALERT_SOUND, MF_GRAYED);
+//	menu->EnableMenuItem(ID_SOUND_SETTINGS, MF_GRAYED);
+
+	//////////////////////////////////////////////////////////////////////////////////
 	// Theme
+	//////////////////////////////////////////////////////////////////////////////////
 	subMenu.Attach(menu->GetSubMenu(3)->GetSafeHmenu());
 	cstr = i18n(_T("Menu"), _T("ZOOM"));
 	if(GetIeVersion() < 800)
@@ -1790,7 +1834,10 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	CheckRadioZoomType();
 
+
+	//////////////////////////////////////////////////////////////////////////////////
 	// Disk
+	//////////////////////////////////////////////////////////////////////////////////
 	subMenu.Attach(menu->GetSubMenu(MENU_DRIVE_INDEX)->GetSafeHmenu());
 	while(subMenu.RemoveMenu(0, MF_BYPOSITION));
 
@@ -1882,59 +1929,43 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	SetMenu(menu);
 	DrawMenuBar();
 
-//	m_LabelFirmware = i18n(_T("Dialog"), _T("FIRMWARE"));
+	//////////////////////////////////////////////////////////////////////////////////
+	// Main Window
+	//////////////////////////////////////////////////////////////////////////////////
 	SetLabel(m_LabelFirmware, _T("LabelFirmware"), i18n(_T("Dialog"), _T("FIRMWARE")));
-//	m_LabelSerialNumber = i18n(_T("Dialog"), _T("SERIAL_NUMBER"));
 	SetLabel(m_LabelSerialNumber, _T("LabelSerialNumber"), i18n(_T("Dialog"), _T("SERIAL_NUMBER")));
-//	m_LabelTemperature = i18n(_T("Dialog"), _T("TEMPERATURE"));
 	SetLabel(m_LabelTemperature, _T("LabelTemperature"), i18n(_T("Dialog"), _T("TEMPERATURE")));
-//	m_LabelPowerOnHours = i18n(_T("Dialog"), _T("POWER_ON_HOURS"));
 	SetLabel(m_LabelPowerOnHours, _T("LabelPowerOnHours"), i18n(_T("Dialog"), _T("POWER_ON_HOURS")));
-//	m_LabelPowerOnCount = i18n(_T("Dialog"), _T("POWER_ON_COUNT"));
 	SetLabel(m_LabelPowerOnCount, _T("LabelPowerOnCount"), i18n(_T("Dialog"), _T("POWER_ON_COUNT")));
-//	m_LabelFeature = i18n(_T("Dialog"), _T("FEATURE"));
 	SetLabel(m_LabelFeature, _T("LabelFeature"), i18n(_T("Dialog"), _T("FEATURE")));
-//	m_LabelDriveMap = i18n(_T("Dialog"), _T("DRIVE_LETTER"));
 	SetLabel(m_LabelDriveMap, _T("LabelDriveMap"), i18n(_T("Dialog"), _T("DRIVE_LETTER")));
-//	m_LabelInterface = i18n(_T("Dialog"), _T("INTERFACE"));
 	SetLabel(m_LabelInterface, _T("LabelInterface"), i18n(_T("Dialog"), _T("INTERFACE")));
-//	m_LabelTransferMode = i18n(_T("Dialog"), _T("TRANSFER_MODE"));
 	SetLabel(m_LabelTransferMode, _T("LabelTransferMode"), i18n(_T("Dialog"), _T("TRANSFER_MODE")));
-//	m_LabelAtaAtapi = i18n(_T("Dialog"), _T("STANDARD"));
 	SetLabel(m_LabelAtaAtapi, _T("LabelAtaAtapi"), i18n(_T("Dialog"), _T("STANDARD")));
-//	m_LabelDiskStatus = i18n(_T("Dialog"), _T("HEALTH_STATUS"));
 	SetLabel(m_LabelDiskStatus, _T("LabelHealthStatus"), i18n(_T("Dialog"), _T("HEALTH_STATUS")));
-//	m_LabelSmartStatus = i18n(_T("Dialog"), _T("SMART_STATUS"));
 	SetLabel(m_LabelSmartStatus, _T("LabelSmartStatus"), i18n(_T("Dialog"), _T("SMART_STATUS")));
-//	m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
 	SetLabel(m_LabelBufferSize, _T("LabelBufferSize"), i18n(_T("Dialog"), _T("BUFFER_SIZE")));
-//	m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	SetLabel(m_LabelNvCacheSize, _T("LabelNvCacheSize"), i18n(_T("Dialog"), _T("NV_CACHE_SIZE")));
-//	m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
 	SetLabel(m_LabelRotationRate, _T("LabelRotationRate"), i18n(_T("Dialog"), _T("ROTATION_RATE")));
 	
 	if(m_Ata.vars.GetCount() > 0)
 	{
 		if(m_Ata.vars[m_SelectDisk].HostReads >= 0)
 		{
-		//	m_LabelBufferSize = i18n(_T("Dialog"), _T("TOTAL_HOST_READS"));
 			SetLabel(m_LabelBufferSize, _T("LabelBufferSize"), i18n(_T("Dialog"), _T("TOTAL_HOST_READS")));
 		}
 
 		if(m_Ata.vars[m_SelectDisk].HostWrites >= 0)
 		{
-		//	m_LabelNvCacheSize = i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"));
 			SetLabel(m_LabelNvCacheSize, _T("LabelNvCacheSize"), i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES")));
 		}
 
 		if(m_Ata.vars[m_SelectDisk].NandWrites >= 0)
 		{
-		//	m_LabelRotationRate = i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"));
 			SetLabel(m_LabelRotationRate, _T("LabelRotationRate"), i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES")));
 		}
 		else if(m_Ata.vars[m_SelectDisk].GBytesErased >= 0)
 		{
-		//	m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
 			SetLabel(m_LabelRotationRate, _T("LabelRotationRate"), i18n(_T("SmartSandForce"), _T("64")));
 		}
 		/*
@@ -1947,12 +1978,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	}
 
 	UpdateData(FALSE);
-
-	//if(m_NowDetectingUnitPowerOnHours)
-	//{
-	//	SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
-	//}
-
+	
 	RebuildListHeader(m_SelectDisk, TRUE);
 	ChangeDisk(m_SelectDisk);
 	InitDriveList();

@@ -55,7 +55,7 @@ void CDHtmlMainDialog::SetWindowTitle(CString message, CString mode)
 	}
 	else
 	{
-		title.Format(_T("%s %s"), PRODUCT_NAME, PRODUCT_VERSION);
+		title.Format(_T("%s %s %s"), PRODUCT_NAME, PRODUCT_VERSION, PRODUCT_EDITION);
 	}
 	SetWindowText(title);
 }

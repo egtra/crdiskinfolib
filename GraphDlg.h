@@ -49,6 +49,7 @@ public:
 	DWORD m_IeVersion;
 
 	CString m_Model[CAtaSmart::MAX_DISK];
+	CString m_ModelEscape[CAtaSmart::MAX_DISK];
 	CString m_Serial[CAtaSmart::MAX_DISK];
 	CString m_Drive[CAtaSmart::MAX_DISK];
 

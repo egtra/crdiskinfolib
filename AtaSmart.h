@@ -85,14 +85,22 @@ public:
 		CMD_TYPE_CYPRESS,
 		CMD_TYPE_PROLIFIC,			// Not imprement
 		CMD_TYPE_CSMI,				// CSMI = Common Storage Management Interface 
+		CMD_TYPE_WMI,
 		CMD_TYPE_DEBUG
 	};
 
 	enum CSMI_TYPE
 	{
 		CSMI_TYPE_DISABLE = 0,
+		CSMI_TYPE_ENABLE_AUTO,
 		CSMI_TYPE_ENABLE_RAID,
-		CSMI_TYPE_ENABLE_ALL
+		CSMI_TYPE_ENABLE_ALL,
+	};
+
+	enum SMART_WMI_TYPE
+	{
+		WMI_SMART_DATA = 0,
+		WMI_SMART_THRESHOLD
 	};
 
 	enum VENDOR_ID
@@ -1232,6 +1240,7 @@ public:
 		INT					PhysicalDriveId;
 		INT					ScsiPort;
 		INT					ScsiTargetId;
+		CSMI_SAS_PHY_ENTITY sasPhyEntity;
 	};
 
 	struct ATA_SMART_INFO
@@ -1347,6 +1356,7 @@ public:
 		CString				CommandTypeString;
 		CString				SsdVendorString;
 		CString				DeviceNominalFormFactor;
+		CString				PnpDeviceId;
 
 		CString				SmartKeyName;
 	};
@@ -1395,8 +1405,8 @@ protected:
 	BOOL m_FlagAtaPassThrough;
 	BOOL m_FlagAtaPassThroughSmart;
 
-	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0);
-	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1, PCSMI_SAS_PHY_ENTITY sasPhyEntity = NULL);
+	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0, CString pnpDeviceId = _T(""));
+	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1, PCSMI_SAS_PHY_ENTITY sasPhyEntity = NULL, CString pnpDeviceId = _T(""));
 	DWORD CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SMART_ATTRIBUTE* cur);
 
 	BOOL CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2);
@@ -1434,6 +1444,10 @@ protected:
 	BOOL GetSmartAttributeSi(INT physicalDriveId, ATA_SMART_INFO* asi);
 	BOOL GetSmartThresholdSi(INT physicalDriveId, ATA_SMART_INFO* asi);
 
+	BOOL GetSmartAttributeWmi(ATA_SMART_INFO* asi);
+	BOOL GetSmartThresholdWmi(ATA_SMART_INFO* asi);
+	BOOL GetSmartInfoWmi(DWORD type, ATA_SMART_INFO* asi);
+
 	BOOL AddDiskCsmi(INT scsiPort);
 //	BOOL GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo);
 	BOOL CsmiIoctl(HANDLE hHandle, UINT code, SRB_IO_CONTROL *csmiBuf, UINT csmiBufSize);
@@ -1450,7 +1464,9 @@ protected:
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);
 //	DWORD GetMaxtorPowerOnHours(DWORD currentValue, DWORD rawValue);
 
-	BOOL FillSmartInfo(ATA_SMART_INFO* asi);
+	BOOL FillSmartData(ATA_SMART_INFO* asi);
+	BOOL FillSmartThreshold(ATA_SMART_INFO* asi);
+
 
 	VOID CheckSsdSupport(ATA_SMART_INFO &asi);
 	BOOL IsSsdOld(ATA_SMART_INFO &asi);

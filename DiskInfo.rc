@@ -62,7 +62,14 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\DiskInfo.ico"
+
+#ifdef SUISYO_SHIZUKU_SUPPORT
+IDR_MAINFRAME           ICON                    "resS\\DiskInfo.ico"
+IDI_MINI_ICON           ICON                    "resS\\DiskInfo16.ico"
+#else
+IDR_MAINFRAME           ICON                    "resN\\DiskInfo.ico"
+IDI_MINI_ICON           ICON                    "resN\\DiskInfo16.ico"
+#endif
 IDI_GOOD                ICON                    "res\\good.ico"
 IDI_GOOD_GREEN          ICON                    "res\\goodGreen.ico"
 IDI_CAUTION             ICON                    "res\\caution.ico"
@@ -268,7 +275,6 @@ IDI_TEMP_F96            ICON                    "res\\F96.ico"
 IDI_TEMP_F97            ICON                    "res\\F97.ico"
 IDI_TEMP_F98            ICON                    "res\\F98.ico"
 IDI_TEMP_F99            ICON                    "res\\F99.ico"
-IDI_MINI_ICON           ICON                    "res\\DiskInfo16.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -336,6 +342,21 @@ BEGIN
     COMBOBOX        IDC_FONT_COMBO,7,6,166,148,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_SORT | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
 END
 
+IDD_ALARM_HISTORY DIALOGEX 0, 0, 316, 183
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_ALARM_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,7,302,169
+END
+
+IDD_SOUND_SETTINGS DIALOGEX 0, 0, 316, 48
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -343,8 +364,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,6,2,2012
- PRODUCTVERSION 4,6,2,2012
+ FILEVERSION 5,0,0,2012
+ PRODUCTVERSION 5,0,0,2012
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -362,12 +383,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.6.2.2012"
+            VALUE "FileVersion", "5.0.0.2012"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2012 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.6.2.2012"
+            VALUE "ProductVersion", "5.0.0.2012"
         END
     END
     BLOCK "VarFileInfo"
@@ -389,6 +410,10 @@ BEGIN
     BEGIN
         RIGHTMARGIN, 313
         BOTTOMMARGIN, 224
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
     END
 
     IDD_GRAPH, DIALOG
@@ -429,6 +454,22 @@ BEGIN
         RIGHTMARGIN, 173
         TOPMARGIN, 6
         BOTTOMMARGIN, 55
+    END
+
+    IDD_ALARM_HISTORY, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 176
+    END
+
+    IDD_SOUND_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 309
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 41
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -478,49 +519,30 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Graph",                       ID_GRAPH
         MENUITEM SEPARATOR
-        MENUITEM "Hide S.M.A.R.T. Information", ID_HIDE_SMART_INFO
         MENUITEM "Hide Serial Number",          ID_HIDE_SERIAL_NUMBER
-        POPUP "Temperature"
-        BEGIN
-            MENUITEM "Celsius",                     ID_CELSIUS
-            MENUITEM "Fahrenheit",                  ID_FAHRENHEIT
-        END
-        MENUITEM SEPARATOR
         MENUITEM "Resident",                    ID_RESIDENT
-        POPUP "Resident Style"
-        BEGIN
-            MENUITEM "Hide",                        ID_RESIDENT_HIDE
-            MENUITEM "Minimize",                    ID_RESIDENT_MINIMIZE
-        END
         MENUITEM "Startup",                     ID_STARTUP
-        POPUP "Wait Time at Startup"
+        MENUITEM SEPARATOR
+        POPUP "Alert Features"
         BEGIN
-            MENUITEM "0 sec.",                      ID_WAIT_0_SEC
-            MENUITEM "5 sec.",                      ID_WAIT_5_SEC
-            MENUITEM "10 sec.",                     ID_WAIT_10_SEC
-            MENUITEM "15 sec.",                     ID_WAIT_15_SEC
-            MENUITEM "20 sec.",                     ID_WAIT_20_SEC
-            MENUITEM "30 sec.",                     ID_WAIT_30_SEC
-            MENUITEM "40 sec.",                     ID_WAIT_40_SEC
-            MENUITEM "50 sec.",                     ID_WAIT_50_SEC
-            MENUITEM "60 sec.",                     ID_WAIT_60_SEC
-            MENUITEM "90 sec.",                     ID_WAIT_90_SEC
-            MENUITEM "120 sec.",                    ID_WAIT_120_SEC
-            MENUITEM "150 sec.",                    ID_WAIT_150_SEC
-            MENUITEM "180 sec.",                    ID_WAIT_180_SEC
-            MENUITEM "210 sec.",                    ID_WAIT_210_SEC
-            MENUITEM "240 sec.",                    ID_WAIT_240_SEC
+            MENUITEM "Alert Mail",                  ID_ALERT_MAIL
+            MENUITEM "Mail Settings",               ID_MAIL_SETTINGS
+            MENUITEM "Alert Sound",                 ID_ALERT_SOUND
+            MENUITEM "Sound Settings",              ID_SOUND_SETTINGS
+            MENUITEM "Event Log",                   ID_EVENT_LOG
         END
-        MENUITEM SEPARATOR
-        MENUITEM "Open ""Disk Management""",    ID_OPEN_DISK_MANAGEMENT
-        MENUITEM "Open ""Device Manager""",     ID_OPEN_DEVICE_MANAGER
-        MENUITEM SEPARATOR
-        MENUITEM "Health Status Setting",       ID_HEALTH_STATUS
-        POPUP "Advanced Feature"
+        POPUP "Advanced Features"
         BEGIN
             MENUITEM "AAM/APM Setting",             ID_AAM_APM
             MENUITEM "Auto AAM/APM Adaptation",     ID_AUTO_AAM_APM
+            MENUITEM "Health Status Setting",       ID_HEALTH_STATUS
             MENUITEM SEPARATOR
+            MENUITEM "Hide S.M.A.R.T. Information", ID_HIDE_SMART_INFO
+            POPUP "Temperature"
+            BEGIN
+                MENUITEM "Celsius",                     ID_CELSIUS
+                MENUITEM "Fahrenheit",                  ID_FAHRENHEIT
+            END
             POPUP "Auto Detection"
             BEGIN
                 MENUITEM "5 sec.",                      ID_AUTO_DETECTION_05_SEC
@@ -529,12 +551,6 @@ BEGIN
                 MENUITEM "30 sec.",                     ID_AUTO_DETECTION_30_SEC
                 MENUITEM "Disable",                     ID_AUTO_DETECTION_DISABLE
             END
-            MENUITEM SEPARATOR
-            MENUITEM "&Advanced Disk Search",       ID_ADVANCED_DISK_SEARCH
-            MENUITEM "Event Log",                   ID_EVENT_LOG
-            MENUITEM "Alert Mail",                  ID_ALERT_MAIL
-            MENUITEM "Mail Settings",               ID_MAIL_SETTINGS
-            MENUITEM SEPARATOR
             POPUP "Raw Values"
             BEGIN
                 MENUITEM "16 [HEX]",                    ID_RAW_VALUES_16
@@ -542,6 +558,32 @@ BEGIN
                 MENUITEM "10 [DEC] - 2byte",            ID_RAW_VALUES_2BYTE
                 MENUITEM "10 [DEC] - 1byte",            ID_RAW_VALUES_1BYTE
             END
+            POPUP "Wait Time at Startup"
+            BEGIN
+                MENUITEM "0 sec.",                      ID_WAIT_0_SEC
+                MENUITEM "5 sec.",                      ID_WAIT_5_SEC
+                MENUITEM "10 sec.",                     ID_WAIT_10_SEC
+                MENUITEM "15 sec.",                     ID_WAIT_15_SEC
+                MENUITEM "20 sec.",                     ID_WAIT_20_SEC
+                MENUITEM "30 sec.",                     ID_WAIT_30_SEC
+                MENUITEM "40 sec.",                     ID_WAIT_40_SEC
+                MENUITEM "50 sec.",                     ID_WAIT_50_SEC
+                MENUITEM "60 sec.",                     ID_WAIT_60_SEC
+                MENUITEM "90 sec.",                     ID_WAIT_90_SEC
+                MENUITEM "120 sec.",                    ID_WAIT_120_SEC
+                MENUITEM "150 sec.",                    ID_WAIT_150_SEC
+                MENUITEM "180 sec.",                    ID_WAIT_180_SEC
+                MENUITEM "210 sec.",                    ID_WAIT_210_SEC
+                MENUITEM "240 sec.",                    ID_WAIT_240_SEC
+            END
+            POPUP "Resident Style"
+            BEGIN
+                MENUITEM "Hide",                        ID_RESIDENT_HIDE
+                MENUITEM "Minimize",                    ID_RESIDENT_MINIMIZE
+            END
+            MENUITEM SEPARATOR
+            MENUITEM "&Advanced Disk Search",       ID_ADVANCED_DISK_SEARCH
+            MENUITEM "ATA_PASS_THROUGH for S.M.A.R.T.", ID_ATA_PASS_THROUGH_SMART
             POPUP "USB/IEEE 1394"
             BEGIN
                 MENUITEM "SCSI_ATA_TRANSLATION (SAT)",  ID_USB_SAT
@@ -554,19 +596,24 @@ BEGIN
                 MENUITEM "Enable All",                  ID_USB_ENABLE_ALL
                 MENUITEM "Disable All",                 ID_USB_DISABLE_ALL
             END
-            MENUITEM "ATA_PASS_THROUGH for S.M.A.R.T.", ID_ATA_PASS_THROUGH_SMART
-            POPUP "[Beta] Intel RAID (CSMI)"
+            POPUP "Intel RAID (CSMI)"
             BEGIN
+                MENUITEM "Enable (Auto Detection, default)", ID_CSMI_ENABLE_AUTO
+                MENUITEM "Enable (Access RAID Disks only)", ID_CSMI_ENABLE_RAID
                 MENUITEM "Enable (Access All Disks)",   ID_CSMI_ENABLE_ALL
-                MENUITEM "Enable (Access RAID Disks only, default)", ID_CSMI_ENABLE_RAID
                 MENUITEM "Disable",                     ID_CSMI_DISABLE
             END
+            MENUITEM SEPARATOR
+            MENUITEM "Gadget Support",              ID_GADGET_SUPPORT
+            MENUITEM "Install Gadget",              ID_INSTALL_GADGET
         END
-        MENUITEM SEPARATOR
-        POPUP "WORKAROUND"
+        POPUP "Workaround"
         BEGIN
             MENUITEM "[Firmware Bug] SAMSUNG HD155UI/HD204UI", ID_WORKAROUND_HD204UI
         END
+        MENUITEM SEPARATOR
+        MENUITEM "Open ""Disk Management""",    ID_OPEN_DISK_MANAGEMENT
+        MENUITEM "Open ""Device Manager""",     ID_OPEN_DEVICE_MANAGER
     END
     POPUP "&Theme"
     BEGIN
@@ -690,6 +737,13 @@ END
 //
 
 IDR_HTML_DUMMY          HTML                    "res\\dummy.html"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// MP3
+//
+
+IDR_MP3_001_SK          MP3                     "res\\001soundkenjin.mp3"
 #endif    // “ú–{Œê (“ú–{) resources
 /////////////////////////////////////////////////////////////////////////////
 

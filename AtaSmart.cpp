@@ -30,7 +30,8 @@ static const TCHAR *commandTypeString[] =
 	_T("jm"),
 	_T("cy"),
 	_T("pr"),
-	_T("cs")
+	_T("cs"),
+	_T("wm"),
 };
 
 static const TCHAR *ssdVendorString[] = 
@@ -159,6 +160,13 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 			}
 			vars[i].DiskStatus = CheckDiskStatus(i);
 			break;
+		case CMD_TYPE_WMI:	
+			if(! GetSmartAttributeWmi(&(vars[i])))
+			{
+				return SMART_STATUS_NO_CHANGE;
+			}
+			vars[i].DiskStatus = CheckDiskStatus(i);
+			break;
 		default:
 			return SMART_STATUS_NO_CHANGE;
 		}
@@ -175,6 +183,7 @@ BOOL CAtaSmart::UpdateIdInfo(DWORD i)
 	switch(vars[i].CommandType)
 	{
 	case CMD_TYPE_PHYSICAL_DRIVE:
+	case CMD_TYPE_WMI:
 		flag =  DoIdentifyDevicePd(vars[i].PhysicalDriveId, vars[i].Target, &(vars[i].IdentifyDevice));
 		break;
 	case CMD_TYPE_SCSI_MINIPORT:
@@ -281,6 +290,7 @@ BOOL CAtaSmart::SendAtaCommand(DWORD i, BYTE main, BYTE sub, BYTE param)
 	switch(vars[i].CommandType)
 	{
 	case CMD_TYPE_PHYSICAL_DRIVE:
+	case CMD_TYPE_WMI:	
 		return SendAtaCommandPd(vars[i].PhysicalDriveId, vars[i].Target, main, sub, param, NULL, 0);
 		break;
 	case CMD_TYPE_SCSI_MINIPORT:
@@ -516,6 +526,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			dp.PhysicalDriveId = vars[i].PhysicalDriveId;
 			dp.ScsiTargetId = vars[i].ScsiTargetId;
 			dp.ScsiPort = vars[i].ScsiPort;
+			memcpy(&(dp.sasPhyEntity), &(vars[i].sasPhyEntity), sizeof(CSMI_SAS_PHY_ENTITY));
 
 			previous.Add(dp);
 		}
@@ -1139,6 +1150,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					{
 						pnpDeviceId = pVal.bstrVal;
 						DebugPrint(_T("pnpDeviceId:") + pnpDeviceId);
+						pnpDeviceId.MakeUpper();
 						VariantClear(&pVal);
 
 						// Is Silicon Image Controller
@@ -1222,7 +1234,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						}
 
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
-						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType))
+						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType, pnpDeviceId))
 						{
 							DebugPrint(_T("int index = (int)vars.GetCount() - 1;"));
 							int index = (int)vars.GetCount() - 1;
@@ -1338,6 +1350,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							// DEBUG
 							// vars[index].VendorId = VENDOR_MTRON;
 							DebugPrint(_T("OK:Check Model Name"));
+
 						}
 					}
 				}
@@ -1354,10 +1367,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 				DebugPrint(_T("EX:SELECT * FROM Win32_DiskDrive"));
 			}
 
+
+
+
 			// Drive Letter Mapping
 			try
 			{
-
 				DebugPrint(_T("DO:SELECT * FROM Win32_DiskPartition"));
 				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
 					SysAllocString(L"SELECT * FROM Win32_DiskPartition"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
@@ -1470,12 +1485,6 @@ safeRelease:
 	// \\\\.\\PhysicalDrive%d
 	for(int i = 0; i < MAX_SEARCH_PHYSICAL_DRIVE; i++)
 	{
-
-
-///		CString cstr;
-///		cstr.Format(_T("Search Physical Drive : %d"), i);
-///		DebugPrint(cstr);
-
 		BOOL	flagChecked = FALSE;
 		BOOL	bRet;
 		HANDLE	hIoCtrl;
@@ -1483,9 +1492,6 @@ safeRelease:
 		DISK_GEOMETRY dg;
 		CAtaSmart::INTERFACE_TYPE interfaceType = INTERFACE_TYPE_UNKNOWN;
 		CAtaSmart::VENDOR_ID vendor = VENDOR_UNKNOWN;
-
-///		cstr.Format(_T("vars.GetCount() : %d"), vars.GetCount());
-///		DebugPrint(cstr);
 
 		for(int j = 0; j < vars.GetCount(); j++)
 		{
@@ -1526,8 +1532,6 @@ safeRelease:
 			::CloseHandle(hIoCtrl);
 			continue;
 		}
-
-
 		// [2010/12/05] Workaround for SAMSUNG HD204UI
 		// http://sourceforge.net/apps/trac/smartmontools/wiki/SamsungF4EGBadBlocks
 
@@ -1696,6 +1700,7 @@ safeRelease:
 				if(vars.GetAt(i).PhysicalDriveId != previous.GetAt(i).PhysicalDriveId
 				|| vars.GetAt(i).ScsiTargetId != previous.GetAt(i).ScsiTargetId
 				|| vars.GetAt(i).ScsiPort != previous.GetAt(i).ScsiPort
+				|| memcmp(&(vars.GetAt(i).sasPhyEntity), &(previous.GetAt(i).sasPhyEntity), sizeof(CSMI_SAS_PHY_ENTITY)) != 0
 				)
 				{
 					*flagChangeDisk = TRUE;
@@ -1728,7 +1733,7 @@ int CAtaSmart::Compare(const void *p1, const void *p2)
 	}
 }
 
-BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType, PCSMI_SAS_PHY_ENTITY sasPhyEntity)
+BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType, PCSMI_SAS_PHY_ENTITY sasPhyEntity, CString pnpDeviceId)
 {
 	if(vars.GetCount() >= MAX_DISK)
 	{
@@ -1747,6 +1752,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.CommandType = commandType;
 	asiCheck.CommandType = commandType;
 	asi.SsdVendorString = _T("");
+
 	if(sasPhyEntity != NULL)
 	{
 		memcpy(&(asi.sasPhyEntity), sasPhyEntity, sizeof(CSMI_SAS_PHY_ENTITY));
@@ -1865,6 +1871,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.Interface = _T("");
 	asi.Enclosure = _T("");
 	asi.DeviceNominalFormFactor = _T("");
+	asi.PnpDeviceId = pnpDeviceId;
 	asi.MinorVersion = _T("");
 
 	CHAR buf[64];
@@ -1930,6 +1937,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		return FALSE;
 	}
 
+	INT	duplicatedId = -1;
 	// Check duplicate device
 	for(int i = 0; i < vars.GetCount(); i++)
 	{
@@ -1939,8 +1947,21 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			if(vars[i].PhysicalDriveId == -1)
 			{
 				vars[i].PhysicalDriveId = asi.PhysicalDriveId;
+				if(CsmiType == CSMI_TYPE_ENABLE_AUTO)
+				{
+					duplicatedId = i;
+					vars[i].CommandType = CMD_TYPE_PHYSICAL_DRIVE;
+					break;
+				}
+				else
+				{
+					return FALSE;
+				}
 			}
-			return FALSE;
+			else
+			{
+				return FALSE;
+			}
 		}
 	}
 	
@@ -2145,9 +2166,6 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		switch(asi.CommandType)
 		{
 		case CMD_TYPE_PHYSICAL_DRIVE:
-	// DEBUG
-		//	ControlSmartStatusPd(physicalDriveId, asi.Target, DISABLE_SMART);
-
 			debug.Format(_T("GetSmartAttributePd(%d) - 1"), physicalDriveId);
 			DebugPrint(debug);
 			if(GetSmartAttributePd(physicalDriveId, asi.Target, &asi))
@@ -2159,6 +2177,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 					debug.Format(_T("GetSmartAttributePd(%d) - 1A"), physicalDriveId);
 					asi.IsSmartCorrect = TRUE;
 				}
+
 				if(GetSmartThresholdPd(physicalDriveId, asi.Target, &asi))
 				{
 					asi.IsThresholdCorrect = TRUE;
@@ -2185,6 +2204,20 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 						asi.IsThresholdCorrect = TRUE;
 					}
 				//	asi.DiskStatus = CheckDiskStatus(asi.Attribute, asi.Threshold, asi.AttributeCount, asi.DiskVendorId, asi.IsSmartCorrect, asi.IsSsd);
+					asi.IsSmartEnabled = TRUE;
+				}
+			}		
+
+			// WMI
+			if(! asi.IsSmartCorrect || ! asi.IsThresholdCorrect)
+			{
+				if(! asi.IsSmartCorrect)	{asi.IsSmartCorrect = GetSmartAttributeWmi(&asi);}
+				if(! asi.IsThresholdCorrect){asi.IsThresholdCorrect = GetSmartThresholdWmi(&asi);}
+
+				if(asi.IsSmartCorrect)
+				{
+					CheckSsdSupport(asi);
+					asi.CommandType = CMD_TYPE_WMI;
 					asi.IsSmartEnabled = TRUE;
 				}
 			}
@@ -2332,6 +2365,15 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 				}
 			}
 			break;
+		case CMD_TYPE_WMI:
+			asi.IsSmartCorrect = GetSmartAttributeWmi(&asi);
+			asi.IsThresholdCorrect = GetSmartThresholdWmi(&asi);
+			if(asi.IsSmartCorrect)
+			{
+				CheckSsdSupport(asi);
+				asi.IsSmartEnabled = TRUE;
+			}
+			break;
 		default:
 			return FALSE;
 			break;
@@ -2341,7 +2383,12 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	// OCZ-VERTEX3 2.02 Firmware Bug
 	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=303;id=diskinfo#303
 	// http://www.ocztechnologyforum.com/forum/showthread.php?88540-Vertex-3-Issues-Errors-and-Slow-speeds.
-	if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE && asi.Model.Find(_T("OCZ-VERTEX3")) == 0 && asi.FirmwareRev.Find(_T("2.02")) == 0)
+	// OCZ-VERTEX2 1.27 Firmware Bug
+	// http://sourceforge.jp/ticket/browse.php?group_id=4394&tid=28153
+	if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE 
+	&&((asi.Model.Find(_T("OCZ-VERTEX3")) == 0 && asi.FirmwareRev.Find(_T("2.02")) == 0) 
+	|| (asi.Model.Find(_T("OCZ-VERTEX2")) == 0 && asi.FirmwareRev.Find(_T("1.27")) == 0))
+	)
 	{
 		asi.IsThresholdBug = TRUE;
 	}
@@ -2367,7 +2414,13 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		return FALSE;
 	}
 
-	if(vars.GetCount() < MAX_DISK){vars.Add(asi);}
+	// for CSMI devices
+	if(asi.IsSmartCorrect && duplicatedId != -1)
+	{
+		vars.RemoveAt(duplicatedId);
+	}
+
+	vars.Add(asi);
 
 	return TRUE;
 }
@@ -2380,7 +2433,21 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.IsSsd = TRUE;
 	}
 
-	if(IsSsdMtron(asi))
+	if(asi.Model.Find(_T("ST")) == 0)
+	{
+		if(asi.IsSsd)
+		{
+			asi.SmartKeyName = _T("SmartSsd");
+			asi.DiskVendorId = HDD_SSD_VENDOR_SEAGATE;
+		}
+		else
+		{
+			asi.SmartKeyName = _T("Smart");
+			asi.DiskVendorId = HDD_SSD_VENDOR_SEAGATE;
+		}
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+	}
+	else if(IsSsdMtron(asi))
 	{
 		asi.SmartKeyName = _T("SmartMtron");
 		asi.DiskVendorId = SSD_VENDOR_MTRON;
@@ -2543,7 +2610,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 			{
 				asi.HostWrites  = (INT)(
@@ -2556,7 +2622,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-			*/
 			break;
 		case 0xF2:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -2981,7 +3046,7 @@ VOID CAtaSmart::WakeUp(INT physicalDriveId)
 }
 
 BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, 
-	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType
+	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType,  CString pnpDeviceId
 	)
 {
 	DebugPrint(_T("GetDiskInfo"));
@@ -3021,7 +3086,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(DoIdentifyDeviceSi(physicalDriveId, scsiPort, scsiBus, siliconImageType, &identify))
 			{
 				DebugPrint(_T("AddDisk - Si"));
-				if(AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SILICON_IMAGE, &identify, siliconImageType))
+				if(AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SILICON_IMAGE, &identify, siliconImageType, NULL, pnpDeviceId))
 				{
 					return TRUE;
 				}
@@ -3055,7 +3120,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 						{
 							debug.Format(_T("AddDisk(%d, %d, %d) - 5"), physicalDriveId, scsiPort, scsiTargetId);
 							DebugPrint(debug);
-							return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SCSI_MINIPORT, &identify);
+							return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SCSI_MINIPORT, &identify, siliconImageType, NULL, pnpDeviceId);
 						}
 						else
 						{
@@ -3066,7 +3131,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			}
 			debug.Format(_T("AddDisk(%d, %d, %d) - 6"), physicalDriveId, scsiPort, scsiTargetId);
 			DebugPrint(debug);
-			return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_PHYSICAL_DRIVE, &identify);
+			return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_PHYSICAL_DRIVE, &identify, siliconImageType, NULL, pnpDeviceId);
 		}
 		else
 		{
@@ -3076,7 +3141,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			{
 				debug.Format(_T("AddDisk(%d, %d, %d) - 8"), physicalDriveId, scsiPort, scsiTargetId);
 				DebugPrint(debug);
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SCSI_MINIPORT, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SCSI_MINIPORT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 	}
@@ -3104,18 +3169,28 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 		//                 http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=2985;id=report#2985
 		// 2012/3/20
 		// StoreJet         http://btmn.jp/2012/02/25/storejet-320gb-crystal-diskinfo/
-		if(interfaceType == INTERFACE_TYPE_USB && (usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122 ||  usbVendorId == USB_VENDOR_JMICRON))
+		if(interfaceType == INTERFACE_TYPE_USB && ((usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122) || usbVendorId == USB_VENDOR_JMICRON))
 		{
-			DebugPrint(_T("(usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122 ||  usbVendorId == USB_VENDOR_JMICRON"));
+			DebugPrint(_T("(usbVendorId == USB_VENDOR_IO_DATA && productId == 0x0122) || usbVendorId == USB_VENDOR_JMICRON"));
 			if(FlagUsbJmicron && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify,  CMD_TYPE_JMICRON))
 			{
-				DebugPrint(_T("AddDisk - USB0"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0,  CMD_TYPE_JMICRON, &identify);
+				DebugPrint(_T("AddDisk - USB0A"));
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0,  CMD_TYPE_JMICRON, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_SAT))
 			{
-				DebugPrint(_T("AddDisk - USB1"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify);
+				DebugPrint(_T("AddDisk - USB1A"));
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
+			}
+			if(FlagUsbJmicron && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify,  CMD_TYPE_JMICRON))
+			{
+				DebugPrint(_T("AddDisk - USB0B"));
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0,  CMD_TYPE_JMICRON, &identify, siliconImageType, NULL, pnpDeviceId);
+			}
+			else if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SAT))
+			{
+				DebugPrint(_T("AddDisk - USB1B"));
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else
 			{
@@ -3130,12 +3205,12 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(FlagUsbIodata && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_IO_DATA))
 			{
 				DebugPrint(_T("AddDisk - USB2"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_IO_DATA, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_IO_DATA, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbIodata && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_IO_DATA))
 			{
 				DebugPrint(_T("AddDisk - USB3"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_IO_DATA, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_IO_DATA, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 
@@ -3155,12 +3230,12 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(FlagUsbSunplus && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_SUNPLUS))
 			{
 				DebugPrint(_T("AddDisk - USB4"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SUNPLUS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SUNPLUS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbSunplus && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SUNPLUS))
 			{
 				DebugPrint(_T("AddDisk - USB5"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SUNPLUS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SUNPLUS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 		else if(interfaceType == INTERFACE_TYPE_USB && usbVendorId == USB_VENDOR_CYPRESS)
@@ -3169,12 +3244,12 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(FlagUsbCypress && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_CYPRESS))
 			{
 				DebugPrint(_T("AddDisk - USB6"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_CYPRESS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_CYPRESS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbCypress && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_CYPRESS))
 			{
 				DebugPrint(_T("AddDisk - USB7"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_CYPRESS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_CYPRESS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 		else if(interfaceType == INTERFACE_TYPE_USB && 
@@ -3186,12 +3261,12 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_SAT))
 			{
 				DebugPrint(_T("AddDisk - USB8"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SAT))
 			{
 				DebugPrint(_T("AddDisk - USB9"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SAT, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 		else
@@ -3201,52 +3276,52 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_SAT))
 			{
 				DebugPrint(_T("AddDisk - USB10"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbJmicron && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_JMICRON))
 			{
 				DebugPrint(_T("AddDisk - USB11"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_JMICRON, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_JMICRON, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbSunplus && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_SUNPLUS))
 			{
 				DebugPrint(_T("AddDisk - USB12"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SUNPLUS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SUNPLUS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbCypress && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_CYPRESS))
 			{
 				DebugPrint(_T("AddDisk - USB13"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_CYPRESS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_CYPRESS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbLogitec && DoIdentifyDeviceSat(physicalDriveId, 0xA0, &identify, CMD_TYPE_LOGITEC))
 			{
 				DebugPrint(_T("AddDisk - USB14"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_LOGITEC, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_LOGITEC, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
-			else if(FlagUsbLogitec && FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SAT))
+			else if(FlagUsbSat && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SAT))
 			{
 				DebugPrint(_T("AddDisk - USB15"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SAT, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SAT, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbJmicron && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_JMICRON))
 			{
 				DebugPrint(_T("AddDisk - USB16"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_JMICRON, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_JMICRON, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbSunplus && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_SUNPLUS))
 			{
 				DebugPrint(_T("AddDisk - USB17"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SUNPLUS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_SUNPLUS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbCypress && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_CYPRESS))
 			{
 				DebugPrint(_T("AddDisk - USB18"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_CYPRESS, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_CYPRESS, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 			else if(FlagUsbLogitec && DoIdentifyDeviceSat(physicalDriveId, 0xB0, &identify, CMD_TYPE_LOGITEC))
 			{
 				DebugPrint(_T("AddDisk - USB19"));
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_LOGITEC, &identify);
+				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xB0, CMD_TYPE_LOGITEC, &identify, siliconImageType, NULL, pnpDeviceId);
 			}
 		}
 	}
@@ -3374,13 +3449,13 @@ BOOL CAtaSmart::GetSmartAttributePd(INT physicalDriveId, BYTE target, ATA_SMART_
 		memcpy_s(&(asi->SmartReadData), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
 	}
 
-	return FillSmartInfo(asi);
+	return FillSmartData(asi);
 }
 
 BOOL CAtaSmart::GetSmartThresholdPd(INT physicalDriveId, BYTE target, ATA_SMART_INFO* asi)
 {
 	BOOL	bRet = FALSE;
-	HANDLE	hIoCtrl;
+	HANDLE	hIoCtrl = INVALID_HANDLE_VALUE;
 	DWORD	dwReturned;
 
 	SMART_READ_DATA_OUTDATA	sendCmdOutParam;
@@ -3393,21 +3468,7 @@ BOOL CAtaSmart::GetSmartThresholdPd(INT physicalDriveId, BYTE target, ATA_SMART_
 			(PBYTE)&(asi->SmartReadThreshold), sizeof(asi->SmartReadThreshold));
 	}
 
-	if(bRet)
-	{
-		int j = 0;
-		for(int i = 0; i < MAX_ATTRIBUTE; i++)
-		{
-			memcpy(	&(asi->Threshold[i]), 
-					&(asi->SmartReadThreshold[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
-
-			if(asi->Threshold[j].Id != 0)
-			{
-				j++;
-			}
-		}
-	}
-	else
+	if(! bRet)
 	{
 		hIoCtrl = GetIoCtrlHandle(physicalDriveId);
 		if(hIoCtrl == INVALID_HANDLE_VALUE)
@@ -3441,20 +3502,9 @@ BOOL CAtaSmart::GetSmartThresholdPd(INT physicalDriveId, BYTE target, ATA_SMART_
 		}
 
 		memcpy_s(&(asi->SmartReadThreshold), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
-		int j = 0;
-		for(int i = 0; i < MAX_ATTRIBUTE; i++)
-		{
-			memcpy(	&(asi->Threshold[i]), 
-					&(sendCmdOutParam.Data[i * sizeof(SMART_THRESHOLD) + 1]), sizeof(SMART_THRESHOLD));
-
-			if(asi->Threshold[j].Id != 0)
-			{
-				j++;
-			}
-		}
 	}
 	
-	return	TRUE;
+	return FillSmartThreshold(asi);
 }
 
 BOOL CAtaSmart::ControlSmartStatusPd(INT physicalDriveId, BYTE target, BYTE command)
@@ -3674,9 +3724,8 @@ BOOL CAtaSmart::GetSmartAttributeScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 
 			memcpy_s(&(asi->SmartReadData), 512, &(pOut->bBuffer), 512);
 			CloseHandle(hScsiDriveIOCTL);
-			return FillSmartInfo(asi);
+			return FillSmartData(asi);
 		}
-
 	}
 	return FALSE;
 }
@@ -3717,30 +3766,14 @@ BOOL CAtaSmart::GetSmartThresholdScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 			SENDCMDOUTPARAMS *pOut = (SENDCMDOUTPARAMS *)(buffer + sizeof(SRB_IO_CONTROL));
 			if(*(pOut->bBuffer) > 0)
 			{
-				int j = 0;
+				
 				memcpy_s(&(asi->SmartReadThreshold), 512, &(pOut->bBuffer), 512);
-				for(int i = 0; i < MAX_ATTRIBUTE; i++)
-				{
-					memcpy(	&(asi->Threshold[j]), 
-						&(pOut->bBuffer[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
-					if(asi->Threshold[j].Id != 0)
-					{
-						j++;
-					}
-				}
+				CloseHandle (hScsiDriveIOCTL);
+				return FillSmartThreshold(asi);
 			}
 		}
 	}
-	CloseHandle (hScsiDriveIOCTL);
-	
-	if(asi->AttributeCount > 0)
-	{
-		return TRUE;
-	}
-	else
-	{
-		return FALSE;
-	}
+	return FALSE;
 }
 
 BOOL CAtaSmart::ControlSmartStatusScsi(INT scsiPort, INT scsiTargetId, BYTE command)
@@ -3783,10 +3816,11 @@ BOOL CAtaSmart::ControlSmartStatusScsi(INT scsiPort, INT scsiTargetId, BYTE comm
 								buffer, sizeof(SRB_IO_CONTROL) + sizeof(SENDCMDINPARAMS) - 1,
 								buffer, sizeof(SRB_IO_CONTROL) + sizeof(SENDCMDOUTPARAMS) + SCSI_MINIPORT_BUFFER_SIZE,
 								&dummy, NULL);
+		CloseHandle(hScsiDriveIOCTL);
+		return bRet;
 	}
-	CloseHandle(hScsiDriveIOCTL);
 
-	return bRet;
+	return FALSE;
 }
 
 
@@ -4182,12 +4216,8 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 		return	FALSE;
 	}
 
-	CString str;
-	asi->AttributeCount = 0;
-	int j = 0;
-
 	memcpy_s(&(asi->SmartReadData), 512, &(sptwb.DataBuf), 512);
-	return FillSmartInfo(asi);
+	return FillSmartData(asi);
 }
 
 BOOL CAtaSmart::GetSmartThresholdSat(INT physicalDriveId, BYTE target, ATA_SMART_INFO* asi)
@@ -4337,23 +4367,8 @@ BOOL CAtaSmart::GetSmartThresholdSat(INT physicalDriveId, BYTE target, ATA_SMART
 		return	FALSE;
 	}
 
-	CString str;
-	int j = 0;
-
 	memcpy_s(&(asi->SmartReadThreshold), 512, &(sptwb.DataBuf), 512);
-
-	for(int i = 0; i < MAX_ATTRIBUTE; i++)
-	{
-		memcpy(	&(asi->Threshold[i]), 
-				&(sptwb.DataBuf[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
-
-		if(asi->Threshold[j].Id != 0)
-		{
-			j++;
-		}
-	}
-
-	return	TRUE;
+	return	FillSmartThreshold(asi);
 }
 
 BOOL CAtaSmart::ControlSmartStatusSat(INT physicalDriveId, BYTE target, BYTE command, COMMAND_TYPE type)
@@ -4712,23 +4727,145 @@ BOOL CAtaSmart::GetSmartAttributeSi(INT physicalDriveId, ATA_SMART_INFO* asi)
 
 	STORAGE_PREDICT_FAILURE spf;
 	DWORD dwRetBytes;
-	if (DeviceIoControl(hScsiDriveIOCTL, IOCTL_STORAGE_PREDICT_FAILURE,
-		&spf, sizeof(spf), &spf, sizeof(spf), &dwRetBytes, NULL))
+
+	if(hScsiDriveIOCTL != INVALID_HANDLE_VALUE)
 	{
-		if(spf.PredictFailure == 0)
+		if (DeviceIoControl(hScsiDriveIOCTL, IOCTL_STORAGE_PREDICT_FAILURE,
+			&spf, sizeof(spf), &spf, sizeof(spf), &dwRetBytes, NULL))
 		{
 			memcpy_s(&(asi->SmartReadData), 512, &(spf.VendorSpecific), 512);
-			return FillSmartInfo(asi);
+			CloseHandle(hScsiDriveIOCTL);
+			return FillSmartData(asi);
 		}
+		CloseHandle(hScsiDriveIOCTL);
 	}
-	return FALSE;
+	return GetSmartAttributeWmi(asi);
 }
 
 BOOL CAtaSmart::GetSmartThresholdSi(INT physicalDriveId, ATA_SMART_INFO* asi)
 {
-	return FALSE;
+	return GetSmartThresholdWmi(asi);
 }
 
+/*---------------------------------------------------------------------------*/
+// WMI
+/*---------------------------------------------------------------------------*/
+
+BOOL CAtaSmart::GetSmartAttributeWmi(ATA_SMART_INFO* asi)
+{
+	return GetSmartInfoWmi(WMI_SMART_DATA, asi);
+}
+
+BOOL CAtaSmart::GetSmartThresholdWmi(ATA_SMART_INFO* asi)
+{
+	if(m_Os.dwMajorVersion == 5 && m_Os.dwMinorVersion == 0)
+	{
+		return FALSE;
+	}
+
+	return GetSmartInfoWmi(WMI_SMART_THRESHOLD, asi);
+}
+
+BOOL CAtaSmart::GetSmartInfoWmi(DWORD type, ATA_SMART_INFO* asi)
+{
+	if(asi->PnpDeviceId.IsEmpty())
+	{
+		return FALSE;
+	}
+
+	CString query;
+
+	if(type == WMI_SMART_DATA)
+	{
+		query = L"SELECT * FROM MSStorageDriver_FailurePredictData";
+	}
+	else
+	{
+		query = L"SELECT * FROM MSStorageDriver_FailurePredictThresholds";
+	}
+	
+	IWbemLocator*			pIWbemLocator = NULL;
+	IWbemServices*			pIWbemServices = NULL;
+	IEnumWbemClassObject*	pEnumCOMDevs = NULL;
+	IWbemClassObject*		pCOMDev = NULL;
+	ULONG					uReturned = 0;
+	BOOL					flag = FALSE;
+
+	try
+	{
+		if(SUCCEEDED(CoCreateInstance(CLSID_WbemLocator, NULL, CLSCTX_INPROC_SERVER,
+				IID_IWbemLocator, (LPVOID *)&pIWbemLocator)))
+		{
+			long securityFlag = 0;
+			if(m_Os.dwMajorVersion >= 6){securityFlag = WBEM_FLAG_CONNECT_USE_MAX_WAIT;}
+			if(SUCCEEDED(pIWbemLocator->ConnectServer(SysAllocString(L"\\\\.\\root\\WMI"), 
+				NULL, NULL, 0L, securityFlag, NULL, NULL, &pIWbemServices)))
+			{
+				if(SUCCEEDED(CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
+					NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE)))
+				{
+					if(SUCCEEDED(pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
+						SysAllocString(query), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs)))
+					{
+						while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
+						{
+							CString name;
+							VARIANT pVal;
+							VariantInit(&pVal);
+							
+							if(pCOMDev->Get(L"InstanceName", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
+							{
+								name = pVal.bstrVal;
+								name.MakeUpper();
+								VariantClear(&pVal);
+							}
+							VariantInit(&pVal);
+
+							
+						
+							if(name.Find(asi->PnpDeviceId) != 0)
+							{
+								continue;
+							}
+
+							if(pCOMDev->Get(L"VendorSpecific", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
+							{
+								if(type == WMI_SMART_DATA)
+								{
+									for(long i = 0; i < 512; i++)
+									{
+										SafeArrayGetElement(pVal.parray, &i, &(asi->SmartReadData[i]));
+									}
+									flag = FillSmartData(asi);
+								}
+								else
+								{
+									for(long i = 0; i < 512; i++)
+									{
+										SafeArrayGetElement(pVal.parray, &i, &(asi->SmartReadThreshold[i]));
+									}
+									flag = FillSmartThreshold(asi);
+								}
+								VariantClear(&pVal);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	catch(...)
+	{
+		flag = FALSE;
+	}
+	SAFE_RELEASE(pCOMDev);
+	SAFE_RELEASE(pEnumCOMDevs);
+	SAFE_RELEASE(pIWbemServices);
+	SAFE_RELEASE(pIWbemLocator);
+
+	return flag;
+}
 
 /*---------------------------------------------------------------------------*/
 // CSMI support (Intel RAID support)
@@ -4742,16 +4879,16 @@ HANDLE CAtaSmart::GetIoCtrlHandleCsmi(INT scsiPort)
 	driveName.Format(_T("\\\\.\\Scsi%d:"), scsiPort);
 	hScsiDriveIOCTL = CreateFile(driveName, GENERIC_READ | GENERIC_WRITE,
 							FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-	if(hScsiDriveIOCTL == INVALID_HANDLE_VALUE)
-	{
-		return INVALID_HANDLE_VALUE;
-	}
-
 	return hScsiDriveIOCTL;
 }
 
 BOOL CAtaSmart::AddDiskCsmi(INT scsiPort)
 {
+	if(CsmiType == CSMI_TYPE_DISABLE)
+	{
+		return FALSE;
+	}
+
 	HANDLE hHandle = GetIoCtrlHandleCsmi(scsiPort);
 	if(hHandle == INVALID_HANDLE_VALUE)
 	{
@@ -4818,19 +4955,29 @@ BOOL CAtaSmart::AddDiskCsmi(INT scsiPort)
 	{
 		for(int i = 0; i < phyInfo.bNumberOfPhys; i++)
 		{
-			for(int j = 0; j < raidDrives.GetCount(); j++)
+			if(CsmiType == CSMI_TYPE_ENABLE_RAID)
 			{
-			//	PCSMI_SAS_RAID_DRIVES test;
-			//	test = &(raidDrives.GetAt(j));
-			//	if(memcmp(raidDrives.GetAt(j).bSASAddress, phyInfo.Phy[i].Attached.bSASAddress, 8) == 0)
-			//	if(raidDrives.GetAt(j).bSASAddress[2] == phyInfo.Phy[i].Attached.bSASAddress[2])
-				if(raidDrives.GetAt(j) == phyInfo.Phy[i].Attached.bSASAddress[2])
+				for(int j = 0; j < raidDrives.GetCount(); j++)
 				{
-					if(DoIdentifyDeviceCsmi(scsiPort, &(phyInfo.Phy[i]), &identify))
+				//	PCSMI_SAS_RAID_DRIVES test;
+				//	test = &(raidDrives.GetAt(j));
+				//	if(memcmp(raidDrives.GetAt(j).bSASAddress, phyInfo.Phy[i].Attached.bSASAddress, 8) == 0)
+				//	if(raidDrives.GetAt(j).bSASAddress[2] == phyInfo.Phy[i].Attached.bSASAddress[2])
+					if(raidDrives.GetAt(j) == phyInfo.Phy[i].Attached.bSASAddress[2])
 					{
-						AddDisk(-1, scsiPort, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[i]));
+						if(DoIdentifyDeviceCsmi(scsiPort, &(phyInfo.Phy[i]), &identify))
+						{
+							AddDisk(-1, scsiPort, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[i]));
+						}
+						break;
 					}
-					break;
+				}
+			}
+			else
+			{
+				if(DoIdentifyDeviceCsmi(scsiPort, &(phyInfo.Phy[i]), &identify))
+				{
+					AddDisk(-1, scsiPort, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[i]));
 				}
 			}
 		}
@@ -4889,6 +5036,7 @@ BOOL CAtaSmart::CsmiIoctl(HANDLE hHandle, UINT code, SRB_IO_CONTROL *csmiBuf, UI
 
 BOOL CAtaSmart::DoIdentifyDeviceCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, IDENTIFY_DEVICE* data)
 {
+	BOOL flag = FALSE;
 	DebugPrint(_T("DoIdentifyDeviceCsmi"));
 	return SendAtaCommandCsmi(scsiPort, sasPhyEntity, 0xEC, 0x00, 0x00, (PBYTE)data, sizeof(IDENTIFY_DEVICE));
 }
@@ -4898,8 +5046,8 @@ BOOL CAtaSmart::GetSmartAttributeCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyE
 	DebugPrint(_T("GetSmartAttributeCsmi"));
 	if(SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_ATTRIBUTES, 0x00, (PBYTE)asi->SmartReadData, sizeof(asi->SmartReadData)))
 	{
-		DebugPrint(_T("FillSmartInfo"));
-		return FillSmartInfo(asi);
+		DebugPrint(_T("FillSmartData"));
+		return FillSmartData(asi);
 	}
 	else
 	{
@@ -4912,17 +5060,8 @@ BOOL CAtaSmart::GetSmartThresholdCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyE
 	DebugPrint(_T("GetSmartThresholdCsmi"));
 	if(SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_THRESHOLDS, 0x00, (PBYTE)asi->SmartReadThreshold, sizeof(asi->SmartReadThreshold)))
 	{
-		int j = 0;
-		for(int i = 0; i < MAX_ATTRIBUTE; i++)
-		{
-			memcpy(	&(asi->Threshold[i]), &(asi->SmartReadThreshold[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
-
-			if(asi->Threshold[j].Id != 0)
-			{
-				j++;
-			}
-		}
-		return TRUE;
+		DebugPrint(_T("FillSmartThreshold"));
+		return FillSmartThreshold(asi);
 	}
 	else
 	{
@@ -5018,7 +5157,7 @@ BOOL CAtaSmart::SendAtaCommandCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEnti
 // Fill S.M.A.R.T. Information
 /*---------------------------------------------------------------------------*/
 
-BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
+BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 {
 	CString str;
 	asi->AttributeCount = 0;
@@ -5183,7 +5322,6 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 				{
 					asi->HostWrites  = (INT)(
@@ -5196,7 +5334,6 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-				*/
 				break;
 			case 0xF2:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -5329,6 +5466,28 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 	}
 }
 
+BOOL CAtaSmart::FillSmartThreshold(ATA_SMART_INFO* asi)
+{
+	int count = 0;
+	for(int i = 0; i < MAX_ATTRIBUTE; i++)
+	{
+		memcpy(	&(asi->Threshold[i]), &(asi->SmartReadThreshold[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
+
+		if(asi->Threshold[i].Id != 0)
+		{
+			count++;
+		}
+	}
+
+	if(count > 0)
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
 
 /*---------------------------------------------------------------------------*/
 // Support Functions

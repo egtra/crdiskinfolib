@@ -315,7 +315,7 @@ void CGraphDlg::InitVars(int defaultDisk)
 	CString cstr;
 	int temp;
 
-	GetPrivateProfileString(_T("EXCHANGE"), _T("DetectedDisk"), _T("-1"), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
+	GetPrivateProfileString(_T("EXCHANGE"), _T("DetectedDisk"), _T("-1"), str, 256, m_SmartDir + EXCHANGE_INI);
 	temp = _tstoi(str);
 	if(0 < temp && temp <= CAtaSmart::MAX_DISK)
 	{
@@ -351,11 +351,13 @@ void CGraphDlg::InitVars(int defaultDisk)
 	for(int i = 0; i < m_DetectedDisk; i++)
 	{
 		cstr.Format(_T("%d"), i);
-		GetPrivateProfileString(_T("MODEL"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		GetPrivateProfileString(_T("MODEL"), cstr, _T(""), str, 256, m_SmartDir + EXCHANGE_INI);
 		m_Model[i] = str;
-		GetPrivateProfileString(_T("SERIAL"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		m_ModelEscape[i] = str;
+		m_ModelEscape[i].Replace(_T("\""), _T("\\\""));
+		GetPrivateProfileString(_T("SERIAL"), cstr, _T(""), str, 256, m_SmartDir + EXCHANGE_INI);
 		m_Serial[i] = str;
-		GetPrivateProfileString(_T("DRIVE"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		GetPrivateProfileString(_T("DRIVE"), cstr, _T(""), str, 256, m_SmartDir + EXCHANGE_INI);
 		m_Drive[i] = str;
 	}
 
@@ -1027,7 +1029,7 @@ BOOL CGraphDlg::UpdateGraph()
 		count = 0;
 		values = _T("");
 
-		smartFile = m_SmartDir + _T("\\");
+		smartFile = m_SmartDir;
 		smartFile += GetModelSerial(m_Model[i], m_Serial[i]);
 		smartFile += _T("\\") + fileName + _T(".csv");
 		if(! inFile.Open(smartFile, CFile::modeRead | CFile::typeText))
@@ -1140,13 +1142,13 @@ BOOL CGraphDlg::UpdateGraph()
 		if(m_Drive[i].IsEmpty())
 		{
 			cstr.Format(_T("{label: \"(%d) %s\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
-				i + 1, m_Model[i], 
+				i + 1, m_ModelEscape[i], 
 				GetRValue(m_LineColor[i]), GetGValue(m_LineColor[i]), GetBValue(m_LineColor[i]), values);
 		}
 		else
 		{
 			cstr.Format(_T("{label: \"(%d) %s [%s]\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
-				i + 1, m_Model[i], m_Drive[i],
+				i + 1, m_ModelEscape[i], m_Drive[i],
 				GetRValue(m_LineColor[i]), GetGValue(m_LineColor[i]), GetBValue(m_LineColor[i]), values);
 		}
 
@@ -1159,7 +1161,7 @@ BOOL CGraphDlg::UpdateGraph()
 	{
 		CString dir, disk;
 		dir = m_SmartDir;
-		disk = m_Model[index] + m_Serial[index];
+		disk = GetModelSerial(m_Model[index], m_Serial[index]);
 		dir += disk;
 		TCHAR str[256];
 		cstr.Format(_T("%02X"), m_AttributeId);

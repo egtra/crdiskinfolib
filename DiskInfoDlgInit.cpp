@@ -109,6 +109,9 @@ BOOL CDiskInfoDlg::OnInitDialog()
 		return FALSE;
 	}
 
+	m_SizeX = SIZE_X;
+	m_SizeY = SIZE_Y;
+
 	EnableDpiAware();
 	InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
 	//	SetWindowTitle(_T("Initializing..."));
@@ -150,6 +153,17 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			
 			m_FlagShowWindow = TRUE;		
 			CenterWindow();
+
+#ifdef SUISYO_SHIZUKU_SUPPORT
+			CString arg;
+			TCHAR path[MAX_PATH];
+			TCHAR exe[_MAX_FNAME];
+
+			GetModuleFileName(NULL, path, sizeof(path));
+			_wsplitpath_s(path, NULL, 0, NULL, 0, exe, _MAX_FNAME, NULL, 0);
+			arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU);
+			CallScript(_T("setShizuku"), arg);
+#endif
 
 			if(m_FlagResident)
 			{

@@ -182,6 +182,7 @@ void COptionDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		TCHAR str[256];
 		GetPrivateProfileString(_T("Customize"), _T("GraphBgImage"), _T(""), str, 256, m_Ini);
 		m_BgImage = str;
+		SetElementPropertyEx(_T("GraphBgImage"), DISPID_IHTMLELEMENT_TITLE, m_BgImage);
 
 		for(int i = 0; i <= CAtaSmart::MAX_DISK; i++)
 		{
@@ -282,6 +283,7 @@ HRESULT COptionDlg::OnSelectBgImage(IHTMLElement* /*pElement*/)
 	{
 		m_BgImage = dlg.GetPathName();
 		WritePrivateProfileString(_T("Customize"), _T("GraphBgImage"), m_BgImage, m_Ini);
+		SetElementPropertyEx(_T("GraphBgImage"), DISPID_IHTMLELEMENT_TITLE, m_BgImage);
 		UpdateData(FALSE);
 		::PostMessage(m_ParentWnd->GetSafeHwnd(), MY_UPDATE_BG_IMAGE, NULL, NULL);
 	}
@@ -292,6 +294,7 @@ HRESULT COptionDlg::OnNoBgImage(IHTMLElement* /*pElement*/)
 {
 	m_BgImage = _T("");
 	WritePrivateProfileString(_T("Customize"), _T("GraphBgImage"), m_BgImage, m_Ini);
+	SetElementPropertyEx(_T("GraphBgImage"), DISPID_IHTMLELEMENT_TITLE, m_BgImage);
 	UpdateData(FALSE);
 	::PostMessage(m_ParentWnd->GetSafeHwnd(), MY_UPDATE_BG_IMAGE, NULL, NULL);
 	return S_FALSE;

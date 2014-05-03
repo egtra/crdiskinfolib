@@ -17,14 +17,6 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Template|Win32">
-      <Configuration>Template</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Template|x64">
-      <Configuration>Template</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5496C268-D510-449C-8471-DE2B34898C28}</ProjectGuid>
@@ -43,10 +35,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Static</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v90</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -66,9 +55,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Template|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
@@ -92,6 +78,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\Cynthia\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -250,6 +237,7 @@
     <ClCompile Include="HealthDlg.cpp" />
     <ClCompile Include="OptionDlg.cpp" />
     <ClCompile Include="SettingDlg.cpp" />
+    <ClCompile Include="SoundSettingDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -277,7 +265,9 @@
     <ClInclude Include="HealthDlg.h" />
     <ClInclude Include="OptionDlg.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="resourceS.h" />
     <ClInclude Include="SettingDlg.h" />
+    <ClInclude Include="SoundSettingDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="AtaSmart.h" />
     <ClInclude Include="DebugPrint.h" />
@@ -292,28 +282,15 @@
     <ClInclude Include="SPTIUtil.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\601.mp3" />
-    <None Include="res\602.mp3" />
-    <None Include="res\603.mp3" />
-    <None Include="res\604.mp3" />
-    <None Include="res\605.mp3" />
-    <None Include="res\606.mp3" />
-    <None Include="res\701.mp3" />
-    <None Include="res\702.mp3" />
-    <None Include="res\703.mp3" />
-    <None Include="res\704.mp3" />
-    <None Include="res\705.mp3" />
+    <None Include="default1.bin" />
+    <None Include="resN\DiskInfo.ico" />
+    <None Include="resN\DiskInfo16.ico" />
     <None Include="res\bad.ico" />
     <None Include="res\caution.ico" />
-    <None Include="res\CrystalDiskInfo.mp3" />
-    <None Include="res\DiskInfo.ico" />
     <None Include="res\DiskInfo.rc2" />
-    <None Include="res\DiskInfo16.ico" />
     <None Include="res\dummy.html" />
     <None Include="res\good.ico" />
     <None Include="res\goodGreen.ico" />
-    <None Include="res\mp31.bin" />
-    <None Include="res\mp32.bin" />
     <None Include="res\unknown.ico" />
     <None Include="res\00.ico" />
     <None Include="res\01.ico" />
@@ -519,6 +496,7 @@
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc" />
     <ResourceCompile Include="EventMessage.rc" />
+    <ResourceCompile Include="Normal.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,6 +7,8 @@
 #define IDR_HTML_GRAPHDLG               104
 #define IDR_HTML_OPTIONDLG              105
 #define IDR_HTML_SETTINGDLG             106
+#define IDR_HTML_ALARMHISTORYDLG        109
+#define IDR_HTML_SOUNDSETTINGDLG        110
 #define IDR_MAIN_MENU                   127
 #define IDR_MAINFRAME                   128
 #define IDR_ACCELERATOR                 129
@@ -21,10 +23,13 @@
 #define IDD_OPTION                      143
 #define IDD_SETTING                     144
 #define IDD_HEALTH                      145
-#define IDI_TRAY_ICON                   145
 #define IDI_MINI_ICON                   145
-#define IDD_FONT                        146
+#define IDI_TRAY_ICON                   146
+#define IDD_FONT                        147
 #define IDR_WAVE1                       150
+#define IDD_ALARM_HISTORY               151
+#define IDD_DIALOG1                     152
+#define IDD_SOUND_SETTINGS              152
 #define IDI_TEMP00                      200
 #define IDI_TEMP01                      201
 #define IDI_TEMP02                      202
@@ -238,6 +243,8 @@
 #define IDC_SCROLLBAR_C6                1007
 #define IDC_COMBO2                      1009
 #define IDC_FONT_COMBO                  1009
+#define IDC_LIST1                       1010
+#define IDC_ALARM_LIST                  1011
 #define ID_FILE_EXIT                    32771
 #define ID_HELP_ABOUT                   32772
 #define ID_HELP_CRYSTALDEWWORLD         32773
@@ -396,8 +403,24 @@
 #define ID_INTELRAID_ENABLE             33067
 #define ID_INTELRAID_DISABLE            33068
 #define ID_CSMI_DISABLE                 33070
-#define ID_CSMI_ENABLE_RAID             33071
-#define ID_CSMI_ENABLE_ALL              33072
+#define ID_CSMI_ENABLE_AUTO             33071
+#define ID_CSMI_ENABLE_RAID             33072
+#define ID_CSMI_ENABLE_ALL              33073
+#define ID_ADVANCEDFEATURE_ALERTSOUND   33075
+#define ID_ADVANCEDFEATURE_SOUNDSETTINGS 33076
+#define ID_ADVANCEDFEATURE_ALAR         33077
+#define ID_FUNCTION_ALERTSETTINGS       33078
+#define ID_ADVANCEDFEATURE_GADEGETSUPPORT 33079
+#define ID_ADVANCEDFEATURE_INSTALLSIDEBARGADGET 33080
+#define ID_INSTALLGADGET_DUMMY          33081
+#define ID_Menu33082                    33082
+#define ID_GADEGET_SUPPORT              33083
+#define ID_ALARM_HISTORY                33084
+#define ID_ALERT_SOUND                  33085
+#define ID_SOUND_SETTINGS               33086
+#define ID_GADGET_SUPPORT               33087
+#define ID_ADVANCEDFEATURES_INSTALLGADGET 33088
+#define ID_INSTALL_GADGET               33089
 #define ID_Menu                         33109
 #define ID_RAW_VALUES_16                33110
 #define ID_RAW_VALUES_10_ALL            33111
@@ -414,9 +437,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        151
-#define _APS_NEXT_COMMAND_VALUE         33073
-#define _APS_NEXT_CONTROL_VALUE         1010
-#define _APS_NEXT_SYMED_VALUE           107
+#define _APS_NEXT_RESOURCE_VALUE        154
+#define _APS_NEXT_COMMAND_VALUE         33092
+#define _APS_NEXT_CONTROL_VALUE         1012
+#define _APS_NEXT_SYMED_VALUE           111
 #endif
 #endif

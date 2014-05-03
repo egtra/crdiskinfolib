@@ -420,3 +420,21 @@ void CDHtmlDialogEx::SetLabel(CString& label, CString element, CString title)
 	label = title;
 	SetElementPropertyEx(element, DISPID_IHTMLELEMENT_TITLE, title);
 }
+
+// 2012/5/6
+// http://msdn.microsoft.com/ja-jp/magazine/cc163834(en-us).aspx
+void CDHtmlDialogEx::OpenUrl(CString url)
+{
+	int result = 0;
+	result = (int)ShellExecute(NULL, _T("open"), url, NULL, NULL, SW_SHOWNORMAL);
+	if(result <= 32)
+	{
+		result = (int)ShellExecuteW(NULL, _T("open"), _T("iexplore.exe"), url, NULL, SW_SHOWNORMAL);
+		if(result <= 32)
+		{
+			CString args;
+			args.Format(_T("url.dll,FileProtocolHandler %s"), url);
+			ShellExecuteW(NULL, _T("open"), _T("rundll32.exe"), args, NULL, SW_SHOWNORMAL);
+		}
+	}
+}

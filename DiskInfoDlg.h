@@ -14,7 +14,9 @@
 #include "SettingDlg.h"
 #include "HealthDlg.h"
 #include "OptionDlg.h"
+#include "AlarmHistoryDlg.h"
 #include "FontSelection.h"
+#include "SoundSettingDlg.h"
 
 #include "ListCtrlEx.h"
 #include "GetOsInfo.h"
@@ -23,6 +25,16 @@
 #include <Dbt.h>
 
 #define REGISTRY_PATH _T("software\\Crystal Dew World\\CrystalDiskInfo")
+
+// Task Tray
+enum
+{
+	MY_EXIT = (WM_APP + 0x1100),
+	MY_SHOW_MAIN_DIALOG,
+	MY_SHOW_TEMPERATURE_ICON_ONLY,
+	MY_PLAY_ALERT_SOUND,
+};
+
 // CDiskInfoDlg dialog
 class CDiskInfoDlg : public CDHtmlMainDialog
 {
@@ -36,8 +48,15 @@ public:
 // Dialog Data
 	enum { IDD = IDD_DISKINFO_DIALOG, IDH = IDR_HTML_DUMMY };
 
+#ifdef SUISYO_SHIZUKU_SUPPORT
+	static const int SIZE_X = 1000;
+	static const int SIZE_SMART_X = 1000;
+	static const int SIZE_SMART_Y = 720;
+#else
 	static const int SIZE_X = 640;
 	static const int SIZE_SMART_X = 640;
+	static const int SIZE_SMART_Y = 480;
+#endif
 
 #ifdef BENCHMARK
 	static const int SIZE_Y = 275;
@@ -45,7 +64,8 @@ public:
 	static const int MAX_METER_LENGTH = 516;
 #else
 	static const int SIZE_Y = 260;
-	static const int SIZE_SMART_Y = 480;
+	static const int SIZE_MAX_Y = 960;
+
 #endif
 
 	// Timer
@@ -59,13 +79,7 @@ public:
 	int SAVE_SMART_PERIOD;			// sec
 	int ALARM_TEMPERATURE_PERIOD;	// sec
 
-	// Task Tray
-	enum
-	{
-		MY_EXIT = (WM_APP + 0x1100),
-		MY_SHOW_MAIN_DIALOG,
-		MY_SHOW_TEMPERATURE_ICON_ONLY,
-	};
+
 
 	// Icon
 	enum
@@ -94,18 +108,22 @@ protected:
 	UINT m_MainIconId;
 	CString m_FontFace;
 
-	CAboutDlg*		m_AboutDlg;
-	CSettingDlg*	m_SettingDlg;
-	CHealthDlg*		m_HealthDlg;
-	COptionDlg*		m_OptionDlg;
-	CListCtrlEx		m_List;
-	CImageList		m_ImageList;
+	CAboutDlg*			m_AboutDlg;
+	CSettingDlg*		m_SettingDlg;
+	CHealthDlg*			m_HealthDlg;
+	COptionDlg*			m_OptionDlg;
+//	CAlarmHistoryDlg*	m_AlarmHistoryDlg;
+	CSoundSettingDlg*	m_SoundSettingDlg;
+	CListCtrlEx			m_List;
+	CImageList			m_ImageList;
 
 	HDEVNOTIFY m_hDevNotify;
 
 	CString		m_SmartDir;
+	CString		m_GadgetDir;
 	CString		m_ExeDir;
 	CString		m_AlertMailPath;
+	CString		m_AlertSoundPath;
 
 	DWORD m_SelectDisk;
 	DWORD m_DriveMenuPage;
@@ -145,9 +163,10 @@ protected:
 	BOOL m_FlagAsciiView;
 	BOOL m_FlagSmartEnglish;
 #ifdef GADGET_SUPPORT
-	BOOL m_FlagSidebar;
+	BOOL m_FlagGadget;
 #endif
 	BOOL m_FlagGoodGreen;
+	BOOL m_FlagAlertSound;
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -293,6 +312,7 @@ protected:
 	BOOL AppendLog(CString dir, CString disk, CString file, CTime time, int value, BOOL firstTime = FALSE, int threshold = 0);
 	BOOL AddEventLog(DWORD eventId, WORD eventType, CString message);
 	BOOL SendMail(DWORD eventId, CString title, CString message);
+	BOOL AddAlarmHistory(DWORD eventId, CString disk, CString message);
 
 #ifdef ALERT_VOICE_SUPPORT
 #define AS_SET_SOUND_ID 1
@@ -385,6 +405,8 @@ public:
 	afx_msg LRESULT OnTempIcon46(WPARAM wParam,LPARAM lParam);
 	afx_msg LRESULT OnTempIcon47(WPARAM wParam,LPARAM lParam);
 
+	afx_msg LRESULT OnPlayAlertSound(WPARAM wParam, LPARAM lParam);
+
 	afx_msg void OnGraph();
 	afx_msg void OnHelp();
 	afx_msg void OnCustomize();
@@ -411,6 +433,9 @@ public:
 	afx_msg void OnAutoDetectionDisable();
 	afx_msg void OnEventLog();
 	afx_msg void OnAtaPassThroughSmart();
+	#ifdef GADGET_SUPPORT
+	afx_msg void OnGadgetSupport();
+	#endif
 	afx_msg void OnCelsius();
 	afx_msg void OnFahrenheit();
 	afx_msg void OnAamApm();
@@ -425,6 +450,7 @@ public:
 	afx_msg void OnUsbEnableAll();
 	afx_msg void OnUsbDisableAll();
 	afx_msg void OnHealthStatus();
+	afx_msg void OnSoundSetting();
 	afx_msg void OnDumpIdentifyDevice();
 	afx_msg void OnDumpSmartReadData();
 	afx_msg void OnDumpSmartReadThreshold();
@@ -445,7 +471,11 @@ public:
 	afx_msg void OnMailSettings();
 	afx_msg void OnSmartEnglish();
 	afx_msg void OnFontSetting();
-	afx_msg void OnCsmiEnableAll();
-	afx_msg void OnCsmiEnableRaid();
 	afx_msg void OnCsmiDisable();
+	afx_msg void OnCsmiEnableAuto();
+	afx_msg void OnCsmiEnableRaid();
+	afx_msg void OnCsmiEnableAll();
+	afx_msg void OnInstallGadget();
+//	afx_msg void OnAlarmHistory();
+	afx_msg void OnAlertSound();
 };	

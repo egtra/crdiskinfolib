@@ -70,7 +70,12 @@ void CDiskInfoDlg::OnEditCopy()
 %DISK_LIST%\
 \r\n");
 	clip.Replace(_T("%PRODUCT%"), PRODUCT_NAME);
-	clip.Replace(_T("%VERSION%"), PRODUCT_VERSION);
+	CString version;
+	version = PRODUCT_VERSION; 
+#ifdef SUISYO_SHIZUKU_SUPPORT
+	version +=  _T(" ") PRODUCT_EDITION;
+#endif
+	clip.Replace(_T("%VERSION%"), version);
 	clip.Replace(_T("%COPY_YEAR%"), PRODUCT_COPY_YEAR);
 
 	SYSTEMTIME st;

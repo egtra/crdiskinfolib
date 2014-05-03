@@ -60,6 +60,8 @@ protected:
 	CString i18n(CString section, CString key, BOOL inEnglish = FALSE);
 	void SetLabel(CString &label, CString element, CString title);
 
+	void OpenUrl(CString url);
+
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 	virtual void PostNcDestroy();
