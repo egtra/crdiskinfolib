@@ -961,6 +961,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 				DebugPrint(_T("OK:SELECT * FROM Win32_DiskDrive"));
 				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 				{
+					DebugPrint(_T("while(pEnumCOMDevs ..."));
 					CString mapping1, mapping2;
 					CString model, deviceId, diskSize, mediaType, interfaceTypeWmi, pnpDeviceId;
 					INT physicalDriveId = -1, scsiPort = -1, scsiTargetId = -1, scsiBus = -1;
@@ -968,6 +969,8 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 					BOOL flagBlackList = FALSE;
 					DWORD siliconImageType = 0;
 					
+				try
+				{
 					VARIANT pVal;
 					VariantInit(&pVal);
 					if(pCOMDev->Get(L"Size", 0L, &pVal, NULL, NULL) == WBEM_S_NO_ERROR && pVal.vt > VT_NULL)
@@ -1100,8 +1103,10 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 							}
 						}
 
+						DebugPrint(_T("flagTarget && GetDiskInfo"));
 						if(flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType))
 						{
+							DebugPrint(_T("int index = (int)vars.GetCount() - 1;"));
 							int index = (int)vars.GetCount() - 1;
 							if(! diskSize.IsEmpty())
 							{
@@ -1179,6 +1184,9 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 							
 							if(vars[index].Model.IsEmpty())
 							{
+								DebugPrint(_T("WmiModel: ") + model);
+								DebugPrint(_T("SerialNumber: ") + vars[index].SerialNumber);
+								DebugPrint(_T("vars.RemoveAt(index) - 1"));
 								vars.RemoveAt(index);
 							}
 							else if(flagSkipModelCheck)
@@ -1199,16 +1207,23 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 							}
 							else
 							{
+								DebugPrint(_T("WmiModel: ") + model);
+								DebugPrint(_T("Model: ") + vars[index].Model);
+								DebugPrint(_T("SerialNumber: ") + vars[index].SerialNumber);
+								DebugPrint(_T("vars.RemoveAt(index) - 2"));
 								vars.RemoveAt(index);
 							}
 
 							// DEBUG
 							// vars[index].VendorId = VENDOR_MTRON;
-
-							cstr.Format(_T("OK:Check Model Name - %s"), vars[index].Model);
-							DebugPrint(cstr);
+							DebugPrint(_T("OK:Check Model Name"));
 						}
 					}
+				}
+				catch(...)
+				{
+					DebugPrint(_T("EX:while(pEnumCOMDevs"));
+				}
 				}
 				SAFE_RELEASE(pEnumCOMDevs);
 				DebugPrint(_T("OK:SELECT * FROM Win32_DiskDrive"));
@@ -1966,17 +1981,22 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			}
 			break;
 		case CMD_TYPE_SILICON_IMAGE:
+			DebugPrint(_T("GetSmartAttributeSi(physicalDriveId, &asi)"));
 			if(GetSmartAttributeSi(physicalDriveId, &asi))
 			{
 				CheckSsdSupport(asi);
+				DebugPrint(_T("GetSmartAttributeSi(physicalDriveId, &asiCheck)"));
 				GetSmartAttributeSi(physicalDriveId, &asiCheck);
+				DebugPrint(_T("CheckSmartAttributeCorrect(&asi, &asiCheck) - 1"));
 				if(CheckSmartAttributeCorrect(&asi, &asiCheck))
 				{
 					asi.IsSmartCorrect = TRUE;
 					// Compare Si and Pd 
 					GetSmartAttributePd(physicalDriveId, 0xA0, &asiCheck);
+					DebugPrint(_T("CheckSmartAttributeCorrect(&asi, &asiCheck) - 2"));
 					if(CheckSmartAttributeCorrect(&asi, &asiCheck))
 					{
+						DebugPrint(_T("GetSmartThresholdPd"));
 						// Does not support GetSmartThresholdSi
 						GetSmartThresholdPd(physicalDriveId, 0xA0, &asi);
 						asi.IsThresholdCorrect = TRUE;
@@ -2415,6 +2435,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 {
 	if(vars.GetCount() > MAX_DISK)
 	{
+		DebugPrint(_T("GetDiskInfo - FALSE0"));
 		return FALSE;
 	}
 	// Check overlap
@@ -2422,6 +2443,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 	{
 		if(physicalDriveId >= 0 && vars[i].PhysicalDriveId == physicalDriveId)
 		{
+			DebugPrint(_T("GetDiskInfo - FALSE1"));
 			return FALSE;
 		}
 		else if(scsiPort >= 0 && scsiTargetId >= 0
@@ -2429,6 +2451,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			&& vars[i].ScsiBus == scsiBus
 			)
 		{
+			DebugPrint(_T("GetDiskInfo - FALSE2"));
 			return FALSE;
 		}
 	}
@@ -2441,9 +2464,16 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 		if(siliconImageType)
 		{
 			WakeUp(physicalDriveId);
+			debug.Format(_T("physicalDriveId=%d, scsiPort=%d, scsiBus=%d, scsiTargetId=%d"), physicalDriveId, scsiPort, scsiBus, scsiTargetId);
+			DebugPrint(debug);
 			if(DoIdentifyDeviceSi(physicalDriveId, scsiPort, scsiBus, siliconImageType, &identify))
 			{
-				return AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SILICON_IMAGE, &identify, siliconImageType);
+				DebugPrint(_T("AddDisk - Si"));
+				if(AddDisk(physicalDriveId, scsiPort, scsiTargetId, scsiBus, 0xA0, CMD_TYPE_SILICON_IMAGE, &identify, siliconImageType))
+				{
+					return TRUE;
+				}
+				return FALSE;
 			}
 		}
 
