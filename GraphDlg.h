@@ -178,4 +178,5 @@ public:
 	afx_msg void OnSsdJmicron();
 	afx_msg void OnSsdIntel();
 	afx_msg void OnSsdSamsung();
+	afx_msg void OnSsdSandforce();
 };

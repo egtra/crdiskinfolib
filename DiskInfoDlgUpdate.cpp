@@ -910,9 +910,15 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 
 	// Temp
-	if(m_Ata.vars[i].HostWrites > 0)
+	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
 	{
 		m_NvCacheSize.Format(_T("%.2f GB"), (double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
+		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
+	}
+	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+	{
+		m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);		
+		m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("64"));
 	}
 	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{
@@ -921,16 +927,8 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	else
 	{
 		m_NvCacheSize = _T("----");
-	}
-	if(m_Ata.vars[m_SelectDisk].HostWrites > 0)
-	{
-		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
-	}
-	else
-	{
 		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	}
-
 
 	if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
@@ -1519,9 +1517,13 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	m_LabelAtaAtapi = i18n(_T("Dialog"), _T("STANDARD"));
 	m_LabelDiskStatus = i18n(_T("Dialog"), _T("HEALTH_STATUS"));
 	m_LabelSmartStatus = i18n(_T("Dialog"), _T("SMART_STATUS"));
-	if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].HostWrites > 0)
+	if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
 	{
 		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
+	}
+	else if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+	{
+		m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("64"));
 	}
 	else
 	{
@@ -1736,6 +1738,11 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	if(m_Ata.vars[i].HostWrites > 0)
 	{
 		AppendLog(dir, disk, _T("HostWrites"), time, (int)((m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
+	}
+
+	if(m_Ata.vars[i].GBytesErased > 0)
+	{
+		AppendLog(dir, disk, _T("GBytesErased"), time, m_Ata.vars[i].GBytesErased, flagFirst);
 	}
 
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)

@@ -94,6 +94,7 @@ public:
 		SSD_VENDOR_INTEL      = 5,
 		SSD_VENDOR_SAMSUNG    = 6,
 		SSD_VENDOR_SANDFORCE  = 7,
+		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
 		USB_VENDOR_BUFFALO  = 0x0411,
@@ -404,6 +405,7 @@ public:
 		DWORD				NominalMediaRotationRate;
 //		double				Speed;
 		ULONGLONG			HostWrites;
+		ULONG				GBytesErased;
 
 		INT					Life;
 

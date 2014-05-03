@@ -34,12 +34,12 @@ static const TCHAR *ssdVendorString[] =
 {
 	_T(""),
 	_T(""),
-	_T("mtron"),
-	_T("indilinx"),
-	_T("jmicron"),
-	_T("intel"),
-	_T("samsung"),
-	_T("sandforce"),
+	_T("mt"), // MTron
+	_T("ix"), // Indilinx
+	_T("jm"), // JMicron
+	_T("il"), // Intel
+	_T("sg"), // SAMSUNG
+	_T("sf"), // SandForce
 };
 
 static const TCHAR *deviceFormFactorString[] = 
@@ -1554,6 +1554,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 //	asi.Speed = 0.0;
 	asi.Life = -1;
 	asi.HostWrites = 0;
+	asi.GBytesErased = 0;
 
 	asi.Major = 0;
 	asi.Minor = 0;
@@ -2021,7 +2022,7 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 	}
 	else if(IsSsdSandForce(asi))
 	{
-		asi.SmartKeyName = _T("SmartSsd");
+		asi.SmartKeyName = _T("SmartSandForce");
 		asi.DiskVendorId = SSD_VENDOR_SANDFORCE;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
@@ -2068,6 +2069,21 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					);
+			}
+			break;
+		case 0x64:
+			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.GBytesErased  = MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
+			}
+			break;
+		case 0x05:
+			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
 			}
 			break;
 		case 0xB4:
@@ -2702,6 +2718,27 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 						);
 				}
 				break;
+			case 0x64:
+				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->GBytesErased  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
+			case 0x05:
+				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->Life = asi->Attribute[j].CurrentValue;
+				}
+				break;
+			case 0xB4:
+				if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->Life = asi->Attribute[j].CurrentValue;
+				}
+				break;
 			default:
 				break;
 			}
@@ -3078,6 +3115,27 @@ BOOL CAtaSmart::GetSmartAttributeScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 									MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 									MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 									);
+							}
+							break;
+						case 0x64:
+							if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+							{
+								asi->GBytesErased  = MAKELONG(
+									MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+									MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+									);
+							}
+							break;
+						case 0x05:
+							if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+							{
+								asi->Life = asi->Attribute[j].CurrentValue;
+							}
+							break;
+						case 0xB4:
+							if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+							{
+								asi->Life = asi->Attribute[j].CurrentValue;
 							}
 							break;
 						default:
@@ -3686,6 +3744,27 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						);
+				}
+				break;
+			case 0x64:
+				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->GBytesErased  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
+			case 0x05:
+				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					asi->Life = asi->Attribute[j].CurrentValue;
+				}
+				break;
+			case 0xB4:
+				if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->Life = asi->Attribute[j].CurrentValue;
 				}
 				break;
 			default:

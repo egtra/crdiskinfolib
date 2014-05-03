@@ -371,24 +371,26 @@
 #define ID_SSD_JMICRON                  33005
 #define ID_SSD_INTEL                    33006
 #define ID_SSD_SAMSUNG                  33007
-#define ID_Menu                         33008
-#define ID_RAW_VALUES_16                33010
-#define ID_RAW_VALUES_10_ALL            33011
-#define ID_RAW_VALUES_2BYTE             33012
-#define ID_RAW_VALUES_1BYTE             33013
-#define ID_AUTO_DETECTION_05_SEC        33025
-#define ID_AUTO_DETECTION_10_SEC        33026
-#define ID_AUTO_DETECTION_20_SEC        33028
-#define ID_AUTO_DETECTION_30_SEC        33029
-#define ID_AUTO_DETECTION_DISABLE       33030
-#define ID_ASCII_VIEW                   33031
+#define ID_SSD_SANDFORCE                33008
+#define ID_SSD_MAX                      33099
+#define ID_Menu                         33109
+#define ID_RAW_VALUES_16                33110
+#define ID_RAW_VALUES_10_ALL            33111
+#define ID_RAW_VALUES_2BYTE             33112
+#define ID_RAW_VALUES_1BYTE             33113
+#define ID_AUTO_DETECTION_05_SEC        33125
+#define ID_AUTO_DETECTION_10_SEC        33126
+#define ID_AUTO_DETECTION_20_SEC        33128
+#define ID_AUTO_DETECTION_30_SEC        33129
+#define ID_AUTO_DETECTION_DISABLE       33130
+#define ID_ASCII_VIEW                   33131
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         33035
+#define _APS_NEXT_COMMAND_VALUE         33037
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

@@ -24,6 +24,7 @@ static const TCHAR *attributeString[] =
 	_T("SmartJMicron"),
 	_T("SmartIntel"),
 	_T("SmartSamsung"),
+	_T("SmartSandForce"),
 };
 
 
@@ -161,6 +162,7 @@ BEGIN_MESSAGE_MAP(CGraphDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_SSD_JMICRON, &CGraphDlg::OnSsdJmicron)
 	ON_COMMAND(ID_SSD_INTEL, &CGraphDlg::OnSsdIntel)
 	ON_COMMAND(ID_SSD_SAMSUNG, &CGraphDlg::OnSsdSamsung)
+	ON_COMMAND(ID_SSD_SANDFORCE, &CGraphDlg::OnSsdSandforce)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CGraphDlg)
@@ -756,6 +758,18 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
+	// GBytes Erased
+	if(flagAttribute[0x64])
+	{
+		cstr.Format(_T("<option value=\"356\">%s[64] %s (GB)</option>"), space, i18n(_T("SmartSandForce"), _T("64")));
+		select += cstr;
+		if(SelectedAttributeId == 356)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
 	if(m_IeVersion >= 700)
 	{
 		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("NORMALIZED_VALUE")));
@@ -837,6 +851,7 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1C5:fileName = _T("CurrentPendingSectorCount");	min = 0; break;
 		case 0x1C6:fileName = _T("UncorrectableSectorCount");	min = 0; break;
 		case 0x1E1:fileName = _T("HostWrites");					min = 0; break;
+		case 0x164:fileName = _T("GBytesErased");				min = 0; break;
 		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:
 			return FALSE;
@@ -1237,17 +1252,18 @@ void CGraphDlg::InitMenu()
 
 	switch(m_Attribute)
 	{
-	case CAtaSmart::HDD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_HDD, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_VENDOR_MTRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_MTRON, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_VENDOR_INDILINX: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_INDILINX, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_VENDOR_JMICRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_JMICRON, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_VENDOR_INTEL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_INTEL, MF_BYCOMMAND);break;
-	case CAtaSmart::SSD_VENDOR_SAMSUNG: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_SAMSUNG, MF_BYCOMMAND);break;
+	case CAtaSmart::HDD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_HDD, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_MTRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_MTRON, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_INDILINX: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_INDILINX, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_JMICRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_JMICRON, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_INTEL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_INTEL, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_SAMSUNG: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_SAMSUNG, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_SANDFORCE: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_SANDFORCE, MF_BYCOMMAND);break;
 
 	default:
 		m_Attribute = CAtaSmart::HDD_GENERAL;
-		menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_HDD, MF_BYCOMMAND);
+		menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_HDD, MF_BYCOMMAND);
 		break;
 	}
 
@@ -1519,12 +1535,18 @@ void CGraphDlg::OnSsdSamsung()
 	SetAttribute(ID_SSD_SAMSUNG, CAtaSmart::SSD_VENDOR_SAMSUNG);
 }
 
+
+void CGraphDlg::OnSsdSandforce()
+{
+	SetAttribute(ID_SSD_SANDFORCE, CAtaSmart::SSD_VENDOR_SANDFORCE);
+}
+
 void CGraphDlg::SetAttribute(DWORD id, DWORD type)
 {
 	CString cstr;
 	cstr.Format(_T("%d"), type);
 	WritePrivateProfileString(_T("Setting"), _T("Attribute"), cstr, m_Ini);
-	if(type <= CAtaSmart::SSD_VENDOR_SAMSUNG)
+	if(type <= CAtaSmart::SSD_VENDOR_MAX)
 	{
 		m_Attribute = type;
 	}
@@ -1534,7 +1556,7 @@ void CGraphDlg::SetAttribute(DWORD id, DWORD type)
 	}
 
 	CMenu *menu = GetMenu();
-	menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, id, MF_BYCOMMAND);
+	menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
 
