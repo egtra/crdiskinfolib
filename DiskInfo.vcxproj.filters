@@ -164,13 +164,13 @@
     <ClInclude Include="CompileOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Library Files</Filter>
-    </ClInclude>
     <ClInclude Include="resourceS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SoundSettingDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -181,7 +181,13 @@
     <None Include="res\caution.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\DiskInfo.ico">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="res\DiskInfo.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\dummy.html">
@@ -799,18 +805,34 @@
     <None Include="default1.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="resS\DiskInfoS.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resS\DiskInfo.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resS\DiskInfo16.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="icon1.ico">
+      <Filter>Resource Files</Filter>
+    </None>
     <None Include="resN\DiskInfo.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="resN\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\001soundkenjin.mp3" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
     <ResourceCompile Include="EventMessage.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <ResourceCompile Include="Shizuku.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
     <ResourceCompile Include="Normal.rc">

@@ -1470,6 +1470,14 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_CSMI_ENABLE_ALL, MF_STRING, ID_CSMI_ENABLE_ALL, cstr);
 	cstr = i18n(_T("Menu"), _T("INSTALL_GADGET"));
 	menu->ModifyMenu(ID_INSTALL_GADGET, MF_STRING, ID_INSTALL_GADGET, cstr);
+	if(IsSidebar())
+	{
+		menu->EnableMenuItem(ID_INSTALL_GADGET, MF_ENABLED);
+	}
+	else
+	{
+		menu->EnableMenuItem(ID_INSTALL_GADGET, MF_GRAYED);
+	}
 
 	if(IsDotNet4() || IsDotNet2())
 	{
@@ -1484,10 +1492,10 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	{
 		cstr = i18n(_T("Menu"), _T("ALERT_MAIL")) + _T(" [.NET 2.0-]");
 		menu->ModifyMenu(ID_ALERT_MAIL, MF_STRING, ID_ALERT_MAIL, cstr);
-		menu->EnableMenuItem(ID_ALERT_MAIL,  MF_GRAYED);
+		menu->EnableMenuItem(ID_ALERT_MAIL, MF_GRAYED);
 		cstr = i18n(_T("Menu"), _T("MAIL_SETTINGS")) + _T(" [.NET 2.0-]");
 		menu->ModifyMenu(ID_MAIL_SETTINGS, MF_STRING, ID_MAIL_SETTINGS, cstr);
-		menu->EnableMenuItem(ID_MAIL_SETTINGS,  MF_GRAYED);
+		menu->EnableMenuItem(ID_MAIL_SETTINGS, MF_GRAYED);
 	}
 
 	cstr = i18n(_T("Menu"), _T("RESIDENT"));

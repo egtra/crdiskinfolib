@@ -1692,9 +1692,20 @@ safeRelease:
 	{
 		CString cstr;
 		TCHAR szPath[MAX_PATH] = {0};
+		wsprintf(szPath, _T("%c:\\"), c);
+		cstr = szPath;
+		DebugPrint(cstr);
+
+		if(GetDriveType(cstr) != DRIVE_FIXED)
+		{
+			DebugPrint(_T("Drive Letter Mapping - != DRIVE_FIXED"));
+			continue;
+		}
+
 		wsprintf(szPath, _T("\\\\.\\%c:"), c);
 		cstr = szPath;
 		DebugPrint(cstr);
+
 		HANDLE hHandle = CreateFile(szPath, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ,
 			NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if(hHandle == INVALID_HANDLE_VALUE)
@@ -2516,6 +2527,12 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		}
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 	}
+	else if(asi.Model.Find(_T("WDC ")) == 0)
+	{
+		asi.SmartKeyName = _T("Smart");
+		asi.DiskVendorId = HDD_VENDOR_WESTERN_DIGITAL;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+	}
 	else if(IsSsdMtron(asi))
 	{
 		asi.SmartKeyName = _T("SmartMtron");
@@ -2679,6 +2696,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
+			else if(asi.DiskVendorId == HDD_VENDOR_WESTERN_DIGITAL)
+			{
+				asi.HostWrites  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}			
 			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 			{
@@ -2710,6 +2739,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					));
 			}
 			else if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+			{
+				asi.HostReads  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
+			else if(asi.DiskVendorId == HDD_VENDOR_WESTERN_DIGITAL)
 			{
 				asi.HostReads  = (INT)(
 					(UINT64)
@@ -5397,6 +5438,18 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
+				else if(asi->DiskVendorId == HDD_VENDOR_WESTERN_DIGITAL)
+				{
+					asi->HostWrites  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}				
 				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 				{
@@ -5428,6 +5481,18 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						));
 				}
 				else if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->HostReads  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
+				else if(asi->DiskVendorId == HDD_VENDOR_WESTERN_DIGITAL)
 				{
 					asi->HostReads  = (INT)(
 						(UINT64)

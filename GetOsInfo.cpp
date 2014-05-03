@@ -78,7 +78,7 @@ BOOL IsSidebar()
 		GetVersionEx((OSVERSIONINFO *)&osvi);
 	}
 
-	if(osvi.dwMajorVersion >= 6 && osvi.wProductType == VER_NT_WORKSTATION)
+	if(osvi.dwMajorVersion >= 6 && osvi.dwMinorVersion < 2 && osvi.wProductType == VER_NT_WORKSTATION)
 	{
 		return TRUE;
 	}

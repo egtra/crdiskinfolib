@@ -31,6 +31,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	InitMenu();
 
 	TCHAR str[256];
+
 	GetPrivateProfileString(_T("Setting"), _T("FontFace"), _T("Tahoma"), str, 256, m_Ini);
 	m_FontFace = str;
 
