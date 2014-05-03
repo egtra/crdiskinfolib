@@ -141,6 +141,7 @@ void CDiskInfoDlg::OnEditCopy()
   Total Disk Size : %TOTAL_DISK_SIZE%\r\n\
       Buffer Size : %BUFFER_SIZE%\r\n\
     NV Cache Size : %NV_CACHE_SIZE%\r\n\
+      Queue Depth : %QUEUE_DEPTH%\r\n\
 Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
     Rotation Rate : %ROTATION_RATE%\r\n\
         Interface : %INTERFACE%\r\n\
@@ -313,6 +314,16 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 			cstr = _T("----");
 		}
 		drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
+
+		if(0 <= m_Ata.vars[i].IdentifyDevice.QueueDepth && m_Ata.vars[i].IdentifyDevice.QueueDepth < 32)
+		{
+			cstr.Format(_T("%d"), m_Ata.vars[i].IdentifyDevice.QueueDepth + 1);
+		}
+		else
+		{
+			cstr = _T("1");
+		}
+		drive.Replace(_T("%QUEUE_DEPTH%"), cstr);
 
 		if(m_Ata.vars[i].NominalMediaRotationRate == 1)
 		{

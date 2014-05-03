@@ -423,7 +423,6 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 				}
 				break;
 			// Debug
-			/*
 			case 0xE8:
 				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL)
 				{
@@ -440,7 +439,6 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 					result += cstr;
 				}
 				break;
-			*/
 			default:
 				break;
 			}

@@ -463,6 +463,13 @@ BOOL IsClassicSystem()
 
 DWORD GetIeVersion()
 {
+	static DWORD ieVersion = -1;
+
+	if(ieVersion != -1)
+	{
+		return ieVersion;
+	}
+
 	DWORD type = REG_SZ;
 	ULONG size = 256;
 	HKEY  hKey = NULL;
@@ -471,21 +478,23 @@ DWORD GetIeVersion()
 
 	switch(GetFileVersion(_T("Shdocvw.dll")))
 	{
-	case 470: return 300;	break;
-	case 471: return 400;	break;
-	case 472: return 401;	break;
-	case 500: return 500;	break;
-	case 550: return 550;	break;
+	case 470: ieVersion = 300;	break;
+	case 471: ieVersion = 400;	break;
+	case 472: ieVersion = 401;	break;
+	case 500: ieVersion = 500;	break;
+	case 550: ieVersion = 550;	break;
 	case 600:
 	default:
 		::RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Internet Explorer"), 
-			0, KEY_ALL_ACCESS, &hKey);
+			0, KEY_READ, &hKey);
 		::RegQueryValueEx(hKey, _T("Version"), NULL, &type, buf, &size);
 		::RegCloseKey(hKey);
 		cstr = buf;
-		return _tstoi(cstr) * 100;
+		ieVersion = _tstoi(cstr) * 100;
 		break;
 	}
+
+	return ieVersion;
 }
 
 BOOL IsIe556()

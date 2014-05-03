@@ -498,6 +498,7 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 				CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT,
 					RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
 				DebugPrint(_T("CoCreateInstance()"));
+				//CLSID_WbemAdministrativeLocator / 
 				if(FAILED(CoCreateInstance(CLSID_WbemLocator, NULL, CLSCTX_INPROC_SERVER,
 					IID_IWbemLocator, (LPVOID *)&pIWbemLocator)))
 				{
@@ -1684,7 +1685,15 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	asi.Sector = identify->LogicalSectors;
 	asi.Sector28 = 0x0FFFFFFF & identify->TotalAddressableSectors;
 	asi.Sector48 = 0x0000FFFFFFFFFFFF & identify->MaxUserLba;
-	asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000  - 49);
+	if(identify->LogicalCylinders == 0 || identify->LogicalHeads == 0 || identify->LogicalSectors == 0)
+	{
+		return FALSE;
+	//	asi.DiskSizeChs   = 0;
+	}
+	else
+	{
+		asi.DiskSizeChs   = (DWORD)(((ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors * 512) / 1000 / 1000  - 49);
+	}
 
 	asi.NumberOfSectors = (ULONGLONG)identify->LogicalCylinders * identify->LogicalHeads * identify->LogicalSectors;
 	if(asi.Sector28 > 0 && ((ULONGLONG)asi.Sector28 * 512) / 1000 / 1000 > 49)
@@ -1947,6 +1956,35 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 	{
 		asi.SmartKeyName = _T("Smart");
 	}
+
+// Update Life
+	
+	for(DWORD j = 0; j < asi.AttributeCount; j++)
+	{
+		switch(asi.Attribute[j].Id)
+		{
+		case 0xBB:
+			if(asi.VendorId == SSD_VENDOR_MTRON)
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
+			}
+			break;
+		case 0xD1:
+			if(asi.VendorId == SSD_VENDOR_INDILINX)
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
+			}
+			break;
+		case 0xE8:
+			if(asi.VendorId == SSD_VENDOR_INTEL)
+			{
+				asi.Life = asi.Attribute[j].CurrentValue;
+			}
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 BOOL CAtaSmart::IsSsdOld(ATA_SMART_INFO &asi)
@@ -2041,7 +2079,27 @@ BOOL CAtaSmart::IsSsdIndlinx(ATA_SMART_INFO &asi)
 
 BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
 {
-	return (asi.Model.Find(_T("INTEL")) == 0 || asi.Model.Find(_T(" INTEL")) > 0);
+	BOOL flagSmartType = FALSE;
+
+	if(asi.Attribute[ 0].Id == 0x03
+	&& asi.Attribute[ 1].Id == 0x04
+	&& asi.Attribute[ 2].Id == 0x05
+	&& asi.Attribute[ 3].Id == 0x09
+	&& asi.Attribute[ 4].Id == 0x0C
+	&& asi.Attribute[ 5].Id == 0xC0
+	)
+	{
+		if(asi.Attribute[ 6].Id == 0xE8 && asi.Attribute[ 7].Id == 0xE9)
+		{
+			flagSmartType = TRUE;
+		}
+		else if(asi.Attribute[ 6].Id == 0xE1)
+		{
+			flagSmartType = TRUE;
+		}
+	}
+
+	return (asi.Model.Find(_T("INTEL")) == 0 || asi.Model.Find(_T(" INTEL")) > 0 || flagSmartType == TRUE);
 }
 
 
@@ -2470,6 +2528,7 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 				{
 					asi->Temperature = 0;
 				}
+				break;
 			case 0xBB:
 				if(asi->VendorId == SSD_VENDOR_MTRON)
 				{
@@ -2482,15 +2541,12 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 					asi->Life = asi->Attribute[j].CurrentValue;
 				}
 				break;
-			// DEBUG
-/*
 			case 0xE8:
 				if(asi->VendorId == SSD_VENDOR_INTEL)
 				{
 					asi->Life = asi->Attribute[j].CurrentValue;
 				}
 				break;
-*/
 			default:
 				break;
 			}
@@ -2826,6 +2882,12 @@ BOOL CAtaSmart::GetSmartAttributeScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 							break;
 						case 0xD1:
 							if(asi->VendorId == SSD_VENDOR_INDILINX)
+							{
+								asi->Life = asi->Attribute[j].CurrentValue;
+							}
+							break;
+						case 0xE8:
+							if(asi->VendorId == SSD_VENDOR_INTEL)
 							{
 								asi->Life = asi->Attribute[j].CurrentValue;
 							}
@@ -3415,6 +3477,12 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 				break;
 			case 0xD1:
 				if(asi->VendorId == SSD_VENDOR_INDILINX)
+				{
+					asi->Life = asi->Attribute[j].CurrentValue;
+				}
+				break;
+			case 0xE8:
+				if(asi->VendorId == SSD_VENDOR_INTEL)
 				{
 					asi->Life = asi->Attribute[j].CurrentValue;
 				}

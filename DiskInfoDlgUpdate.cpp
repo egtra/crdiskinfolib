@@ -66,7 +66,7 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 	}
 }
 
-void CDiskInfoDlg::RebuildListHeader(DWORD i)
+void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 {
 	static DWORD preVendorId = -1;
 	DWORD width = 0;
@@ -74,7 +74,7 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i)
 
 	m_List.DeleteAllItems();
 
-	if(preVendorId == m_Ata.vars[i].VendorId)
+	if(preVendorId == m_Ata.vars[i].VendorId && ! forceUpdate)
 	{
 		return ;
 	}
@@ -1362,6 +1362,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
 	}
 
+	RebuildListHeader(m_SelectDisk, TRUE);
 	ChangeDisk(m_SelectDisk);
 	InitDriveList();
 	UpdateToolTip();
@@ -1550,12 +1551,12 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	{
 		AppendLog(dir, disk, _T("PowerOnCount"), time, m_Ata.vars[i].PowerOnCount, flagFirst);
 	}
-/*
+
 	if(m_Ata.vars[i].Life >= 0)
 	{
 		AppendLog(dir, disk, _T("Life"), time, m_Ata.vars[i].Life, flagFirst);
 	}
-*/
+
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
 	{
 		cstr.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);

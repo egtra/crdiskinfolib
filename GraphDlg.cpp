@@ -639,6 +639,8 @@ void CGraphDlg::InitMenuBar()
 				flagAttribute[j] = TRUE;
 			}
 		}
+		// Debug
+		flagAttribute[0xFF] = TRUE;
 	}
 
 	// Reallocated Sectors Count
@@ -730,7 +732,6 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
-	/*
 	// Life
 	if(flagAttribute[0xFF])
 	{
@@ -742,7 +743,6 @@ void CGraphDlg::InitMenuBar()
 		}
 		counter++;
 	}
-	*/
 
 	if(m_IeVersion >= 700)
 	{
@@ -824,7 +824,7 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1C4:fileName = _T("ReallocationEventCount");		min = 0; break;
 		case 0x1C5:fileName = _T("CurrentPendingSectorCount");	min = 0; break;
 		case 0x1C6:fileName = _T("UncorrectableSectorCount");	min = 0; break;
-//		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
+		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:
 			return FALSE;
 			break;
