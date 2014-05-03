@@ -72,6 +72,11 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 	DWORD width = 0;
 	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
 
+	if(m_Ata.vars.GetCount() == 0)
+	{
+		return ;
+	}
+
 	m_List.DeleteAllItems();
 
 	if(preVendorId == m_Ata.vars[i].VendorId && ! forceUpdate)

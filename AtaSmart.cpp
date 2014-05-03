@@ -391,9 +391,17 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 		}
 		else if(vars[i].Model.Find(_T("FUJITSU")) == 0)
 		{
-			if(test >= 2)
+			if(test >= 6)
 			{
 				vars[i].MeasuredTimeUnitType = POWER_ON_SECONDS;
+			}
+			else if(test >= 4)
+			{
+				vars[i].MeasuredTimeUnitType = POWER_ON_HALF_MINUTES;
+			}
+			else if(test >= 2)
+			{
+				vars[i].MeasuredTimeUnitType = POWER_ON_MINUTES;
 			}
 			else
 			{
@@ -1896,7 +1904,6 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	}
 
 	vars.Add(asi);
-
 	return TRUE;
 }
 
