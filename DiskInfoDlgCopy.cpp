@@ -90,10 +90,6 @@ void CDiskInfoDlg::CopySave(CString fileName)
 	temp = _T("");
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
-#ifdef BENCHMARK
-		temp.Format(_T(" (%d) %s : %.1f GB (%.1f MB/s)"), i + 1,
-			m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, m_Ata.vars[i].Speed);
-#else
 		if(m_Ata.vars[i].TotalDiskSize >= 1000)
 		{
 			temp.Format(_T(" (%d) %s : %.1f GB"), i + 1,
@@ -104,7 +100,7 @@ void CDiskInfoDlg::CopySave(CString fileName)
 			temp.Format(_T(" (%d) %s : %d MB"), i + 1,
 				m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize);
 		}
-#endif
+
 		cstr += temp;
 		if(m_Ata.vars[i].CommandType == m_Ata.CMD_TYPE_CSMI)
 		{
@@ -185,9 +181,6 @@ void CDiskInfoDlg::CopySave(CString fileName)
        APM Level : %APM_LEVEL%\r\n\
        AAM Level : %AAM_LEVEL%\r\n\
 ");
-#ifdef BENCHMARK
-	driveTemplate += _T("  Sequential Read : %BENCHMARK%\r\n");
-#endif
 	driveTemplate += _T("\r\n");
 
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
@@ -229,7 +222,8 @@ void CDiskInfoDlg::CopySave(CString fileName)
 		drive.Replace(_T("%INTERFACE%"), m_Ata.vars[i].Interface);
 		drive.Replace(_T("%MAJOR_VERSION%"), m_Ata.vars[i].MajorVersion);
 		drive.Replace(_T("%MINOR_VERSION%"), m_Ata.vars[i].MinorVersion);
-		drive.Replace(_T("%TRANSFER_MODE%"), m_Ata.vars[i].MaxTransferMode);
+		temp.Format(_T("%s | %s"), m_Ata.vars[i].CurrentTransferMode, m_Ata.vars[i].MaxTransferMode);
+		drive.Replace(_T("%TRANSFER_MODE%"), temp);
 		temp.Format(_T("%I64d"), m_Ata.vars[i].NumberOfSectors);
 		drive.Replace(_T("%NUMBER_OF_SECTORS%"), temp);
 		CString diskStatus;
@@ -487,6 +481,10 @@ void CDiskInfoDlg::CopySave(CString fileName)
 		{
 			feature += _T("TRIM, ");
 		}
+		if(m_Ata.vars[i].IsDeviceSleepSupported)
+		{
+			feature += _T("DevSleep, ");
+		}
 
 		/*
 		if(m_Ata.vars[i].IsNvCacheSupported)
@@ -506,10 +504,6 @@ void CDiskInfoDlg::CopySave(CString fileName)
 		}
 		drive.Replace(_T("%SUPPORTED_FEATURE%"), feature);
 
-#ifdef BENCHMARK
-		cstr.Format(_T("%.1f MB/s"), m_Ata.vars[i].Speed);
-		drive.Replace(_T("%BENCHMARK%"), cstr);
-#endif
 		if(m_Ata.vars[i].IsAamSupported)
 		{
 			cstr.Format(_T("%04Xh"), m_Ata.vars[i].IdentifyDevice.AcoustricManagement);
@@ -583,7 +577,7 @@ void CDiskInfoDlg::CopySave(CString fileName)
 					langPath = m_CurrentLangPath;
 				}
 
-				GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, langPath);
+//				GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, langPath);
 				GetPrivateProfileString(_T("Smart"), _T("VENDOR_SPECIFIC"), _T("Vendor Specific"), vendorSpecific, 256, langPath);
 
 				BYTE id = m_Ata.vars[i].Attribute[j].Id;
@@ -592,14 +586,9 @@ void CDiskInfoDlg::CopySave(CString fileName)
 				{
 					wsprintf(str, unknown);
 				}
-				else if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
-				|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFE))
-				{
-					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256,	langPath);
-				}
 				else
 				{
-					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, langPath);
+					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256,	langPath);
 				}
 
 				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)

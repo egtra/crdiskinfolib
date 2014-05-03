@@ -8,10 +8,6 @@
 #include "stdafx.h"
 #include "DiskInfo.h"
 #include "DiskInfoDlg.h"
-#ifdef BENCHMARK
-#include "Benchmark.h"
-#endif
-
 #include <complex>
 
 //  Include the task header file.
@@ -53,66 +49,6 @@ DWORD CDiskInfoDlg::Decode10X(CString cstr)
 	}
 }
 
-#ifdef BENCHMARK
-HRESULT CDiskInfoDlg::OnBenchmark(IHTMLElement* /*pElement*/)
-{
-	CWaitCursor wait;
-
-	BENCHMARK_TARGET_INFO data;
-	data.physicalDriveId = m_Ata.vars[m_SelectDisk].PhysicalDriveId;
-	data.scsiPort = m_Ata.vars[m_SelectDisk].ScsiPort;
-	data.scsiTargetId = m_Ata.vars[m_SelectDisk].ScsiTargetId;
-
-	m_Ata.vars[m_SelectDisk].Speed = ExecDiskBenchAll(&data);
-	SetMeter(m_Ata.vars[m_SelectDisk].Speed);
-
-	WritePrivateProfileStringW(_T("Benchmark"),
-		m_Ata.vars[m_SelectDisk].ModelSerial,
-		Encode10X(DWORD(m_Ata.vars[m_SelectDisk].Speed * 1000)), m_Ini);
-
-	return S_FALSE;
-}
-
-void CDiskInfoDlg::SetMeter(double score)
-{
-	CComPtr<IHTMLStyle> pHtmlStyle;
-	CComPtr<IHTMLElement> pHtmlElement;
-	HRESULT hr;
-	CComBSTR bstr;
-	CString cstr;
-	VARIANT va;
-	VariantInit(&va);
-
-	hr = GetElementInterface(_T("BenchmarkMeter"), IID_IHTMLElement, (void **) &pHtmlElement);
-	if(FAILED(hr)){ return ;}
-	hr = pHtmlElement->get_style(&pHtmlStyle);
-	if(FAILED(hr)){ return ;}
-
-	int meterLength;
-	meterLength = (int)(MAX_METER_LENGTH / 3 * log10(score));
-	if(meterLength > MAX_METER_LENGTH)
-	{
-		meterLength = MAX_METER_LENGTH;
-	}
-	else if(meterLength < 1)
-	{
-		meterLength = 0;
-	}
-
-	cstr.Format(_T("%dpx"), -1 * (MAX_METER_LENGTH - meterLength));
-	bstr = cstr;
-	va.vt = VT_BSTR;
-	va.bstrVal = bstr;
-	pHtmlStyle->put_backgroundPositionX(va);
-
-	VariantClear(&va);
-
-	cstr.Format(_T("%.1f MB/s"), score);
-	m_BenchmarkMeter = cstr;
-	UpdateData(FALSE);
-}
-#endif
-
 void CDiskInfoDlg::OnAbout()
 {
 	m_AboutDlg = new CAboutDlg(this);
@@ -124,7 +60,6 @@ void CDiskInfoDlg::OnCustomize()
 	m_OptionDlg = new COptionDlg(this);
 	m_OptionDlg->Create(COptionDlg::IDD, m_OptionDlg, ID_CUSTOMIZE, this);
 }
-
 
 void CDiskInfoDlg::OnAamApm()
 {
@@ -226,6 +161,27 @@ void CDiskInfoDlg::OnHideSmartInfo()
 
 	SetMenu(menu);
 	DrawMenuBar();
+}
+
+void CDiskInfoDlg::OnGreenMode()
+{
+	CMenu *menu = GetMenu();
+	if (menu->GetMenuState(ID_GREEN_MODE, MF_BYCOMMAND) & MFS_CHECKED)
+	{
+		menu->CheckMenuItem(ID_GREEN_MODE, MF_UNCHECKED);
+		m_FlagGreenMode = FALSE;
+		WritePrivateProfileStringW(_T("Setting"), _T("GreenMode"), _T("0"), m_Ini);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_GREEN_MODE, MF_CHECKED);
+		m_FlagGreenMode = TRUE;
+		WritePrivateProfileStringW(_T("Setting"), _T("GreenMode"), _T("1"), m_Ini);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+
+	UpdateDialogSize();
 }
 
 void CDiskInfoDlg::CheckHideSerialNumber()
@@ -625,13 +581,20 @@ void CDiskInfoDlg::OnWorkaroundIE8MODE()
 	{
 		m_FlagWorkaroundIE8MODE = FALSE;
 		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("0"), m_Ini);
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_IE8MODE, MF_UNCHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
 	}
 	else
 	{
 		m_FlagWorkaroundIE8MODE = TRUE;
 		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("1"), m_Ini);
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_IE8MODE, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
 	}
-	ReExecute();
 }
 
 void CDiskInfoDlg::OnWorkaroundAdataSsd()
@@ -774,7 +737,27 @@ void CDiskInfoDlg::OnAlertSound()
 	DrawMenuBar();
 }
 
-#ifdef GADGET_SUPPORT
+void CDiskInfoDlg::OnHideNoSmartDisk()
+{
+	CMenu *menu = GetMenu();
+	if(m_FlagHideNoSmartDisk)
+	{
+		m_FlagHideNoSmartDisk = FALSE;
+		menu->CheckMenuItem(ID_HIDE_NO_SMART_DISK, MF_UNCHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("HideNoSmartDisk"), _T("0"), m_Ini);
+	}
+	else
+	{
+		m_FlagHideNoSmartDisk = TRUE;
+		menu->CheckMenuItem(ID_HIDE_NO_SMART_DISK, MF_CHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("HideNoSmartDisk"), _T("1"), m_Ini);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
+
+	OnRescan();
+}
+
 void CDiskInfoDlg::OnGadgetSupport()
 {
 	CMenu *menu = GetMenu();
@@ -795,7 +778,6 @@ void CDiskInfoDlg::OnGadgetSupport()
 	SetMenu(menu);
 	DrawMenuBar();
 }
-#endif
 
 void CDiskInfoDlg::OnMailSettings()
 {
@@ -1301,39 +1283,19 @@ void CDiskInfoDlg::OnSmartEnglish()
 	SetMenu(menu);
 	DrawMenuBar();
 
-	RebuildListHeader(m_SelectDisk);
 	UpdateListCtrl(m_SelectDisk);
 }
 
 void CDiskInfoDlg::OnFontSetting()
 {
-	CFontSelection fontSelection(this, m_FontFace, i18n(_T("WindowTitle"), _T("FONT_SETTING")));
+	CFontSelection fontSelection(this);
 	if(fontSelection.DoModal() == IDOK)
 	{
 		m_FontFace = fontSelection.GetFontFace();
-		m_List.SetFontEx(m_FontFace, m_ZoomRatio);
-		CallScript(_T("setFont"), m_FontFace);
+		SetControlFont();
+		Invalidate();
 		WritePrivateProfileString(_T("Setting"), _T("FontFace"), _T("\"") + m_FontFace + _T("\""), m_Ini);
 	}
-
-	/*
-	LOGFONT logFont;
-	GetFont()->GetLogFont(&logFont);
-	CFontDialog fontDlg(&logFont, CF_INITTOLOGFONTSTRUCT | CF_LIMITSIZE, NULL, this);
-	wsprintf(fontDlg.m_cf.lpLogFont->lfFaceName, _T("%s"), m_FontFace);
-	fontDlg.m_cf.nSizeMax = 8;
-	fontDlg.m_cf.nSizeMin = 8;
-	fontDlg.m_cf.Flags = CF_NOVERTFONTS | CF_BOTH;
-	fontDlg.m_cf.nFontType = (WORD)(PS_OPENTYPE_FONTTYPE | TT_OPENTYPE_FONTTYPE | PRINTER_FONTTYPE | SCREEN_FONTTYPE | BOLD_FONTTYPE | ITALIC_FONTTYPE | REGULAR_FONTTYPE);
-
-	if (fontDlg.DoModal() == IDOK)
-	{
-		m_FontFace = fontDlg.GetFaceName();
-		m_List.SetFontEx(m_FontFace, m_ZoomRatio);
-		CallScript(_T("setFont"), m_FontFace);
-		WritePrivateProfileString(_T("Setting"), _T("FontFace"), _T("\"") + m_FontFace + _T("\""), m_Ini);
-	}
-	*/
 }
 
 
@@ -1362,7 +1324,8 @@ void CDiskInfoDlg::OnZoom100()
 {
 	if(CheckRadioZoomType(ID_ZOOM_100, 100))
 	{
-		ReExecute();
+	//	ReExecute();
+		UpdateDialogSize();
 	}
 }
 
@@ -1370,7 +1333,8 @@ void CDiskInfoDlg::OnZoom125()
 {
 	if(CheckRadioZoomType(ID_ZOOM_125, 125))
 	{
-		ReExecute();
+	//	ReExecute();
+		UpdateDialogSize();
 	}
 }
 
@@ -1378,7 +1342,8 @@ void CDiskInfoDlg::OnZoom150()
 {
 	if(CheckRadioZoomType(ID_ZOOM_150, 150))
 	{
-		ReExecute();
+	//	ReExecute();
+		UpdateDialogSize();
 	}
 }
 
@@ -1386,15 +1351,27 @@ void CDiskInfoDlg::OnZoom200()
 {
 	if(CheckRadioZoomType(ID_ZOOM_200, 200))
 	{
-		ReExecute();
+	//	ReExecute();
+		UpdateDialogSize();
 	}
 }
+
+void CDiskInfoDlg::OnZoom300()
+{
+	if(CheckRadioZoomType(ID_ZOOM_300, 300))
+	{
+	//	ReExecute();
+		UpdateDialogSize();
+	}
+}
+
 
 void CDiskInfoDlg::OnZoomAuto()
 {
 	if(CheckRadioZoomType(ID_ZOOM_AUTO, 0))
 	{
-		ReExecute();
+	//	ReExecute();
+		UpdateDialogSize();
 	}
 }
 
@@ -1416,6 +1393,8 @@ BOOL CDiskInfoDlg::CheckRadioZoomType(int id, int value)
 	cstr.Format(_T("%d"), value);
 	WritePrivateProfileString(_T("Setting"), _T("ZoomType"), cstr, m_Ini);
 
+	ChangeZoomType(m_ZoomType);
+
 	return TRUE;
 }
 
@@ -1429,6 +1408,7 @@ void CDiskInfoDlg::CheckRadioZoomType()
 	case 125: id = ID_ZOOM_125;	break;
 	case 150: id = ID_ZOOM_150;	break;
 	case 200: id = ID_ZOOM_200;	break;
+	case 300: id = ID_ZOOM_300;	break;
 	default:  id = ID_ZOOM_AUTO;	break;
 	}
 

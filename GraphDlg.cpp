@@ -63,6 +63,8 @@ CGraphDlg::CGraphDlg(CWnd* pParent /*=NULL*/, int defaultDisk)
 	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
 
 	InitVars(defaultDisk);
+
+	m_ZoomType = GetZoomType();
 }
 
 CGraphDlg::~CGraphDlg()
@@ -141,6 +143,8 @@ BOOL CGraphDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIconMini, FALSE);	// Set small icon
 
+	EnableDpiAware();
+
 	InitThemeLang();
 	InitMenu();
 
@@ -148,7 +152,7 @@ BOOL CGraphDlg::OnInitDialog()
 
 	m_IeVersion = GetIeVersion();
 
-	InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_GraphDlgPath);
+	InitDialogEx(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_GraphDlgPath);
 
 	return TRUE;
 }
@@ -295,11 +299,11 @@ HCURSOR CGraphDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CGraphDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
+void CGraphDlg::InitDialogComplete()
 {
-	CString cstr;
-	cstr = szUrl;
-	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
+	DebugPrint(_T("InitDialogComplete"));
+	static BOOL once = FALSE;
+	if(! once)
 	{
 		m_FlagShowWindow = TRUE;
 
@@ -321,10 +325,8 @@ void CGraphDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		UpdateDialogSize();
 		UpdateGraph();
 		CenterWindow();
-
-	//	ChangeZoomType(ZOOM_TYPE_100);
-
 		ShowWindow(SW_SHOW);
+		once = TRUE;
 	}
 }
 
@@ -740,63 +742,63 @@ void CGraphDlg::InitMenuBar()
 	}
 
 	// Reallocated Sectors Count
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_REALLOCATED_SECTORS_COUNT, i18n(_T("Smart"), _T("05"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[05] %s</option>"), SMART_REALLOCATED_SECTORS_COUNT, i18n(_T("Smart"), _T("05"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_REALLOCATED_SECTORS_COUNT){index = counter;}counter++;
 
 	// PowerOnHours
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_POWER_ON_HOURS, i18n(_T("Smart"), _T("09"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[09] %s</option>"), SMART_POWER_ON_HOURS, i18n(_T("Smart"), _T("09"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_POWER_ON_HOURS){index = counter;}counter++;
 
 	// PowerOnCount
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_POWER_ON_COUNT, i18n(_T("Smart"), _T("0C"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[0C] %s</option>"), SMART_POWER_ON_COUNT, i18n(_T("Smart"), _T("0C"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_POWER_ON_COUNT){index = counter;}counter++;
 
 	// Temperature
 	if(m_FlagFahrenheit)
 	{
-		cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (ÅãF)</option>"), SMART_TEMPERATURE, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[C2] %s (ÅãF)</option>"), SMART_TEMPERATURE, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
 	}
 	else
 	{
-		cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (ÅãC)</option>"), SMART_TEMPERATURE, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[C2] %s (ÅãC)</option>"), SMART_TEMPERATURE, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
 	}
 	select += cstr;if(SelectedAttributeId == SMART_TEMPERATURE){index = counter;}counter++;
 	
 	// Reallocation Event Count
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_REALLOCATED_EVENT_COUNT, i18n(_T("Smart"), _T("C4"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[C4] %s</option>"), SMART_REALLOCATED_EVENT_COUNT, i18n(_T("Smart"), _T("C4"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_REALLOCATED_EVENT_COUNT){index = counter;}counter++;
 
 	// Current Pending Sector Count
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_CURRENT_PENDING_SECTOR_COUNT, i18n(_T("Smart"), _T("C5"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[C5] %s</option>"), SMART_CURRENT_PENDING_SECTOR_COUNT, i18n(_T("Smart"), _T("C5"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_CURRENT_PENDING_SECTOR_COUNT){index = counter;}counter++;
 
 	// Off-Line Scan Uncorrectable Sector Count
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_UNCORRECTABLE_SECTOR_COUNT, i18n(_T("Smart"), _T("C6"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[C6] %s</option>"), SMART_UNCORRECTABLE_SECTOR_COUNT, i18n(_T("Smart"), _T("C6"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_UNCORRECTABLE_SECTOR_COUNT){index = counter;}counter++;
 
 	// Life
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_LIFE, i18n(_T("SmartSsd"), _T("FF"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[FF] %s</option>"), SMART_LIFE, i18n(_T("SmartSsd"), _T("FF"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_LIFE){index = counter;}counter++;
 	
 	// HostWrites
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (GB)</option>"), SMART_HOST_WRITES, i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[F1] %s (GB)</option>"), SMART_HOST_WRITES, i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_HOST_WRITES){index = counter;}counter++;
 	
 	// HostReads
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (GB)</option>"), SMART_HOST_READS, i18n(_T("Dialog"), _T("TOTAL_HOST_READS"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[F2] %s (GB)</option>"), SMART_HOST_READS, i18n(_T("Dialog"), _T("TOTAL_HOST_READS"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_HOST_READS){index = counter;}counter++;
 
 	// NandWrites
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (GB)</option>"), SMART_NAND_WRITES, i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[XX] %s (GB)</option>"), SMART_NAND_WRITES, i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_NAND_WRITES){index = counter;}counter++;
 
 
 	// GBytes Erased
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s (GB)</option>"), SMART_NAND_ERASED, i18n(_T("SmartSandForce"), _T("64"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[XX] %s (GB)</option>"), SMART_NAND_ERASED, i18n(_T("SmartSandForce"), _T("64"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_NAND_ERASED){index = counter;}counter++;
 
 	// Wear Leveling Count for Micron
-	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">%s</option>"), SMART_WEAR_LEVELING_COUNT, i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"), m_FlagSmartEnglish));
+	cstr.Format(_T("<option value=\"%d\" selected=\"selected\">[XX] %s</option>"), SMART_WEAR_LEVELING_COUNT, i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"), m_FlagSmartEnglish));
 	select += cstr;if(SelectedAttributeId == SMART_WEAR_LEVELING_COUNT){index = counter;}counter++;
 
 	if(m_IeVersion >= 700)
@@ -1385,14 +1387,16 @@ time_t CGraphDlg::GetTimeT(CString time)
 
 void CGraphDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	lpMMI->ptMinTrackSize.x = SIZE_X + GetSystemMetrics(SM_CXFRAME) * 2;
-	lpMMI->ptMinTrackSize.y = SIZE_Y + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION);
+	lpMMI->ptMinTrackSize.x = (LONG)(SIZE_X * m_ZoomRatio) + GetSystemMetrics(SM_CXFRAME) * 2;
+	lpMMI->ptMinTrackSize.y = (LONG)(SIZE_Y * m_ZoomRatio) + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION);
 
 	CDHtmlDialogEx::OnGetMinMaxInfo(lpMMI);
 }
 
 void CGraphDlg::UpdateDialogSize()
 {
+	ChangeZoomType(m_ZoomType);
+
 	if(GetPrivateProfileInt(_T("Setting"), _T("GraphHeight"), 0, m_Ini) > 0)
 	{
 		m_SizeY = GetPrivateProfileInt(_T("Setting"), _T("GraphHeight"), 0, m_Ini);
@@ -1410,7 +1414,7 @@ void CGraphDlg::UpdateDialogSize()
 		m_SizeX = SIZE_X;
 	}
 
-	SetClientRect(m_SizeX, m_SizeY, 1);
+	SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 1);
 }
 
 void CGraphDlg::OnSize(UINT nType, int cx, int cy)
@@ -1422,9 +1426,9 @@ void CGraphDlg::OnSize(UINT nType, int cx, int cy)
 		RECT rect;
 		CString cstr;
 		GetClientRect(&rect);
-		cstr.Format(_T("%d"), rect.bottom - rect.top);
+		cstr.Format(_T("%d"), (DWORD)((rect.bottom - rect.top) / m_ZoomRatio));
 		WritePrivateProfileString(_T("Setting"), _T("GraphHeight"), cstr, m_Ini);	
-		cstr.Format(_T("%d"), rect.right - rect.left);
+		cstr.Format(_T("%d"), (DWORD)((rect.right - rect.left) / m_ZoomRatio));
 		WritePrivateProfileString(_T("Setting"), _T("GraphWidth"), cstr, m_Ini);
 	}
 }

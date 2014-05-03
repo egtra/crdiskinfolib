@@ -7,17 +7,28 @@
 
 #include "stdafx.h"
 #include "DiskInfo.h"
+#include "DiskInfoDlg.h"
 #include "FontSelection.h"
 
 int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType, LPARAM lParam);
 
 IMPLEMENT_DYNAMIC(CFontSelection, CDialog)
 
-CFontSelection::CFontSelection(CWnd* pParent, CString fontFace, CString windowTitle)
-	: CDialog(CFontSelection::IDD, pParent)
+static CDiskInfoDlg *p;
+
+CFontSelection::CFontSelection(CWnd* pParent)
+	: CDialogCx(CFontSelection::IDD, pParent)
 {
-	m_FontFace = fontFace;
-	m_WindowTitle = windowTitle;
+	p = (CDiskInfoDlg*)pParent;
+	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
+
+	m_CurrentLangPath = ((CMainDialog*)pParent)->m_CurrentLangPath;
+	m_DefaultLangPath = ((CMainDialog*)pParent)->m_DefaultLangPath;
+	m_ZoomType = ((CMainDialog*)pParent)->GetZoomType();
+	m_FontFace = ((CMainDialog*)pParent)->m_FontFace;
+	m_CxThemeDir = ((CDiskInfoApp*)AfxGetApp())->m_ThemeDir;
+	m_CxCurrentTheme = ((CMainDialog*)pParent)->m_CurrentTheme;
+	m_CxDefaultTheme = ((CMainDialog*)pParent)->m_DefaultTheme;
 }
 
 CFontSelection::~CFontSelection()
@@ -27,19 +38,21 @@ CFontSelection::~CFontSelection()
 void CFontSelection::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, ID_OK, m_CtrlOk);
 	DDX_Control(pDX, IDC_FONT_COMBO, m_FontComboBox);
 }
 
 
-BEGIN_MESSAGE_MAP(CFontSelection, CDialog)
+BEGIN_MESSAGE_MAP(CFontSelection, CDialogCx)
+	ON_BN_CLICKED(ID_OK, &CFontSelection::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
 BOOL CFontSelection::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CDialogCx::OnInitDialog();
 
-	SetWindowText(m_WindowTitle);
+	SetWindowText(i18n(_T("WindowTitle"), _T("FONT_SETTING")));
 
     CClientDC dc(this);
     LOGFONT logfont; 
@@ -74,7 +87,31 @@ BOOL CFontSelection::OnInitDialog()
 		}
 	}
 
+	UpdateDialogSize();
+
 	return TRUE;
+}
+
+void CFontSelection::UpdateDialogSize()
+{
+	ChangeZoomType(m_ZoomType);
+	SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+
+	UpdateBackground();
+
+	m_FontComboBox.SetFontHeight(16, m_ZoomRatio);
+	m_FontComboBox.SetFontEx(m_FontFace, 16, m_ZoomRatio);
+	m_FontComboBox.SetItemHeight(-1, (UINT)(24 * m_ZoomRatio));
+	for (int i = 0; i < m_FontComboBox.GetCount(); i++)
+	{
+		m_FontComboBox.SetItemHeight(i, (UINT)(20 * m_ZoomRatio));
+	}
+	m_FontComboBox.MoveWindow((DWORD)(8 * m_ZoomRatio), (DWORD)(8 * m_ZoomRatio), (DWORD)(304 * m_ZoomRatio), (DWORD)(200 * m_ZoomRatio));
+
+	m_CtrlOk.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlOk.InitControl(80, 44, 160, 28, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::SystemDraw | m_IsHighContrast);
+
+	Invalidate();
 }
 
 CString CFontSelection::GetFontFace()
@@ -95,9 +132,9 @@ int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, i
     return TRUE;
 }
 
-void CFontSelection::OnOK()
+void CFontSelection::OnBnClickedOk()
 {
 	m_FontComboBox.GetLBText(m_FontComboBox.GetCurSel(), m_FontFace);
 
-	CDialog::OnOK();
+	CDialog::OnOK();	
 }

@@ -1,4 +1,4 @@
-// stdafx.h : include file for standard system include files,
+﻿// stdafx.h : include file for standard system include files,
 // or project specific include files that are used frequently,
 // but are changed infrequently
 
@@ -17,11 +17,11 @@
 // Modify the following defines if you have to target a platform prior to the ones specified below.
 // Refer to MSDN for the latest info on corresponding values for different platforms.
 #ifndef WINVER				// Allow use of features specific to Windows XP or later.
-#define WINVER 0x0500		// Change this to the appropriate value to target other versions of Windows.
+#define WINVER 0x0501		// Change this to the appropriate value to target other versions of Windows.
 #endif
 
 #ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.                   
-#define _WIN32_WINNT 0x0500	// Change this to the appropriate value to target other versions of Windows.
+#define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
 #endif						
 
 #ifndef _WIN32_WINDOWS		// Allow use of features specific to Windows 98 or later.
@@ -48,49 +48,56 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxdhtml.h>			// HTML Dialogs
+
 #include "DHtmlDialogEx.h"		// CDHtmlDialogEx by hiyohiyo
 #include "DHtmlMainDialog.h"	// CDHtmlMainDialog by hiyohiyo
 
+
 #include "DebugPrint.h"
 #include <afxcontrolbars.h>
-
-#include "CompileOptions.h"
 
 // Version Information
 #define PROJECT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
-#define PRODUCT_SHORT_NAME		_T("CDI 5 SE")
+#define PRODUCT_SHORT_NAME		_T("CDI 6 SE")
 #else
-#define PRODUCT_SHORT_NAME		_T("CDI 5")
+#define PRODUCT_SHORT_NAME		_T("CDI 6")
 #endif
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
-#ifdef _M_X64
-#define PRODUCT_EDITION			_T("Shizuku Edition x64")
+	#ifdef _M_X64
+	#define PRODUCT_EDITION			_T("Shizuku Edition x64 Beta")
+	#else
+	#define PRODUCT_EDITION			_T("Shizuku Edition")
+	#endif
 #else
-#define PRODUCT_EDITION			_T("Shizuku Edition")
-#endif
-#else
-#ifdef _M_X64
-#define PRODUCT_EDITION			_T("x64")
-#else
-#define PRODUCT_EDITION			_T("")
-#endif
+	#ifdef _M_X64
+	#define PRODUCT_EDITION			_T("x64 Beta")
+	#else
+	#define PRODUCT_EDITION			_T("")
+	#endif
 #endif
 
-#define PRODUCT_VERSION			_T("5.6.2")
-#define PRODUCT_RELEASE			_T("2013/04/25")
+#define PRODUCT_VERSION			_T("6.0.1")
+#define PRODUCT_RELEASE			_T("2013/11/03")
 #define PRODUCT_COPY_YEAR		_T("2008-2013")
-#define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2013 hiyohiyo.")
+#define PRODUCT_COPYRIGHT		_T("Copyright © 2008-2013 hiyohiyo")
+#define PRODUCT_LICENSE			_T("Simplified BSD License")
 
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")
 
 #define	URL_PROJECT_SHIZUKU_JA		_T("http://crystalmark.info/Shizuku/")
 #define	URL_PROJECT_SHIZUKU_EN		_T("http://crystalmark.info/Shizuku/index-en.html")
-#define	URL_PROJECT_SHIZUKU_KARUTA	_T("https://sites.google.com/site/sgijinka/itkaruta")
+
+#define	URL_KIRINOKASUMU		L"http://kirino.moo.jp/"
+#define URL_IGARASHIHIROMI		L"http://ameblo.jp/yukinko-magic/"
+#define URL_LINUXHAJAPAN		L"http://linux-ha.sourceforge.jp/wp/"
+#define URL_OPENSOURCECHANNEL	L"http://ch.nicovideo.jp/oss"
+#define URL_BELLCHE				L"http://www.bellche.com/"
+
 
 #define URL_HTML_HELP_JA		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-ja/")
 #define URL_HTML_HELP_EN 		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-en/")

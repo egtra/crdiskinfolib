@@ -75,6 +75,14 @@ public:
 		POWER_ON_MILLI_SECONDS,
 	};
 
+	enum HOST_READS_WRITES_UNIT
+	{
+		HOST_READS_WRITES_UNKNOWN = 0,
+		HOST_READS_WRITES_512B,
+		HOST_READS_WRITES_32MB,
+		HOST_READS_WRITES_GB,
+	};
+
 	enum COMMAND_TYPE
 	{
 		CMD_TYPE_PHYSICAL_DRIVE = 0,
@@ -87,7 +95,8 @@ public:
 		CMD_TYPE_JMICRON,
 		CMD_TYPE_CYPRESS,
 		CMD_TYPE_PROLIFIC,			// Not imprement
-		CMD_TYPE_CSMI,				// CSMI = Common Storage Management Interface 
+		CMD_TYPE_CSMI,				// CSMI = Common Storage Management Interface
+		CMD_TYPE_CSMI_PHYSICAL_DRIVE, // CSMI = Common Storage Management Interface 
 		CMD_TYPE_WMI,
 		CMD_TYPE_DEBUG
 	};
@@ -287,7 +296,7 @@ protected:
 		WORD		Reserved2[6];							//69-74
 		WORD		QueueDepth;								//75
 		WORD		SerialAtaCapabilities;					//76
-		WORD		ReservedForFutureSerialAta;				//77
+		WORD		SerialAtaAdditionalCapabilities;		//77
 		WORD		SerialAtaFeaturesSupported;				//78
 		WORD		SerialAtaFeaturesEnabled;				//79
 		WORD		MajorVersion;							//80
@@ -353,8 +362,6 @@ protected:
 		WORD		IntegrityWord;							//255
 	};
 #pragma	pack(pop)
-
-#ifdef CSMI_SUPPORT
 
 ///////////////////
 // from csmisas.h
@@ -1223,7 +1230,6 @@ typedef struct _CSMI_SAS_RAID_CONFIG_BUFFER {
 
 
 #pragma pack()
-#endif
 
 public:
 	DWORD UpdateSmartInfo(DWORD index);
@@ -1237,7 +1243,7 @@ public:
 	BYTE GetRecommendAamValue(DWORD index);
 	BYTE GetRecommendApmValue(DWORD index);
 
-	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI, BOOL workaroundAdataSsd);
+	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI, BOOL workaroundAdataSsd, BOOL flagHideNoSmartDisk);
 	BOOL MeasuredTimeUnit();
 	DWORD GetPowerOnHours(DWORD rawValue, DWORD timeUnitType);
 	DWORD GetPowerOnHoursEx(DWORD index, DWORD timeUnitType);
@@ -1280,6 +1286,7 @@ public:
 		BOOL				IsApmEnabled;
 		BOOL				IsNcqSupported;
 		BOOL				IsNvCacheSupported;
+		BOOL				IsDeviceSleepSupported;
 		BOOL				IsMaxtorMinute;
 		BOOL				IsSsd;
 		BOOL				IsTrimSupported;
@@ -1338,6 +1345,7 @@ public:
 
 		INTERFACE_TYPE		InterfaceType;
 		COMMAND_TYPE		CommandType;
+		HOST_READS_WRITES_UNIT HostReadsWritesUnit;
 
 		DWORD				DiskVendorId;
 		DWORD				UsbVendorId;
@@ -1347,6 +1355,7 @@ public:
 		WORD				Threshold05;
 		WORD				ThresholdC5;
 		WORD				ThresholdC6;
+		WORD				ThresholdFF;
 
 		CSMI_SAS_PHY_ENTITY sasPhyEntity;
 
@@ -1472,7 +1481,7 @@ protected:
 	BOOL SendAtaCommandCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE main, BYTE sub, BYTE param, PBYTE data, DWORD dataSize);
 
 
-	DWORD GetTransferMode(WORD w63, WORD w76, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
+	DWORD GetTransferMode(WORD w63, WORD w76, WORD w77, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
 	DWORD GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode);
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);

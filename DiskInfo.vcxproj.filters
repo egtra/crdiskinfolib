@@ -48,9 +48,6 @@
     <ClCompile Include="GraphDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HealthDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OptionDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +93,27 @@
     <ClCompile Include="SoundSettingDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MainDialog.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogCx.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ButtonCx.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticCx.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gradation.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HealthDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComboBoxCx.cpp">
+      <Filter>Library Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h">
@@ -108,9 +126,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GraphDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HealthDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OptionDlg.h">
@@ -161,9 +176,6 @@
     <ClInclude Include="FontSelection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CompileOptions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resourceS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -172,6 +184,27 @@
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainDialog.h">
+      <Filter>Library Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogCx.h">
+      <Filter>Library Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ButtonCx.h">
+      <Filter>Library Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticCX.h">
+      <Filter>Library Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Gradation.h">
+      <Filter>Library Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HealthDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComboBoxCx.h">
+      <Filter>Library Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -820,12 +853,7 @@
     <None Include="resS\703igarashi.opus" />
     <None Include="resS\704igarashi.opus" />
     <None Include="resS\705igarashi.opus" />
-    <None Include="resS\ShizukuAboutIcon.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resS\ShizukuAbout.png">
-      <Filter>Resource Files</Filter>
-    </None>
+    <None Include="res\001soundkenjin.opus" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">

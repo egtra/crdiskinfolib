@@ -7,6 +7,7 @@
 
 #include "stdafx.h"
 #include "DiskInfo.h"
+#include "ComboBoxCx.h"
 #include "FontComboBox.h"
 
 
@@ -16,7 +17,7 @@ IMPLEMENT_DYNAMIC(CFontComboBox, CComboBox)
 
 CFontComboBox::CFontComboBox()
 {
-
+	m_FontHeight = (LONG)(-1 * 16 * 1.00);
 }
 
 CFontComboBox::~CFontComboBox()
@@ -24,8 +25,18 @@ CFontComboBox::~CFontComboBox()
 }
 
 
-BEGIN_MESSAGE_MAP(CFontComboBox, CComboBox)
+BEGIN_MESSAGE_MAP(CFontComboBox, CComboBoxCx)
 END_MESSAGE_MAP()
+
+void CFontComboBox::SetFontHeight(int height, double zoomRatio)
+{
+	m_FontHeight = (LONG)(-1 * height * zoomRatio);
+}
+
+void CFontComboBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) 
+{
+	lpMeasureItemStruct->itemHeight = abs(m_FontHeight);
+}
 
 void CFontComboBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
@@ -38,7 +49,7 @@ void CFontComboBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     CFont font;
     LOGFONT logfont;
     memset(&logfont, 0, sizeof(logfont));
-    logfont.lfHeight = 20;
+    logfont.lfHeight = m_FontHeight;
     logfont.lfWidth = 0;
     logfont.lfWeight = 400;
 	logfont.lfCharSet = DEFAULT_CHARSET;

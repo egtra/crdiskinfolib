@@ -7,16 +7,28 @@
 
 #include "stdafx.h"
 #include "DiskInfo.h"
+#include "DiskInfoDlg.h"
 #include "AboutDlg.h"
 
-IMPLEMENT_DYNCREATE(CAboutDlg, CDHtmlDialog)
+IMPLEMENT_DYNCREATE(CAboutDlg, CDialog)
 
 CAboutDlg::CAboutDlg(CWnd* pParent /*=NULL*/)
-	: CDHtmlDialogEx(CAboutDlg::IDD, CAboutDlg::IDH, pParent)
+	: CDialogCx(CAboutDlg::IDD, pParent)
 {
-	m_CurrentLangPath = ((CDHtmlMainDialog*)pParent)->m_CurrentLangPath;
-	m_DefaultLangPath = ((CDHtmlMainDialog*)pParent)->m_DefaultLangPath;
-	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
+	m_CurrentLangPath = ((CMainDialog*)pParent)->m_CurrentLangPath;
+	m_DefaultLangPath = ((CMainDialog*)pParent)->m_DefaultLangPath;
+	m_ZoomType = ((CMainDialog*)pParent)->GetZoomType();
+
+	m_FontFace = ((CMainDialog*)pParent)->m_FontFace;
+	m_CxThemeDir = ((CDiskInfoApp*)AfxGetApp())->m_ThemeDir;
+	m_CxCurrentTheme = ((CMainDialog*)pParent)->m_CurrentTheme;
+	m_CxDefaultTheme = ((CMainDialog*)pParent)->m_DefaultTheme;
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_BackgroundName = L"ShizukuAbout";
+#else
+	m_BackgroundName = L"background";
+#endif
 }
 
 CAboutDlg::~CAboutDlg()
@@ -25,71 +37,113 @@ CAboutDlg::~CAboutDlg()
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDHtmlDialogEx::DoDataExchange(pDX);
+	CDialogCx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_CRYSTAL_DEW_WORLD, m_CtrlCrystalDewWorld);
 
-	DDX_DHtml_ElementInnerText(pDX, _T("Version"), m_Version);
-	DDX_DHtml_ElementInnerText(pDX, _T("Edition"), m_Edition);
-	DDX_DHtml_ElementInnerText(pDX, _T("Release"), m_Release);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Copyright"), m_Copyright);
+	DDX_Control(pDX, IDC_PROJECT_SHIZUKU_KIRINOKASUMU, m_CtrlProjectShizukuKirinokasumu);
+	DDX_Control(pDX, IDC_PROJECT_SHIZUKU_IGARASHIHIROMI, m_CtrlProjectShizukuIgarashihiromi);
+	DDX_Control(pDX, IDC_PROJECT_SHIZUKU_LINUXHAJAPAN, m_CtrlProjectShizukuLinuxhajapan);
+	DDX_Control(pDX, IDC_PROJECT_SHIZUKU_OPENSOURCECHANNEL, m_CtrlProjectShizukuOpensourcechannel);
+	DDX_Control(pDX, IDC_PROJECT_SHIZUKU_BELLCHE, m_CtrlProjectShizukuBellche);
+	DDX_Control(pDX, IDC_SECRET_VOICE, m_CtrlSecretVoice);
+
+	DDX_Control(pDX, IDC_VERSION, m_CtrlVersion);
+	DDX_Control(pDX, IDC_RELEASE, m_CtrlRelease);
+	DDX_Control(pDX, IDC_COPYRIGHT, m_CtrlCopyright);
+	DDX_Control(pDX, IDC_LICENSE, m_CtrlLicense);
+	DDX_Control(pDX, IDC_EDITION, m_CtrlEdition);
 }
 
 BOOL CAboutDlg::OnInitDialog()
 {
-	CDHtmlDialogEx::OnInitDialog();
+	CDialogCx::OnInitDialog();
 
 	SetWindowText(i18n(_T("WindowTitle"), _T("ABOUT")));
 
-	EnableDpiAware();
-	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_AboutDlgPath);
+	m_FlagShowWindow = TRUE;
+	m_CtrlVersion.SetWindowTextW(PRODUCT_NAME L" " PRODUCT_VERSION);
+	m_CtrlEdition.SetWindowTextW(PRODUCT_EDITION);
+	m_CtrlRelease.SetWindowTextW(L"Release: " PRODUCT_RELEASE);
+	m_CtrlCopyright.SetWindowTextW(PRODUCT_COPYRIGHT);
+	m_CtrlLicense.SetWindowTextW(PRODUCT_LICENSE);
 
+#ifndef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlProjectShizukuKirinokasumu.ShowWindow(SW_HIDE);
+	m_CtrlProjectShizukuIgarashihiromi.ShowWindow(SW_HIDE);
+	m_CtrlProjectShizukuLinuxhajapan.ShowWindow(SW_HIDE);
+	m_CtrlProjectShizukuOpensourcechannel.ShowWindow(SW_HIDE);
+	m_CtrlProjectShizukuBellche.ShowWindow(SW_HIDE);
+	m_CtrlSecretVoice.ShowWindow(SW_HIDE);
+#endif
+	
+	UpdateDialogSize();
+
+	CenterWindow();
+	ShowWindow(SW_SHOW);
 	return TRUE;
 }
 
-void CAboutDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
-{
-	CString cstr;
-	cstr = szUrl;
-	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
-	{
-		m_FlagShowWindow = TRUE;
-		m_Version = PRODUCT_VERSION;
-		m_Edition = PRODUCT_EDITION;
-		m_Release = PRODUCT_RELEASE;
-		m_Copyright = PRODUCT_COPYRIGHT;
-
-		ChangeZoomType(m_ZoomType);
-		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
-
-		CString arg;
-		TCHAR path[MAX_PATH];
-		TCHAR exe[_MAX_FNAME];
-		GetModuleFileName(NULL, path, sizeof(path));
-		_wsplitpath_s(path, NULL, 0, NULL, 0, exe, _MAX_FNAME, NULL, 0);
-
+BEGIN_MESSAGE_MAP(CAboutDlg, CDialogCx)
+	ON_BN_CLICKED(IDC_CRYSTAL_DEW_WORLD, &CAboutDlg::OnCrystalDewWorld)
 #ifdef SUISHO_SHIZUKU_SUPPORT
-		arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_ABOUT);
-		CallScript(_T("setShizuku"), arg);
+	ON_BN_CLICKED(IDC_SECRET_VOICE, &CAboutDlg::OnSecretVoice)
+	ON_BN_CLICKED(IDC_PROJECT_SHIZUKU_KIRINOKASUMU, &CAboutDlg::OnBnClickedProjectShizukuKirinokasumu)
+	ON_BN_CLICKED(IDC_PROJECT_SHIZUKU_IGARASHIHIROMI, &CAboutDlg::OnBnClickedProjectShizukuIgarashihiromi)
+	ON_BN_CLICKED(IDC_PROJECT_SHIZUKU_LINUXHAJAPAN, &CAboutDlg::OnBnClickedProjectShizukuLinuxhajapan)
+	ON_BN_CLICKED(IDC_PROJECT_SHIZUKU_OPENSOURCECHANNEL, &CAboutDlg::OnBnClickedProjectShizukuOpensourcechannel)
+	ON_BN_CLICKED(IDC_PROJECT_SHIZUKU_BELLCHE, &CAboutDlg::OnBnClickedProjectShizukuBellche)
 #endif
-		arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_ABOUT_ICON);
-		CallScript(_T("setIcon"), arg);
-
-		UpdateData(FALSE);
-		CenterWindow();
-		ShowWindow(SW_SHOW);
-	}
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDHtmlDialogEx)
 END_MESSAGE_MAP()
 
-BEGIN_DHTML_EVENT_MAP(CAboutDlg)
-	DHTML_EVENT_ONCLICK(_T("CrystalDewWorld"), OnCrystalDewWorld)
-#ifdef SUISHO_SHIZUKU_SUPPORT
-	DHTML_EVENT_ONCLICK(_T("ProjectShizuku"), OnProjectShizuku)
-#endif
-END_DHTML_EVENT_MAP()
+void CAboutDlg::UpdateDialogSize()
+{
+	ChangeZoomType(m_ZoomType);
+	if (m_IsHighContrast)
+	{
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_HC_Y * m_ZoomRatio), 0);
+	}
+	else
+	{
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+	}
 
-HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
+	UpdateBackground();
+
+	m_CtrlCrystalDewWorld.InitControl( 24,  24, 128, 128, m_ZoomRatio, IP(L"logo"), 1, 0, CButtonCx::OwnerDrawImage);
+	m_CtrlCrystalDewWorld.SetHandCursor();
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlProjectShizukuKirinokasumu.InitControl(340, 284, 292, 20, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlProjectShizukuIgarashihiromi.InitControl(340, 324, 292, 20, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlProjectShizukuLinuxhajapan.InitControl(340, 368, 292, 20, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlProjectShizukuOpensourcechannel.InitControl(340, 392, 292, 20, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlProjectShizukuBellche.InitControl(340, 416, 292, 20, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlSecretVoice.InitControl(200, 412, 40, 40, m_ZoomRatio, NULL, 0, 0, CButtonCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlProjectShizukuKirinokasumu.SetHandCursor();
+	m_CtrlProjectShizukuIgarashihiromi.SetHandCursor();
+	m_CtrlProjectShizukuLinuxhajapan.SetHandCursor();
+	m_CtrlProjectShizukuOpensourcechannel.SetHandCursor();
+	m_CtrlProjectShizukuBellche.SetHandCursor();
+	m_CtrlSecretVoice.SetHandCursor();
+#endif
+
+	m_CtrlVersion.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0 ,0), FW_BOLD);
+	m_CtrlEdition.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0 ,0), FW_BOLD);
+	m_CtrlRelease.SetFontEx(m_FontFace, 16, m_ZoomRatio);
+	m_CtrlCopyright.SetFontEx(m_FontFace, 16, m_ZoomRatio);
+	m_CtrlLicense.SetFontEx(m_FontFace, 16, m_ZoomRatio);
+
+	m_CtrlVersion.InitControl(200, 12, 420, 36, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlEdition.InitControl(200, 48, 420, 36, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlRelease.InitControl(200, 88, 420, 24, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlCopyright.InitControl(200, 112, 420, 24, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLicense.InitControl(200, 136, 420, 24, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+
+	Invalidate();
+}
+
+
+void CAboutDlg::OnCrystalDewWorld()
 {
 	if(GetUserDefaultLCID() == 0x0411)// Japanese
 	{
@@ -99,22 +153,36 @@ HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
 	{
 		OpenUrl(URL_CRYSTAL_DEW_WORLD_EN);
 	}
-
-	return S_FALSE;
 }
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
-HRESULT CAboutDlg::OnProjectShizuku(IHTMLElement* /*pElement*/)
+void CAboutDlg::OnSecretVoice()
 {
-	if(GetUserDefaultLCID() == 0x0411)// Japanese
-	{
-		OpenUrl(URL_PROJECT_SHIZUKU_JA);
-	}
-	else // Other Language
-	{
-		OpenUrl(URL_PROJECT_SHIZUKU_EN);
-	}
+	::PostMessage(m_ParentWnd->GetSafeHwnd(), MY_PLAY_ALERT_SOUND, 901, NULL);
+}
 
-	return S_FALSE;
+void CAboutDlg::OnBnClickedProjectShizukuKirinokasumu()
+{
+	OpenUrl(URL_KIRINOKASUMU);
+}
+
+void CAboutDlg::OnBnClickedProjectShizukuIgarashihiromi()
+{
+	OpenUrl(URL_IGARASHIHIROMI);
+}
+
+void CAboutDlg::OnBnClickedProjectShizukuLinuxhajapan()
+{
+	OpenUrl(URL_LINUXHAJAPAN);
+}
+
+void CAboutDlg::OnBnClickedProjectShizukuOpensourcechannel()
+{
+	OpenUrl(URL_OPENSOURCECHANNEL);
+}
+
+void CAboutDlg::OnBnClickedProjectShizukuBellche()
+{
+	OpenUrl(URL_BELLCHE);
 }
 #endif

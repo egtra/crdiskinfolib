@@ -13,10 +13,6 @@
 #include "GetFileVersion.h"
 #include "GetOsInfo.h"
 
-#ifdef BENCHMARK
-#include "Benchmark.h"
-#endif
-
 #include <mmsystem.h>
 
 #pragma comment(lib, "winmm.lib")
@@ -85,37 +81,16 @@
 	extern const GUID StrageGUID = { 0x53F56307, 0xB6BF, 0x11D0, 
 					  0x94,0xF2,0x00,0xA0,0xC9,0x1E,0xFB,0x8B };
 
-// CDiskInfoDlg dialog
-
-BEGIN_DHTML_EVENT_MAP(CDiskInfoDlg)
-	DHTML_EVENT_ONCLICK(_T("Disk0"), OnDisk0)
-	DHTML_EVENT_ONCLICK(_T("Disk1"), OnDisk1)
-	DHTML_EVENT_ONCLICK(_T("Disk2"), OnDisk2)
-	DHTML_EVENT_ONCLICK(_T("Disk3"), OnDisk3)
-	DHTML_EVENT_ONCLICK(_T("Disk4"), OnDisk4)
-	DHTML_EVENT_ONCLICK(_T("Disk5"), OnDisk5)
-	DHTML_EVENT_ONCLICK(_T("Disk6"), OnDisk6)
-	DHTML_EVENT_ONCLICK(_T("Disk7"), OnDisk7)
-	DHTML_EVENT_ONCLICK(_T("PreDisk"), OnPreDisk)
-	DHTML_EVENT_ONCLICK(_T("NextDisk"), OnNextDisk)
-	DHTML_EVENT_ONCLICK(_T("DiskStatus"), OnDiskStatus)
-#ifdef SUISHO_SHIZUKU_SUPPORT
-	DHTML_EVENT_ONCLICK(_T("Shizuku"), OnChangeShizuku)
-	DHTML_EVENT_ONCLICK(_T("ShizukuCopyright"), OnShizukuCopyright)
-#endif
-#ifdef BENCHMARK
-	DHTML_EVENT_ONCLICK(_T("Benchmark"), OnBenchmark)
-#endif
-END_DHTML_EVENT_MAP()
-
 CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
-	: CDHtmlMainDialog(CDiskInfoDlg::IDD, CDiskInfoDlg::IDH,
+	: CMainDialog(CDiskInfoDlg::IDD, 
 	((CDiskInfoApp*)AfxGetApp())->m_ThemeDir,
 	((CDiskInfoApp*)AfxGetApp())->m_ThemeIndex,
 	((CDiskInfoApp*)AfxGetApp())->m_LangDir,
 	((CDiskInfoApp*)AfxGetApp())->m_LangIndex,
 	pParent)
 {
+	DebugPrint(L"CDiskInfoDlg::CDiskInfoDlg");
+
 	m_hMenu = NULL;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_hIconMini = AfxGetApp()->LoadIcon(IDI_MINI_ICON);
@@ -212,6 +187,8 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_NowDetectingUnitPowerOnHours = FALSE;
 	m_FlagInitializing = TRUE;
 
+	DebugPrint(L"CDiskInfoDlg::CDiskInfoDlg");
+
 	m_ImageList.Create(16, 16, ILC_COLOR32|ILC_MASK, 3, 1);
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_GOOD));
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_GOOD_GREEN));
@@ -235,6 +212,8 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
 	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
 	m_FlagAlertSound = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertSound"), 1, m_Ini);
+	m_FlagHideNoSmartDisk = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("HideNoSmartDisk"), 0, m_Ini);
+	m_FlagGreenMode = (BOOL) GetPrivateProfileInt(_T("Setting"), _T("GreenMode"), 0, m_Ini);
 
 	if((BOOL)GetPrivateProfileInt(_T("Workaround"), _T("ExecFailed"), 0, m_Ini))
 	{
@@ -249,16 +228,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	GetPrivateProfileString(_T("Setting"), _T("AlertSoundPath"), _T(""), str, 256, m_Ini);
 	m_AlertSoundPath = str;
 
-	#ifdef GADGET_SUPPORT
-	if(IsSidebar())
-	{
-		m_FlagGadget = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("Gadget"), 0, m_Ini);
-	}
-	else
-	{
-		m_FlagGadget = FALSE;
-	}
-	#endif
+	m_FlagGadget = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("Gadget"), 0, m_Ini);
 
 	m_AutoDetectionStatus = GetPrivateProfileInt(_T("Setting"), _T("AutoDetection"), 0, m_Ini);
 	if(m_AutoDetectionStatus < 0)
@@ -278,25 +248,6 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	SAVE_SMART_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("SAVE_SMART_PERIOD"), 150, m_Ini);
 	ALARM_TEMPERATURE_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("ALARM_TEMPERATURE_PERIOD"), 60 * 60, m_Ini);
 
-	#ifdef SUISHO_SHIZUKU_SUPPORT
-	
-	if(GetUserDefaultLCID() == 0x0411)// Japanese
-	{
-		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
-	}
-	else
-	{
-		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
-	}
-
-	if(m_ShizukuImageType == 0 || MAX_SHIZUKU_IMAGE < m_ShizukuImageType)
-	{
-		srand(GetTickCount());
-		m_ShizukuImageType = rand() % MAX_SHIZUKU_IMAGE + 1;
-	}
-	#endif
-
-
 	if(m_FlagEventLog)
 	{
 		InstallEventSource();
@@ -315,6 +266,36 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 		m_Ata.SetAtaPassThroughSmart(FALSE);
 	}
 	m_Ata.CsmiType = GetPrivateProfileInt(_T("Setting"), _T("CsmiType"), m_Ata.CSMI_TYPE_ENABLE_AUTO, m_Ini);
+
+//	m_BrushDlg.CreateHatchBrush(HS_BDIAGONAL, RGB(0xF0, 0xF0, 0xF0));
+//	m_BrushDlg.CreatePatternBrush(&m_BitmapBg);
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_BackgroundName = L"ShizukuBackground";
+#else
+	m_BackgroundName = L"mainBackground";
+#endif
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if (!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
+	// Windows 8 or later
+	if (osvi.dwMajorVersion >= 7 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 2))
+	{
+		m_LayeredListCtrl = TRUE;
+	}
+	else
+	{
+		m_LayeredListCtrl = FALSE;
+	}
+#endif
 }
 
 CDiskInfoDlg::~CDiskInfoDlg()
@@ -324,13 +305,8 @@ CDiskInfoDlg::~CDiskInfoDlg()
 		DestroyMenu(m_hMenu);
 	}
 
-#ifdef ALERT_VOICE_SUPPORT
 	AlertSound(-1, AS_DEINIT);
-#endif
-
-	#ifdef GADGET_SUPPORT
 	DeleteShareInfo();
-	#endif
 }
 
 void CDiskInfoDlg::OnCancel()
@@ -350,7 +326,7 @@ void CDiskInfoDlg::OnCancel()
 		{
 			UnregisterDeviceNotification(m_hDevNotify);
 		}
-		CDHtmlMainDialog::OnCancel();
+	CMainDialog::OnCancel();
 	}
 }
 
@@ -363,7 +339,7 @@ void CDiskInfoDlg::OnExit()
 		RemoveTemperatureIcon(i);
 	}
 	KillGraphDlg();
-	CDHtmlMainDialog::OnCancel();
+	CMainDialog::OnCancel();
 }
 
 void CDiskInfoDlg::OnOK()
@@ -411,62 +387,102 @@ BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
 
 void CDiskInfoDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDHtmlDialog::DoDataExchange(pDX);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk0"), m_LiDisk[0]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk1"), m_LiDisk[1]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk2"), m_LiDisk[2]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk3"), m_LiDisk[3]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk4"), m_LiDisk[4]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk5"), m_LiDisk[5]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk6"), m_LiDisk[6]);
-	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk7"), m_LiDisk[7]);
+	CMainDialog::DoDataExchange(pDX);
 
-	DDX_DHtml_ElementInnerText(pDX, _T("DiskStatus"), m_DiskStatus);
-	DDX_DHtml_ElementInnerText(pDX, _T("Temperature"), m_Temperature);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("Model"), m_Model);
-	DDX_DHtml_ElementInnerText(pDX, _T("Firmware"), m_Firmware);
-	DDX_DHtml_ElementInnerText(pDX, _T("SerialNumber"), m_SerialNumber);
-	DDX_DHtml_ElementInnerText(pDX, _T("Capacity"), m_Capacity);
-	DDX_DHtml_ElementInnerText(pDX, _T("BufferSize"), m_BufferSize);
-	DDX_DHtml_ElementInnerText(pDX, _T("NvCacheSzie"), m_NvCacheSize);
-	DDX_DHtml_ElementInnerText(pDX, _T("RotationRate"), m_RotationRate);
-	DDX_DHtml_ElementInnerText(pDX, _T("LbaSize"), m_LbaSize);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("DriveMap"), m_DriveMap);
-	DDX_DHtml_ElementInnerText(pDX, _T("Interface"), m_Interface);
-	DDX_DHtml_ElementInnerText(pDX, _T("TransferMode"), m_TransferMode);
-	DDX_DHtml_ElementInnerText(pDX, _T("AtaAtapi"), m_AtaAtapi);
-	DDX_DHtml_ElementInnerText(pDX, _T("PowerOnCount"), m_PowerOnCount);
-	DDX_DHtml_ElementInnerText(pDX, _T("Feature"), m_Feature);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("PowerOnHours"), m_PowerOnHours);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelFirmware"), m_LabelFirmware);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelSerialNumber"), m_LabelSerialNumber);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelCapacity"), m_LabelCapacity);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelBufferSize"), m_LabelBufferSize);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelNvCacheSize"), m_LabelNvCacheSize);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelRotationRate"), m_LabelRotationRate);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelLbaSize"), m_LabelLbaSize);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelDriveMap"), m_LabelDriveMap);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelInterface"), m_LabelInterface);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelTransferMode"), m_LabelTransferMode);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelAtaAtapi"), m_LabelAtaAtapi);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelSmartStatus"), m_LabelSmartStatus);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelTemperature"), m_LabelTemperature);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelPowerOnHours"), m_LabelPowerOnHours);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelPowerOnCount"), m_LabelPowerOnCount);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelFeature"), m_LabelFeature);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelHealthStatus"), m_LabelDiskStatus);
-#ifdef BENCHMARK
-	DDX_DHtml_ElementInnerText(pDX, _T("BenchmarkMeter"), m_BenchmarkMeter);
-#endif
 	DDX_Control(pDX, IDC_LIST, m_List);
+	DDX_Control(pDX, IDC_BUTTON_DISK0, m_ButtonDisk[0]);
+	DDX_Control(pDX, IDC_BUTTON_DISK1, m_ButtonDisk[1]);
+	DDX_Control(pDX, IDC_BUTTON_DISK2, m_ButtonDisk[2]);
+	DDX_Control(pDX, IDC_BUTTON_DISK3, m_ButtonDisk[3]);
+	DDX_Control(pDX, IDC_BUTTON_DISK4, m_ButtonDisk[4]);
+	DDX_Control(pDX, IDC_BUTTON_DISK5, m_ButtonDisk[5]);
+	DDX_Control(pDX, IDC_BUTTON_DISK6, m_ButtonDisk[6]);
+	DDX_Control(pDX, IDC_BUTTON_DISK7, m_ButtonDisk[7]);
+
+	DDX_Control(pDX, IDC_BUTTON_PRE_DISK, m_CtrlButtonPreDisk);
+	DDX_Control(pDX, IDC_BUTTON_NEXT_DISK, m_CtrlButtonNextDisk);
+
+	DDX_Control(pDX, IDC_LABEL_FIRMWARE, m_CtrlLabelFirmware);
+	DDX_Control(pDX, IDC_LABEL_SERIAL_NUMBER, m_CtrlLabelSerialNumber);
+	DDX_Control(pDX, IDC_LABEL_INTERFACE, m_CtrlLabelInterface);
+	DDX_Control(pDX, IDC_LABEL_TRANSFER_MODE, m_CtrlLabelTransferMode);
+	DDX_Control(pDX, IDC_LABEL_DRIVE_MAP, m_CtrlLabelDriveMap);
+	DDX_Control(pDX, IDC_LABEL_BUFFER_SIZE, m_CtrlLabelBufferSize);
+	DDX_Control(pDX, IDC_LABEL_NV_CACHE_SIZE, m_CtrlLabelNvCacheSize);
+	DDX_Control(pDX, IDC_LABEL_ROTATION_RATE, m_CtrlLabelRotationRate);
+	DDX_Control(pDX, IDC_LABEL_POWER_ON_COUNT, m_CtrlLabelPowerOnCount);
+	DDX_Control(pDX, IDC_LABEL_POWER_ON_HOURS, m_CtrlLabelPowerOnHours);
+	DDX_Control(pDX, IDC_LABEL_ATA_ATAPI, m_CtrlLabelAtaAtapi);
+	DDX_Control(pDX, IDC_LABEL_FEATURE, m_CtrlLabelFeature);
+	DDX_Control(pDX, IDC_LABEL_HEALTH_STATUS, m_CtrlLabelDiskStatus);
+	DDX_Control(pDX, IDC_LABEL_TEMPERATURE, m_CtrlLabelTemperature);
+
+	DDX_Control(pDX, IDC_VALUE_MODEL, m_CtrlModel);
+	DDX_Control(pDX, IDC_VALUE_FIRMWARE, m_CtrlFirmware);
+	DDX_Control(pDX, IDC_VALUE_SERIAL_NUMBER, m_CtrlSerialNumber);
+	DDX_Control(pDX, IDC_VALUE_INTERFACE, m_CtrlInterface);
+	DDX_Control(pDX, IDC_VALUE_TRANSFER_MODE, m_CtrlTransferMode);
+	DDX_Control(pDX, IDC_VALUE_DRIVE_MAP, m_CtrlDriveMap);
+	DDX_Control(pDX, IDC_VALUE_BUFFER_SIZE, m_CtrlBufferSize);
+	DDX_Control(pDX, IDC_VALUE_NV_CACHE_SIZE, m_CtrlNvCacheSize);
+	DDX_Control(pDX, IDC_VALUE_ROTATION_RATE, m_CtrlRotationRate);
+	DDX_Control(pDX, IDC_VALUE_POWER_ON_COUNT, m_CtrlPowerOnCount);
+	DDX_Control(pDX, IDC_VALUE_POWER_ON_HOURS, m_CtrlPowerOnHours);
+	DDX_Control(pDX, IDC_VALUE_ATA_ATAPI, m_CtrlAtaAtapi);
+	DDX_Control(pDX, IDC_VALUE_FEATURE, m_CtrlFeature);
+	DDX_Control(pDX, IDC_BUTTON_HEALTH_STATUS, m_CtrlDiskStatus);
+	DDX_Control(pDX, IDC_BUTTON_TEMPERATURE, m_CtrlTemperature);
+	DDX_Control(pDX, IDC_BUTTON_LIFE, m_CtrlLife);
+
+	DDX_Text(pDX, IDC_BUTTON_DISK0, m_LiDisk[0]);
+	DDX_Text(pDX, IDC_BUTTON_DISK1, m_LiDisk[1]);
+	DDX_Text(pDX, IDC_BUTTON_DISK2, m_LiDisk[2]);
+	DDX_Text(pDX, IDC_BUTTON_DISK3, m_LiDisk[3]);
+	DDX_Text(pDX, IDC_BUTTON_DISK4, m_LiDisk[4]);
+	DDX_Text(pDX, IDC_BUTTON_DISK5, m_LiDisk[5]);
+	DDX_Text(pDX, IDC_BUTTON_DISK6, m_LiDisk[6]);
+	DDX_Text(pDX, IDC_BUTTON_DISK7, m_LiDisk[7]);
+
+	DDX_Text(pDX, IDC_LABEL_FIRMWARE, m_LabelFirmware);
+	DDX_Text(pDX, IDC_LABEL_SERIAL_NUMBER, m_LabelSerialNumber);
+	DDX_Text(pDX, IDC_LABEL_INTERFACE, m_LabelInterface);
+	DDX_Text(pDX, IDC_LABEL_TRANSFER_MODE, m_LabelTransferMode);
+	DDX_Text(pDX, IDC_LABEL_DRIVE_MAP, m_LabelDriveMap);
+	DDX_Text(pDX, IDC_LABEL_BUFFER_SIZE, m_LabelBufferSize);
+	DDX_Text(pDX, IDC_LABEL_NV_CACHE_SIZE, m_LabelNvCacheSize);
+	DDX_Text(pDX, IDC_LABEL_ROTATION_RATE, m_LabelRotationRate);
+	DDX_Text(pDX, IDC_LABEL_POWER_ON_COUNT, m_LabelPowerOnCount);
+	DDX_Text(pDX, IDC_LABEL_POWER_ON_HOURS, m_LabelPowerOnHours);
+	DDX_Text(pDX, IDC_LABEL_ATA_ATAPI, m_LabelAtaAtapi);
+	DDX_Text(pDX, IDC_LABEL_FEATURE, m_LabelFeature);
+	DDX_Text(pDX, IDC_LABEL_HEALTH_STATUS, m_LabelDiskStatus);
+	DDX_Text(pDX, IDC_LABEL_TEMPERATURE, m_LabelTemperature);
+
+	DDX_Text(pDX, IDC_VALUE_MODEL, m_ModelCapacity);
+	DDX_Text(pDX, IDC_VALUE_FIRMWARE, m_Firmware);
+	DDX_Text(pDX, IDC_VALUE_SERIAL_NUMBER, m_SerialNumber);
+	DDX_Text(pDX, IDC_VALUE_INTERFACE, m_Interface);
+	DDX_Text(pDX, IDC_VALUE_TRANSFER_MODE, m_TransferMode);
+	DDX_Text(pDX, IDC_VALUE_DRIVE_MAP, m_DriveMap);
+	DDX_Text(pDX, IDC_VALUE_BUFFER_SIZE, m_BufferSize);
+	DDX_Text(pDX, IDC_VALUE_NV_CACHE_SIZE, m_NvCacheSize);
+	DDX_Text(pDX, IDC_VALUE_ROTATION_RATE, m_RotationRate);
+	DDX_Text(pDX, IDC_VALUE_POWER_ON_COUNT, m_PowerOnCount);
+	DDX_Text(pDX, IDC_VALUE_POWER_ON_HOURS, m_PowerOnHours);
+	DDX_Text(pDX, IDC_VALUE_ATA_ATAPI, m_AtaAtapi);
+	DDX_Text(pDX, IDC_VALUE_FEATURE, m_Feature);
+	DDX_Text(pDX, IDC_BUTTON_HEALTH_STATUS, m_DiskStatus);
+	DDX_Text(pDX, IDC_BUTTON_TEMPERATURE, m_Temperature);
+	DDX_Text(pDX, IDC_BUTTON_LIFE, m_Life);
+
+	DDX_Control(pDX, IDC_BUTTON_SHIZUKU_VOICE, m_CtrlShizukuVoice);
+	DDX_Control(pDX, IDC_BUTTON_SHIZUKU_COPYRIGHT, m_CtrlShizukuCopyright);
+
 }
 
-BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
+BEGIN_MESSAGE_MAP(CDiskInfoDlg, CMainDialog)
 	//}}AFX_MSG_MAP
+	ON_WM_PAINT()
 	ON_WM_GETMINMAXINFO()
 	ON_WM_SIZE()
 	ON_WM_TIMER()
@@ -490,6 +506,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
 	ON_COMMAND(ID_WORKAROUND_HD204UI, &CDiskInfoDlg::OnWorkaroundHD204UI)
 	ON_COMMAND(ID_WORKAROUND_IE8MODE, &CDiskInfoDlg::OnWorkaroundIE8MODE)
+	ON_COMMAND(ID_GREEN_MODE, &CDiskInfoDlg::OnGreenMode)
 
 	ON_COMMAND(ID_WORKAROUND_ADATA_SSD, &CDiskInfoDlg::OnWorkaroundAdataSsd)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
@@ -578,9 +595,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 
 	ON_COMMAND(ID_EVENT_LOG, &CDiskInfoDlg::OnEventLog)
 	ON_COMMAND(ID_ATA_PASS_THROUGH_SMART, &CDiskInfoDlg::OnAtaPassThroughSmart)
-	#ifdef GADGET_SUPPORT
 	ON_COMMAND(ID_GADGET_SUPPORT, &CDiskInfoDlg::OnGadgetSupport)
-	#endif
 	ON_COMMAND(ID_CELSIUS, &CDiskInfoDlg::OnCelsius)
 	ON_COMMAND(ID_FAHRENHEIT, &CDiskInfoDlg::OnFahrenheit)
 	ON_COMMAND(ID_AAM_APM, &CDiskInfoDlg::OnAamApm)
@@ -606,6 +621,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_ZOOM_125, &CDiskInfoDlg::OnZoom125)
 	ON_COMMAND(ID_ZOOM_150, &CDiskInfoDlg::OnZoom150)
 	ON_COMMAND(ID_ZOOM_200, &CDiskInfoDlg::OnZoom200)
+	ON_COMMAND(ID_ZOOM_300, &CDiskInfoDlg::OnZoom300)
 	ON_COMMAND(ID_ZOOM_AUTO, &CDiskInfoDlg::OnZoomAuto)
 	ON_COMMAND(ID_RAW_VALUES_16, &CDiskInfoDlg::OnRawValues16)
 	ON_COMMAND(ID_RAW_VALUES_10_ALL, &CDiskInfoDlg::OnRawValues10All)
@@ -623,16 +639,39 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_INSTALL_GADGET, &CDiskInfoDlg::OnInstallGadget)
 //	ON_COMMAND(ID_ALARM_HISTORY, &CDiskInfoDlg::OnAlarmHistory)
 	ON_COMMAND(ID_ALERT_SOUND, &CDiskInfoDlg::OnAlertSound)
+	ON_COMMAND(ID_HIDE_NO_SMART_DISK, &CDiskInfoDlg::OnHideNoSmartDisk)
 
 	ON_MESSAGE(MY_PLAY_ALERT_SOUND, OnPlayAlertSound)
+	ON_BN_CLICKED(IDC_BUTTON_DISK0, &CDiskInfoDlg::OnBnClickedButtonDisk0)
+	ON_BN_CLICKED(IDC_BUTTON_DISK1, &CDiskInfoDlg::OnBnClickedButtonDisk1)
+	ON_BN_CLICKED(IDC_BUTTON_DISK2, &CDiskInfoDlg::OnBnClickedButtonDisk2)
+	ON_BN_CLICKED(IDC_BUTTON_DISK3, &CDiskInfoDlg::OnBnClickedButtonDisk3)
+	ON_BN_CLICKED(IDC_BUTTON_DISK4, &CDiskInfoDlg::OnBnClickedButtonDisk4)
+	ON_BN_CLICKED(IDC_BUTTON_DISK5, &CDiskInfoDlg::OnBnClickedButtonDisk5)
+	ON_BN_CLICKED(IDC_BUTTON_DISK6, &CDiskInfoDlg::OnBnClickedButtonDisk6)
+	ON_BN_CLICKED(IDC_BUTTON_DISK7, &CDiskInfoDlg::OnBnClickedButtonDisk7)
+	ON_BN_CLICKED(IDC_BUTTON_PRE_DISK, &CDiskInfoDlg::OnBnClickedButtonPreDisk)
+	ON_BN_CLICKED(IDC_BUTTON_NEXT_DISK, &CDiskInfoDlg::OnBnClickedButtonNextDisk)
+	ON_BN_CLICKED(IDC_BUTTON_HEALTH_STATUS, &CDiskInfoDlg::OnBnClickedButtonHealthStatus)
+	ON_BN_CLICKED(IDC_BUTTON_SHIZUKU_VOICE, &CDiskInfoDlg::OnBnClickedButtonShizukuVoice)
+	ON_BN_CLICKED(IDC_BUTTON_SHIZUKU_COPYRIGHT, &CDiskInfoDlg::OnBnClickedButtonShizukuCopyright)
+	ON_BN_CLICKED(IDC_BUTTON_LIFE, &CDiskInfoDlg::OnBnClickedButtonLife)
+	ON_WM_SHOWWINDOW()
 	END_MESSAGE_MAP()
 
 LRESULT CDiskInfoDlg::OnPlayAlertSound(WPARAM wParam, LPARAM lParam)
 {
 	static int id = 0;
-	static int idlist[12] = {1, 601, 602, 603, 604, 605, 606, 701, 702, 703, 704, 705};
+	static int idlist[21] = {1, 2, 3, 4, 5, 6, 7, 8, 601, 602, 603, 604, 605, 606, 607, 701, 702, 703, 704, 705, 707};
 
-	id = idlist[rand() % 12];
+	if(wParam == NULL)
+	{
+		id = idlist[rand() % 21];
+	}
+	else
+	{
+		id = (int)wParam;
+	}
 
 	TCHAR str[256];
 	GetPrivateProfileString(_T("Setting"), _T("AlertSoundPath"), _T(""), str, 256, m_Ini);
@@ -668,7 +707,9 @@ void CDiskInfoDlg::OnPaint()
 	}
 	else
 	{
-		CDHtmlMainDialog::OnPaint();
+	//	CPaintDC dc(this);
+    //  dc.DrawState(CPoint(0, 0), CSize((int)(1000 * m_ZoomRatio), (int)(1000 * m_ZoomRatio)), m_BitmapBg, DST_BITMAP);
+		CMainDialog::OnPaint();
 	}
 }
 
@@ -728,7 +769,7 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 			RemoveTemperatureIcon(i);
 		}
 		KillGraphDlg();
-		CDHtmlMainDialog::OnCancel();
+		CMainDialog::OnCancel();
 	}
 	else if(wParam == MY_SHOW_MAIN_DIALOG && m_FlagResidentMinimize)
 	{
@@ -956,38 +997,82 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 	}
 	else if(WM_THEME_ID <= wParam && wParam < WM_THEME_ID + (UINT)m_MenuArrayTheme.GetSize())
 	{
-		CDHtmlMainDialog::OnCommand(wParam, lParam);
-		if(m_CurrentTheme.Compare(_T("Simplicity")) == 0)
+#ifndef SUISHO_SHIZUKU_SUPPORT
+		CMenu *menu = GetMenu();
+		if (menu->GetMenuState(ID_GREEN_MODE, MF_BYCOMMAND) & MFS_CHECKED)
 		{
-			if(! m_FlagGoodGreen)
-			{
-				m_FlagGoodGreen = TRUE;
-				UpdateListCtrl(m_SelectDisk);
-			}
+			m_FlagGreenMode = TRUE;
 		}
 		else
 		{
-			if(m_FlagGoodGreen)
-			{
-				m_FlagGoodGreen = FALSE;
-				UpdateListCtrl(m_SelectDisk);
-			}
+			m_FlagGreenMode = FALSE;
 		}
+#endif
+		CMainDialog::OnCommand(wParam, lParam);
+
+#ifndef SUISHO_SHIZUKU_SUPPORT
+		if(m_CurrentTheme.Compare(_T("Simplicity")) == 0)
+		{
+			m_FlagGreenMode = TRUE;
+		}
+#endif
+		UpdateListCtrl(m_SelectDisk);
 		return TRUE;
 	}
 
-	return CDHtmlDialogEx::OnCommand(wParam, lParam);
+	return CMainDialog::OnCommand(wParam, lParam);
+}
+
+CString CDiskInfoDlg::IP(CString imageName)
+{
+	CString imagePath;
+	imagePath.Format(L"%s%s\\%s-%3d.png", m_ThemeDir, m_CurrentTheme, imageName, (DWORD)(m_ZoomRatio * 100));
+	if(IsFileExist(imagePath))
+	{
+		return imagePath;
+	}
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	if(m_CurrentTheme.Find(L"ShizukuMikoNight") == 0)
+	{
+		imagePath.Format(L"%s%s\\%s-%3d.png", m_ThemeDir, L"ShizukuMiko", imageName, (DWORD)(m_ZoomRatio * 100));
+		if(IsFileExist(imagePath))
+		{
+			return imagePath;
+		}
+	}
+#endif
+	imagePath.Format(L"%s%s\\%s-%3d.png", m_ThemeDir, m_DefaultTheme, imageName, (DWORD)(m_ZoomRatio * 100));
+	if(IsFileExist(imagePath))
+	{
+		return imagePath;
+	}
+	return L"";	
 }
 
 void CDiskInfoDlg::UpdateDialogSize()
 {
-	if(GetPrivateProfileInt(_T("Setting"), _T("HideSmartInfo"), 0, m_Ini))
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	if (m_LayeredListCtrl)
+	{
+		if (m_IsHighContrast)
+		{
+			::SetLayeredWindowAttributes(m_List.m_hWnd, 0, 255, LWA_ALPHA);
+		}
+		else
+		{
+			::SetLayeredWindowAttributes(m_List.m_hWnd, 0, LIST_CTL_ALPHA, LWA_ALPHA);
+		}
+	}
+#endif
+
+	UpdateBackground();
+
+	if (GetPrivateProfileInt(_T("Setting"), _T("HideSmartInfo"), 0, m_Ini))
 	{
 		m_SizeX = SIZE_X;
 		m_SizeY = SIZE_MIN_Y;
 		m_FlagHideSmartInfo = TRUE;
 		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 0);
-		m_List.SetFontEx(m_FontFace, m_ZoomRatio);
 
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_CHECKED);
@@ -997,7 +1082,7 @@ void CDiskInfoDlg::UpdateDialogSize()
 	else
 	{
 		m_SizeX = SIZE_SMART_X;
-		if(GetPrivateProfileInt(_T("Setting"), _T("Height"), 0, m_Ini) > 0)
+		if (GetPrivateProfileInt(_T("Setting"), _T("Height"), 0, m_Ini) > 0)
 		{
 			m_SizeY = GetPrivateProfileInt(_T("Setting"), _T("Height"), 0, m_Ini);
 		}
@@ -1006,7 +1091,6 @@ void CDiskInfoDlg::UpdateDialogSize()
 			m_SizeY = SIZE_SMART_Y;
 		}
 		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 1);
-		m_List.SetFontEx(m_FontFace, m_ZoomRatio);
 		m_FlagHideSmartInfo = FALSE;
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_UNCHECKED);
@@ -1014,31 +1098,176 @@ void CDiskInfoDlg::UpdateDialogSize()
 		DrawMenuBar();
 	}
 
+	SetControlFont();
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlShizukuVoice.InitControl(0, 48, OFFSET_X, m_SizeY - 24 - 48, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::OwnerDrawTransparent);
+	m_CtrlShizukuVoice.SetHandCursor();
+	m_CtrlShizukuCopyright.InitControl(0, m_SizeY - 24, OFFSET_X, 24, m_ZoomRatio, IP(L"ShizukuCopyright"), 1, SS_CENTER, CButtonCx::OwnerDrawImage);
+	m_CtrlShizukuCopyright.SetHandCursor();
+#else
+	m_CtrlShizukuVoice.ShowWindow(SW_HIDE);
+	m_CtrlShizukuCopyright.ShowWindow(SW_HIDE);
+#endif
+
+	int buttonDiskHeight = 48;
+	if(m_IsHighContrast){ buttonDiskHeight = 56;}
+	for(int i = 0; i < 8; i++)
+	{
+		m_ButtonDisk[i].InitControl(84 * i + OFFSET_X, 0, 84, buttonDiskHeight, m_ZoomRatio, IP(L"noDisk"), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+		m_ButtonDisk[i].SetMargin(0, 0, 3, 0, m_ZoomRatio);
+		m_ButtonDisk[i].SetHandCursor(TRUE);
+#ifdef SUISHO_SHIZUKU_SUPPORT
+		m_ButtonDisk[i].SetAlpha(IMAGE_ALPHA);
+#endif
+	}
+
+	InitDriveList();
+
+	m_CtrlButtonPreDisk.SetHandCursor(TRUE);
+	m_CtrlButtonNextDisk.SetHandCursor(TRUE);
+
+	if (m_IsHighContrast)
+	{
+		m_CtrlModel.InitControl(40 + OFFSET_X, 56, 592, 32, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+		m_CtrlButtonPreDisk.InitControl (  8 + OFFSET_X, 60, 24, 24, m_ZoomRatio, IP(L"preDisk"), 2, SS_CENTER, CButtonCx::OwnerDrawImage);
+		m_CtrlButtonNextDisk.InitControl(640 + OFFSET_X, 60, 24, 24, m_ZoomRatio, IP(L"nextDisk"), 2, SS_CENTER, CButtonCx::OwnerDrawImage);
+	}
+	else
+	{
+		m_CtrlModel.InitControl(40 + OFFSET_X, 52, 592, 32, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+		m_CtrlButtonPreDisk.InitControl(8 + OFFSET_X, 56, 24, 24, m_ZoomRatio, IP(L"preDisk"), 2, SS_CENTER, CButtonCx::OwnerDrawImage);
+		m_CtrlButtonNextDisk.InitControl(640 + OFFSET_X, 56, 24, 24, m_ZoomRatio, IP(L"nextDisk"), 2, SS_CENTER, CButtonCx::OwnerDrawImage);
+	}
+	m_CtrlModel.SetMargin(2, 0, 0, 0, m_ZoomRatio);
+
+	CString className;
+	if (m_Ata.vars.GetCount())
+	{
+		className = GetDiskStatusClass(m_Ata.vars[m_SelectDisk].DiskStatus);
+	}
+	else
+	{
+		className = L"diskStatusUnknown";
+	}
+
+	int labelWidth = 128;
+	if (m_IsHighContrast) { labelWidth = 124; }
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlLabelDiskStatus.InitControl(128 + OFFSET_X, 260, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelTemperature.InitControl(436 + OFFSET_X, 260, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+
+	m_CtrlDiskStatus.InitControl       (256 + OFFSET_X, 256, 180, 28, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+	m_CtrlDiskStatus.SetAlpha(IMAGE_ALPHA);
+
+	className.Replace(L"Green", L"");
+	if (m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].Life == 100)
+	{
+		className += L"100";
+	}
+	m_CtrlLife.InitControl             (OFFSET_X, 88, 128, 192, m_ZoomRatio, IP(L"SD" + className), 1, SS_CENTER, CButtonCx::OwnerDrawImage);
+	m_CtrlLife.SetHandCursor(TRUE);
+#else
+	m_CtrlLife.ShowWindow(SW_HIDE);
+	m_CtrlLabelDiskStatus.InitControl  (8 + OFFSET_X,  88, 100, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelTemperature.InitControl (8 + OFFSET_X, 184, 100, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+
+	m_CtrlDiskStatus.InitControl       (8 + OFFSET_X, 112, 100, 60, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+#endif
+	m_CtrlDiskStatus.SetHandCursor(TRUE);
+
+	if (m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].IsSmartCorrect)
+	{
+		className = GetTemperatureClass(m_Ata.vars[m_SelectDisk].Temperature);
+	}
+	else
+	{
+		className = _T("temperatureUnknown");
+	}
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlTemperature.InitControl      (564 + OFFSET_X, 256, 100, 28, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+	m_CtrlTemperature.SetAlpha(IMAGE_ALPHA);
+#else
+	m_CtrlTemperature.InitControl      (8 + OFFSET_X, 208, 100, 40, m_ZoomRatio, IP(className), 1, SS_CENTER, CButtonCx::OwnerDrawImage | m_IsHighContrast);
+#endif
+
+	m_CtrlDiskStatus.SetHandCursor(TRUE);
+
+	m_CtrlLabelFirmware.InitControl(128 + OFFSET_X, 88, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelSerialNumber.InitControl(128 + OFFSET_X, 112, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelInterface.InitControl(128 + OFFSET_X, 136, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelTransferMode.InitControl(128 + OFFSET_X, 160, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelDriveMap.InitControl(128 + OFFSET_X, 184, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelAtaAtapi.InitControl(128 + OFFSET_X, 208, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelFeature.InitControl(128 + OFFSET_X, 232, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+
+	m_CtrlFirmware.InitControl    (256 + OFFSET_X,  88, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlSerialNumber.InitControl(256 + OFFSET_X, 112, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlInterface.InitControl   (256 + OFFSET_X, 136, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlTransferMode.InitControl(256 + OFFSET_X, 160, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlDriveMap.InitControl    (256 + OFFSET_X, 184, 180, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlAtaAtapi.InitControl    (256 + OFFSET_X, 208, 408, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlFeature.InitControl     (256 + OFFSET_X, 232, 408, 20, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_CtrlLabelBufferSize.InitControl(436 + OFFSET_X, 88, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelNvCacheSize.InitControl(436 + OFFSET_X, 112, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelRotationRate.InitControl(436 + OFFSET_X, 136, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelPowerOnCount.InitControl(436 + OFFSET_X, 160, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+	m_CtrlLabelPowerOnHours.InitControl(436 + OFFSET_X, 184, labelWidth, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
+
+	m_CtrlBufferSize.InitControl  (564 + OFFSET_X,  88, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlNvCacheSize.InitControl (564 + OFFSET_X, 112, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlRotationRate.InitControl(564 + OFFSET_X, 136, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlPowerOnCount.InitControl(564 + OFFSET_X, 160, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlPowerOnHours.InitControl(564 + OFFSET_X, 184, 100, 20, m_ZoomRatio, NULL, 0, SS_RIGHT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_IsDrawFrame = IsDrawFrame();
+
+	m_CtrlFirmware.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlSerialNumber.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlInterface.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlTransferMode.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlDriveMap.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlAtaAtapi.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlFeature.SetDrawFrame(m_IsDrawFrame);
+
+	m_CtrlBufferSize.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlNvCacheSize.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlRotationRate.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlPowerOnCount.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlPowerOnHours.SetDrawFrame(m_IsDrawFrame);
+
 	CRect rect;
 	GetClientRect(&rect);
-#ifdef SUISHO_SHIZUKU_SUPPORT
-	m_List.SetWindowPos(NULL, (int)((360 + 8) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
-			(int)((640 - 16) * m_ZoomRatio), (int)(rect.Height() - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
-#else
-	m_List.SetWindowPos(NULL, (int)(8 * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
-		(int)((640 - 16) * m_ZoomRatio), (int)(rect.Height() - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
-#endif
+	m_List.SetWindowPos(NULL, (int)((8 + OFFSET_X) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
+			(int)((672 - 16) * m_ZoomRatio), (int)(rect.Height() - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+
+	RebuildListHeader(m_SelectDisk, TRUE);
+	UpdateListCtrl(m_SelectDisk);
+
+	Invalidate();
 }
+
 
 void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 {
-	CDHtmlMainDialog::OnSize(nType, cx, cy);
+	CMainDialog::OnSize(nType, cx, cy);
 
 	static BOOL flag = FALSE;
 
 	if(flag)
 	{
 #ifdef SUISHO_SHIZUKU_SUPPORT
-		m_List.SetWindowPos(NULL, (int)((360 + 8) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
-		(int)((640 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+		m_List.SetWindowPos(NULL, (int)((328 + 8) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
+		(int)((672 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+		m_CtrlShizukuVoice.MoveWindow(0, (int)(48 * m_ZoomRatio), (int)(OFFSET_X  * m_ZoomRatio), (int)(cy - ((24 + 48) * m_ZoomRatio)));
+		m_CtrlShizukuCopyright.MoveWindow(0, (int)(cy - (24 * m_ZoomRatio)), (int)(OFFSET_X * m_ZoomRatio), (int)(24 * m_ZoomRatio));
+		m_CtrlShizukuCopyright.ShowWindow(SW_HIDE);
+		m_CtrlShizukuCopyright.SetBgReload();
+		m_CtrlShizukuCopyright.ShowWindow(SW_SHOW);
 #else
 		m_List.SetWindowPos(NULL, (int)(8 * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
-		(int)((640 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+		(int)((672 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
 #endif
 	}
 	flag = TRUE;
@@ -1067,7 +1296,7 @@ void CDiskInfoDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 	lpMMI->ptMaxTrackSize.y = (LONG)(SIZE_MAX_Y * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
 							+ GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION));
 
-	CDHtmlMainDialog::OnGetMinMaxInfo(lpMMI);
+	CMainDialog::OnGetMinMaxInfo(lpMMI);
 }
 
 void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
@@ -1096,9 +1325,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		AddEventLog(601, 2, name + cstr);
 		SendMail(601, title, cstr);
 		AddAlarmHistory(601, title, cstr);
-#ifdef ALERT_VOICE_SUPPORT
 		AlertSound(601, AS_SET_SOUND_ID);
-#endif
 	}
 	else if(m_Ata.vars[i].DiskStatus < (DWORD)pre)
 	{
@@ -1109,9 +1336,36 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		AddEventLog(701, 4, name + cstr);
 		SendMail(701, title, cstr);
 		AddAlarmHistory(701, title, cstr);
-#ifdef ALERT_VOICE_SUPPORT
 		AlertSound(701, AS_SET_SOUND_ID);
-#endif
+	}
+
+
+	GetPrivateProfileString(disk, _T("Life"), _T("-1"), str, 256, dir + _T("\\") + SMART_INI);
+	pre = _tstoi(str);
+
+	if(m_Ata.vars[i].Life == -1 || pre == -1)
+	{
+
+	}
+	else if(m_Ata.vars[i].Life < pre)
+	{
+		cstr.Format(_T("%s: [%d] -> [%d]\r\n"), i18n(_T("SmartSsd"), _T("FF")), pre, m_Ata.vars[i].Life);
+		alarm += cstr;
+		niifType = NIIF_WARNING;
+		AddEventLog(607, 2, name + cstr);
+		SendMail(607, title, cstr);
+		AddAlarmHistory(607, title, cstr);
+		AlertSound(607, AS_SET_SOUND_ID);
+	}
+	else if(m_Ata.vars[i].Life > pre)
+	{
+		cstr.Format(_T("%s: [%d] -> [%d]\r\n"), i18n(_T("SmartSsd"), _T("FF")), pre, m_Ata.vars[i].Life);
+		alarm += cstr;
+		niifType = NIIF_INFO;
+		AddEventLog(707, 4, name + cstr);
+		SendMail(707, title, cstr);
+		AddAlarmHistory(707, title, cstr);
+		AlertSound(707, AS_SET_SOUND_ID);
 	}
 
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
@@ -1158,9 +1412,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				AddEventLog(eventId, 2, name + cstr);
 				SendMail(eventId, title, cstr);
 				AddAlarmHistory(eventId, title, cstr);
-#ifdef ALERT_VOICE_SUPPORT
 				AlertSound(eventId, AS_SET_SOUND_ID);
-#endif
 			}
 			else if(rawValue < pre && pre != -1)
 			{
@@ -1171,9 +1423,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				AddEventLog(eventId + 100, 4, name + cstr);
 				SendMail(eventId + 100, title, cstr);
 				AddAlarmHistory(eventId + 100, title, cstr);
-#ifdef ALERT_VOICE_SUPPORT
 				AlertSound(eventId + 100, AS_SET_SOUND_ID);
-#endif
 			}
 		}
 
@@ -1193,9 +1443,8 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 				AddEventLog(606, 2, name + cstr);
 				SendMail(606, title, cstr);
 				AddAlarmHistory(606, title, cstr);
-#ifdef ALERT_VOICE_SUPPORT
 				AlertSound(606, AS_SET_SOUND_ID);
-#endif
+
 				niifType = NIIF_WARNING;
 				preTime[i] = CTime::GetTickCount();
 			}
@@ -1279,8 +1528,6 @@ BOOL CDiskInfoDlg::AddAlarmHistory(DWORD eventId, CString disk, CString message)
 */
 }
 
-#ifdef ALERT_VOICE_SUPPORT
-
 int ExecAndWait(TCHAR *pszCmd, BOOL bNoWindow)
 {
 	DWORD Code;
@@ -1348,13 +1595,13 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 	{
 		return TRUE;
 	}
-	
-	if(IsFileExist(m_AlertSoundPath))
+
+	if (600 <= soundId && soundId < 800 && IsFileExist(m_AlertSoundPath))
 	{
-		if(mode == AS_DEINIT)
+		if (mode == AS_DEINIT)
 		{
 			error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, 0, (DWORD_PTR)&mop);
-			if(error)
+			if (error)
 			{
 				return FALSE;
 			}
@@ -1370,53 +1617,68 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		ext = temp;
 
 		ext.MakeUpper();
-		if(ext.Find(_T(".MP3")) == 0)
+		if (ext.Find(_T(".MP3")) == 0)
 		{
-			if(mop.wDeviceID != 0)
+			if (mop.wDeviceID != 0)
 			{
 				error = mciSendCommandW(mop.wDeviceID, MCI_STOP, MCI_WAIT, (DWORD_PTR)&mop);
 				error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD_PTR)&mop);
 				mop.wDeviceID = 0;
 				ZeroMemory(&mop, sizeof(MCI_PLAY_PARMS));
-				if(error)
+				if (error)
 				{
 					return FALSE;
 				}
 			}
 
 			mop.lpstrDeviceType = _T("MPEGVideo");
-			mop.lpstrElementName =  m_AlertSoundPath;
+			mop.lpstrElementName = m_AlertSoundPath;
 			error = mciSendCommandW(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&mop);
-			if(error)
+			if (error)
 			{
 				return FALSE;
 			}
 			else
 			{
 				error = mciSendCommand(mop.wDeviceID, MCI_SEEK, MCI_SEEK_TO_START, (DWORD_PTR)&mgp);
-				if(error)
+				if (error)
 				{
 					return FALSE;
 				}
 				else
 				{
 					error = mciSendCommandW(mop.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&mpp);
-					if(error)
+					if (error)
 					{
 						return FALSE;
 					}
 				}
 			}
 		}
-		else if(ext.Find(_T(".WAV")) == 0)
+		else if (ext.Find(_T(".OPUS")) == 0)
+		{
+			GetTempPath(MAX_PATH, tempPath);
+			CString tempFilePathWave = tempPath;
+			tempFilePathWave += _T("CrystalDiskInfo.wav");
+
+			PlaySound(NULL, NULL, SND_NODEFAULT);
+
+			// Convert Opus to WAV
+			CString option;
+			option.Format(_T("\"%s\" \"%s\" \"%s\""), m_OpusDecPath, m_AlertSoundPath, tempFilePathWave);
+
+			ExecAndWait((TCHAR*)(option.GetString()), TRUE);
+			PlaySound(tempFilePathWave, NULL, SND_SYNC | SND_FILENAME | SND_NODEFAULT);
+
+			DeleteFile(tempFilePathWave);
+		}
+		else if (ext.Find(_T(".WAV")) == 0)
 		{
 			PlaySound(m_AlertSoundPath, NULL, SND_NODEFAULT);
 		}
 	}
-	else if(mop.lpstrDeviceType == NULL)
+	else if (mop.lpstrDeviceType == NULL)
 	{
-		CWaitCursor waitCursor;
-
 		// mode == AS_PLAY_SOUND
 		GetTempPath(MAX_PATH, tempPath);
 		CString tempFilePathOpus = tempPath;
@@ -1428,24 +1690,24 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 
 		// Choose OPUS resource
 		CString resource;
-	#ifdef SUISHO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 		// For Japanese
-		if(m_CurrentLang.Find(_T("Japanese")) == 0 || GetUserDefaultLCID() == 0x0411)
+		if (m_CurrentLang.Find(_T("Japanese")) == 0 || GetUserDefaultLCID() == 0x0411)
 		{
 
 			resource.Format(_T("IDR_SOUND_%03d_IY"), soundId);
 		}
 		else
 		{
-			resource =  _T("IDR_SOUND_001_SK");
+			resource = _T("IDR_SOUND_001_SK");
 		}
-	#else
-		resource =  _T("IDR_SOUND_001_SK");
-	#endif
+#else
+		resource = _T("IDR_SOUND_001_SK");
+#endif
 		// Resource to TempFile
 
 		HRSRC hrs = FindResource(NULL, resource, _T("OPUS"));
-		if(hrs == NULL)
+		if (hrs == NULL)
 		{
 			return FALSE;
 		}
@@ -1454,13 +1716,13 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		DWORD dwWrite = 0;
 
 		HANDLE hFile = CreateFile(tempFilePathOpus, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
-		if(hFile != INVALID_HANDLE_VALUE)
+		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			if(WriteFile(hFile, lpOpus, SizeofResource(NULL, hrs), &dwWrite, NULL) == 0)
+			if (WriteFile(hFile, lpOpus, SizeofResource(NULL, hrs), &dwWrite, NULL) == 0)
 			{
 				CloseHandle(hFile);
 				return FALSE;
-			}			
+			}
 			CloseHandle(hFile);
 		}
 
@@ -1469,7 +1731,9 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		option.Format(_T("\"%s\" \"%s\" \"%s\""), m_OpusDecPath, tempFilePathOpus, tempFilePathWave);
 
 		ExecAndWait((TCHAR*)(option.GetString()), TRUE);
-		PlaySound(tempFilePathWave, NULL, SND_SYNC|SND_FILENAME|SND_NODEFAULT);
+
+		CWaitCursor wait;
+		PlaySound(tempFilePathWave, NULL, SND_SYNC | SND_FILENAME | SND_NODEFAULT);
 
 		DeleteFile(tempFilePathOpus);
 		DeleteFile(tempFilePathWave);
@@ -1478,7 +1742,6 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 
 	return TRUE;
 }
-#endif
 
 void CDiskInfoDlg::AlarmOverheat()
 {
@@ -1530,11 +1793,7 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 				SaveSmartInfo(i);
 			}
 
-#ifdef ALERT_VOICE_SUPPORT
 			AlertSound(0, AS_PLAY_SOUND);
-#endif
-			m_PowerOnHoursClass = _T("valueR");
-			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
 
 			if(m_SelectDisk < (DWORD)m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].IsSmartCorrect && m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours > 0)
 			{
@@ -1556,13 +1815,12 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 					m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
 					m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
 					IsMinutesT);
-				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_TITLE, title);
+				m_CtrlPowerOnHours.SetToolTipText(title);
 			}
 			else
 			{
-				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_TITLE, _T(""));
+				m_CtrlPowerOnHours.SetToolTipText(L"");
 			}
-
 		}
 	}
 	else if(nIDEvent == TIMER_AUTO_REFRESH)
@@ -1624,7 +1882,7 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		ShowWindow(SW_SHOW);
 	}
 
-	CDHtmlMainDialog::OnTimer(nIDEvent);
+	CMainDialog::OnTimer(nIDEvent);
 }
 
 LRESULT CDiskInfoDlg::OnPowerBroadcast(WPARAM wParam, LPARAM lParam)
@@ -1823,3 +2081,189 @@ DWORD CDiskInfoDlg::GetSelectDisk()
 	return m_SelectDisk;
 }
 
+void CDiskInfoDlg::OnBnClickedButtonDisk0(){SelectDrive(0 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk1(){SelectDrive(1 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk2(){SelectDrive(2 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk3(){SelectDrive(3 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk4(){SelectDrive(4 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk5(){SelectDrive(5 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk6(){SelectDrive(6 + m_DriveMenuPage * 8);}
+void CDiskInfoDlg::OnBnClickedButtonDisk7(){SelectDrive(7 + m_DriveMenuPage * 8);}
+
+void CDiskInfoDlg::SetControlFont()
+{
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	BYTE textAlpha = TEXT_ALPHA;
+//	COLORREF textColor = RGB(77, 77, 77);
+	COLORREF textColor = RGB(0, 0, 0);
+#else
+	BYTE textAlpha = 255;
+	COLORREF textColor = RGB(0, 0, 0);
+#endif
+
+	m_List.SetFontEx(m_FontFace, m_ZoomRatio);
+
+	for(int i = 0; i < 8; i++)
+	{
+		m_ButtonDisk[i].SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	}
+
+	if (m_IsHighContrast)
+	{
+		m_CtrlModel.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor);
+	}
+	else
+	{
+		m_CtrlModel.SetFontEx(m_FontFace, 24, m_ZoomRatio, textAlpha, textColor);
+
+	}
+	m_CtrlButtonPreDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlButtonNextDisk.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	
+	m_CtrlLabelFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelDiskStatus.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLabelTemperature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+
+	m_CtrlFirmware.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlSerialNumber.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlInterface.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlTransferMode.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlDriveMap.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlBufferSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlNvCacheSize.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlRotationRate.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlPowerOnCount.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlPowerOnHours.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlAtaAtapi.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlFeature.SetFontEx(m_FontFace, 12, m_ZoomRatio, textAlpha, textColor);
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_CtrlDiskStatus.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlTemperature.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlLife.SetFontEx(m_FontFace, 16, m_ZoomRatio, textAlpha, textColor);
+#else
+	m_CtrlDiskStatus.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor);
+	m_CtrlTemperature.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor);
+#endif
+}
+
+void CDiskInfoDlg::OnBnClickedButtonPreDisk()
+{
+	SelectDrive(m_SelectDisk - 1);
+}
+
+void CDiskInfoDlg::OnBnClickedButtonNextDisk()
+{
+	SelectDrive(m_SelectDisk + 1);
+}
+
+void CDiskInfoDlg::OnBnClickedButtonHealthStatus()
+{
+	CMenu *menu = GetMenu();
+	if(! (menu->GetMenuState(ID_HEALTH_STATUS, MF_BYCOMMAND) & MF_GRAYED))
+	{
+		m_HealthDlg = new CHealthDlg(this);
+		m_HealthDlg->Create(CHealthDlg::IDD, m_HealthDlg, ID_HEALTH_STATUS, this);
+	}
+}
+
+
+void CDiskInfoDlg::OnBnClickedButtonShizukuVoice()
+{
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	DWORD id;
+	if(GetTickCount() % 2)
+	{
+		id = 7;
+	}
+	else
+	{
+		id = 8;
+	}
+	AlertSound(id, AS_SET_SOUND_ID);
+	AlertSound(1000, AS_PLAY_SOUND);
+#endif
+}
+
+
+void CDiskInfoDlg::OnBnClickedButtonShizukuCopyright()
+{
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	UINT themeIndex = rand() % (UINT)m_MenuArrayTheme.GetSize();
+	SendMessage(WM_COMMAND, WM_THEME_ID + themeIndex);
+#endif
+}
+
+
+void CDiskInfoDlg::OnBnClickedButtonLife()
+{
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	DWORD id;
+	if (m_Ata.vars.GetCount() > 0)
+	{
+		switch(m_Ata.vars[m_SelectDisk].DiskStatus)
+		{
+		case  CAtaSmart::DISK_STATUS_GOOD:
+			if(m_Ata.vars[m_SelectDisk].Life == 100)
+			{
+				id = 2;
+			}
+			else
+			{
+				id = 3;
+			}
+			break;
+		case  CAtaSmart::DISK_STATUS_CAUTION:
+			id = 4;
+			break;
+		case CAtaSmart::DISK_STATUS_BAD:
+			id = 5;
+			break;
+		case CAtaSmart::DISK_STATUS_UNKNOWN:
+		default:
+			id = 6;
+			break;
+		}
+	}
+	else
+	{
+		id = 6;
+	}
+
+	AlertSound(id, AS_SET_SOUND_ID);
+	AlertSound(1000, AS_PLAY_SOUND);
+#endif
+}
+
+void CDiskInfoDlg::SetLabel(CStaticCx& ctrl, CString& label, CString title)
+{
+	ctrl.SetToolTipText(title);
+	label = title;
+}
+
+void CDiskInfoDlg::OnShowWindow(BOOL bShow, UINT nStatus)
+{
+	CMainDialog::OnShowWindow(bShow, nStatus);
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	if (m_LayeredListCtrl && bShow)
+	{
+		::SetWindowLong(m_List.m_hWnd, GWL_EXSTYLE, ::GetWindowLong(m_List.m_hWnd, GWL_EXSTYLE) ^ WS_EX_LAYERED);
+		m_List.UpdateWindow();
+
+		::SetWindowLong(m_List.m_hWnd, GWL_EXSTYLE, ::GetWindowLong(m_List.m_hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+		::SetLayeredWindowAttributes(m_List.m_hWnd, 0, LIST_CTL_ALPHA, LWA_ALPHA);
+	}
+#endif
+}

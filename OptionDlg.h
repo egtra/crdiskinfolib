@@ -27,7 +27,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
-	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
+	virtual void InitDialogComplete();
 
 	CString m_ColorCode[CAtaSmart::MAX_DISK + 1];
 	CString m_LabelLineColor;
@@ -93,5 +93,7 @@ protected:
 	void SelectColor(DWORD index);
 
 	DECLARE_MESSAGE_MAP()
+
 	DECLARE_DHTML_EVENT_MAP()
+
 };

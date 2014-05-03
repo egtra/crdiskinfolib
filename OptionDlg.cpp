@@ -99,7 +99,7 @@ BOOL COptionDlg::OnInitDialog()
 	SetWindowText(i18n(_T("WindowTitle"), _T("CUSTOMIZE")));
 
 	EnableDpiAware();
-	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_OptionDlgPath);
+	InitDialogEx(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_OptionDlgPath);
 
 	return TRUE;
 }
@@ -163,41 +163,38 @@ BEGIN_DHTML_EVENT_MAP(COptionDlg)
 	DHTML_EVENT_ONCLICK(_T("Reset"), OnReset)
 END_DHTML_EVENT_MAP()
 
-
-void COptionDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
+void COptionDlg::InitDialogComplete()
 {
+	DebugPrint(_T("InitDialogComplete"));
+
 	CString cstr;
-	cstr = szUrl;
-	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
+	m_FlagShowWindow = TRUE;
+
+	m_LabelThreshold = i18n(_T("Dialog"), _T("LIST_THRESHOLD"));
+	m_LabelLineColor = i18n(_T("Customize"), _T("LINE_COLOR"));
+	m_LabelBgImage   = i18n(_T("Customize"), _T("BACKGROUND_IMAGE"));
+	m_Reset          = i18n(_T("Graph"), _T("RESET"));
+
+	TCHAR str[256];
+	GetPrivateProfileString(_T("Customize"), _T("GraphBgImage"), _T(""), str, 256, m_Ini);
+	m_BgImage = str;
+	SetElementPropertyEx(_T("GraphBgImage"), DISPID_IHTMLELEMENT_TITLE, m_BgImage);
+
+	for(int i = 0; i <= CAtaSmart::MAX_DISK; i++)
 	{
-		m_FlagShowWindow = TRUE;
-
-		m_LabelThreshold = i18n(_T("Dialog"), _T("LIST_THRESHOLD"));
-		m_LabelLineColor = i18n(_T("Customize"), _T("LINE_COLOR"));
-		m_LabelBgImage   = i18n(_T("Customize"), _T("BACKGROUND_IMAGE"));
-		m_Reset          = i18n(_T("Graph"), _T("RESET"));
-
-		TCHAR str[256];
-		GetPrivateProfileString(_T("Customize"), _T("GraphBgImage"), _T(""), str, 256, m_Ini);
-		m_BgImage = str;
-		SetElementPropertyEx(_T("GraphBgImage"), DISPID_IHTMLELEMENT_TITLE, m_BgImage);
-
-		for(int i = 0; i <= CAtaSmart::MAX_DISK; i++)
-		{
-			cstr.Format(_T("%d"), i);
-			m_ColorCode[i].Format(_T("#%02x%02x%02x"),
-				GetRValue(m_CurrentLineColor[i]),
-				GetGValue(m_CurrentLineColor[i]),
-				GetBValue(m_CurrentLineColor[i]));
-			CallScript(_T("changeBackgroundColor"), cstr + _T(", ") + m_ColorCode[i]);
-		}
-
-		UpdateData(FALSE);
-		ChangeZoomType(m_ZoomType);
-		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
-
-		ShowWindow(SW_SHOW);
+		cstr.Format(_T("%d"), i);
+		m_ColorCode[i].Format(_T("#%02x%02x%02x"),
+			GetRValue(m_CurrentLineColor[i]),
+			GetGValue(m_CurrentLineColor[i]),
+			GetBValue(m_CurrentLineColor[i]));
+		CallScript(_T("changeBackgroundColor"), cstr + _T(", ") + m_ColorCode[i]);
 	}
+
+	UpdateData(FALSE);
+	ChangeZoomType(m_ZoomType);
+	SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+
+	ShowWindow(SW_SHOW);
 }
 
 HRESULT COptionDlg::OnSelect0(IHTMLElement* /*pElement*/){SelectColor(0);return S_FALSE;}

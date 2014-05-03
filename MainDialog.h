@@ -9,15 +9,15 @@
 
 #define WM_THEME_ID			(WM_APP + 0x1600)
 #define WM_LANGUAGE_ID		(WM_APP + 0x1800)
-#define MAIN_CSS_FILE_NAME	_T("Main.css")
+#include "DialogCx.h"
 
-class CDHtmlMainDialog : public CDHtmlDialogEx
+class CMainDialog : public CDialogCx
 {
 public:
-	CDHtmlMainDialog(UINT dlgResouce, UINT dlgHtml, 
+	CMainDialog(UINT dlgResouce, 
 		CString ThemeDir, DWORD ThemeIndex, CString LangDir, DWORD LangIndex,
 		CWnd* pParent = NULL);
-	virtual ~CDHtmlMainDialog();
+	virtual ~CMainDialog();
 
 	CString m_CurrentLocalID;
 
@@ -29,6 +29,8 @@ public:
 	CStringArray m_MenuArrayTheme;
 	CStringArray m_MenuArrayLang;
 	CString m_CurrentTheme;
+	CString m_DefaultTheme;
+	CString m_RecommendTheme;
 	CString m_CurrentLang;
 
 	void InitMenu();
@@ -59,7 +61,4 @@ public:
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
-
-	DECLARE_DHTML_EVENT_MAP()
-
 };

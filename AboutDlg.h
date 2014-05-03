@@ -4,15 +4,15 @@
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
 /*---------------------------------------------------------------------------*/
+
 #pragma once
+#include "DialogCx.h"
+#include "StaticCx.h"
+#include "ButtonCx.h"
 
-#include "CompileOptions.h"
-
-class CAboutDlg : public CDHtmlDialogEx
+class CAboutDlg : public CDialogCx
 {
 	DECLARE_DYNCREATE(CAboutDlg)
-
-
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	static const int SIZE_X = 640;
@@ -21,28 +21,42 @@ class CAboutDlg : public CDHtmlDialogEx
 	static const int SIZE_X = 640;
 	static const int SIZE_Y = 170;
 #endif
+	static const int SIZE_HC_Y = 170; // for HighContrast Mode
 
 public:
 	CAboutDlg(CWnd* pParent = NULL);
 	virtual ~CAboutDlg();
 
-	enum { IDD = IDD_ABOUT, IDH = IDR_HTML_DUMMY };
+	enum { IDD = IDD_ABOUT };
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
-	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
-
-	CString m_Version;
-	CString m_Edition;
-	CString m_Release;
-	CString m_Copyright;
-
-	HRESULT OnCrystalDewWorld(IHTMLElement *pElement);
-#ifdef SUISHO_SHIZUKU_SUPPORT
-	HRESULT OnProjectShizuku(IHTMLElement *pElement);
-#endif
+	virtual void UpdateDialogSize();
 
 	DECLARE_MESSAGE_MAP()
-	DECLARE_DHTML_EVENT_MAP()
+public:
+	afx_msg void OnCrystalDewWorld();
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	afx_msg void OnSecretVoice();
+	afx_msg void OnBnClickedProjectShizukuKirinokasumu();
+	afx_msg void OnBnClickedProjectShizukuIgarashihiromi();
+	afx_msg void OnBnClickedProjectShizukuLinuxhajapan();
+	afx_msg void OnBnClickedProjectShizukuOpensourcechannel();
+	afx_msg void OnBnClickedProjectShizukuBellche();
+#endif
+	CButtonCx m_CtrlCrystalDewWorld;
+	CButtonCx m_CtrlProjectShizukuKirinokasumu;
+	CButtonCx m_CtrlProjectShizukuIgarashihiromi;
+	CButtonCx m_CtrlProjectShizukuLinuxhajapan;
+	CButtonCx m_CtrlProjectShizukuOpensourcechannel;
+	CButtonCx m_CtrlProjectShizukuBellche;
+	CButtonCx m_CtrlSecretVoice;
+
+	CStaticCx m_CtrlVersion;
+	CStaticCx m_CtrlEdition;
+	CStaticCx m_CtrlRelease;
+	CStaticCx m_CtrlCopyright;
+	CStaticCx m_CtrlLicense;
+
 };

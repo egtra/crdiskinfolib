@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -30,10 +30,14 @@
     <ProjectGuid>{5496C268-D510-449C-8471-DE2B34898C28}</ProjectGuid>
     <RootNamespace>DiskInfo</RootNamespace>
     <Keyword>MFCProj</Keyword>
-    <SccProjectName>SAK</SccProjectName>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccProvider>SAK</SccProvider>
+    <SccProjectName>
+    </SccProjectName>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccProvider>
+    </SccProvider>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -74,7 +78,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Static</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v90</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
     <PlatformToolset>v110</PlatformToolset>
@@ -136,7 +140,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SUISYO_SHIZUKU_SUPPORT; WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUISHO_SHIZUKU_SUPPORT;WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -156,9 +160,11 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
@@ -195,9 +201,11 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX64</TargetMachine>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
@@ -237,9 +245,11 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
@@ -252,7 +262,7 @@
       <ValidateAllParameters>false</ValidateAllParameters>
     </Midl>
     <ClCompile>
-      <Optimization>MinSpace</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <PreprocessorDefinitions>SUISHO_SHIZUKU_SUPPORT;WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
@@ -279,9 +289,11 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
     </Manifest>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
@@ -319,10 +331,14 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX64</TargetMachine>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <Manifest>
+      <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|x64'">
     <Midl>
@@ -356,13 +372,21 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX64</TargetMachine>
+      <DelayLoadDLLs>oledlg.dll</DelayLoadDLLs>
     </Link>
     <BuildLog>
       <Path>$(IntDir)\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
+    <ClCompile Include="ButtonCx.cpp" />
+    <ClCompile Include="ComboBoxCx.cpp" />
+    <ClCompile Include="DialogCx.cpp" />
     <ClCompile Include="DiskInfo.cpp" />
     <ClCompile Include="DiskInfoDlg.cpp" />
     <ClCompile Include="DiskInfoDlgCopy.cpp" />
@@ -372,11 +396,14 @@
     <ClCompile Include="DiskInfoDlgUpdate.cpp" />
     <ClCompile Include="FontComboBox.cpp" />
     <ClCompile Include="FontSelection.cpp" />
+    <ClCompile Include="Gradation.cpp" />
     <ClCompile Include="GraphDlg.cpp" />
     <ClCompile Include="HealthDlg.cpp" />
+    <ClCompile Include="MainDialog.cpp" />
     <ClCompile Include="OptionDlg.cpp" />
     <ClCompile Include="SettingDlg.cpp" />
     <ClCompile Include="SoundSettingDlg.cpp" />
+    <ClCompile Include="StaticCx.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -397,18 +424,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
-    <ClInclude Include="CompileOptions.h" />
+    <ClInclude Include="ButtonCx.h" />
+    <ClInclude Include="ComboBoxCx.h" />
+    <ClInclude Include="DialogCx.h" />
     <ClInclude Include="DiskInfo.h" />
     <ClInclude Include="DiskInfoDlg.h" />
     <ClInclude Include="FontComboBox.h" />
     <ClInclude Include="FontSelection.h" />
+    <ClInclude Include="Gradation.h" />
     <ClInclude Include="GraphDlg.h" />
     <ClInclude Include="HealthDlg.h" />
+    <ClInclude Include="MainDialog.h" />
     <ClInclude Include="OptionDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="resourceS.h" />
     <ClInclude Include="SettingDlg.h" />
     <ClInclude Include="SoundSettingDlg.h" />
+    <ClInclude Include="StaticCX.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="AtaSmart.h" />
     <ClInclude Include="DebugPrint.h" />
@@ -439,8 +471,7 @@
     <None Include="resS\705igarashi.opus" />
     <None Include="resS\DiskInfo.ico" />
     <None Include="resS\DiskInfo16.ico" />
-    <None Include="resS\ShizukuAbout.png" />
-    <None Include="resS\ShizukuAboutIcon.png" />
+    <None Include="res\001soundkenjin.opus" />
     <None Include="res\bad.ico" />
     <None Include="res\caution.ico" />
     <None Include="res\DiskInfo.rc2" />
@@ -658,7 +689,7 @@
     </ResourceCompile>
     <ResourceCompile Include="Shizuku.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ResourceCompile>

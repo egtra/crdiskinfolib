@@ -12,9 +12,7 @@
 
 #include "resource.h"		// main symbols
 
-#include "resourceS.h"
-
-#define THEME_DIR					_T("CdiResource\\theme\\")
+#define THEME_DIR					_T("CdiResource\\themes\\")
 #define LANGUAGE_DIR				_T("CdiResource\\language\\")
 #define DIALOG_DIR					_T("CdiResource\\dialog\\")
 #define GADGET_DIR					_T("CdiResource\\gadget\\")
@@ -31,42 +29,24 @@
 #define MENU_LANG_INDEX				6
 #define MENU_DRIVE_INDEX			4
 
-#ifdef SUISHO_SHIZUKU_SUPPORT
-#define MAIN_DIALOG					_T("MainS.html")
-#define MAIN_DIALOG_IE8				_T("MainS8.html")
-#define ABOUT_DIALOG				_T("AboutS.html")
-#else
-#define MAIN_DIALOG					_T("Main.html")
-#define MAIN_DIALOG_IE8				_T("Main8.html")
-#define ABOUT_DIALOG				_T("About.html")
-#endif
-
-//#define CLASSIC_DIALOG			_T("Classic.html")
-#define SETTING_DIALOG				_T("Setting.html")
-#define HEALTH_DIALOG				_T("Health.html")
 #define GRAPH_DIALOG				_T("Graph.html")
 #define GRAPH_DIALOG_IE8			_T("Graph8.html")
 #define OPTION_DIALOG				_T("Option.html")
-//#define ALARM_HISTORY_DIALOG		_T("AlarmHistory.html")
-#define SOUND_SETTING_DIALOG		_T("SoundSetting.html")
 
-#define DEFAULT_THEME				THEME_DIR _T("default\\Main.css")
+#ifdef SUISHO_SHIZUKU_SUPPORT
+#define DEFAULT_THEME				THEME_DIR _T("Shizuku")
+#else
+#define DEFAULT_THEME				THEME_DIR _T("default")
+#endif
 #define DEFAULT_LANGUAGE			LANGUAGE_DIR _T("English.lang")
-
 
 class CDiskInfoApp : public CWinApp
 {
 public:
 	CDiskInfoApp();
 
-	CString m_MainDlgPath;
-	CString m_AboutDlgPath;
-	CString m_SettingDlgPath;
-	CString m_HealthDlgPath;
 	CString m_GraphDlgPath;
 	CString m_OptionDlgPath;
-//	CString m_AlarmHistoryDlgPath;
-	CString m_SoundSettingDlgPath;
 	CString m_SmartDir;
 	CString m_ExeDir;
 	CString m_GadgetDir;

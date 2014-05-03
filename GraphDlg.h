@@ -69,7 +69,7 @@ protected:
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
-	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
+	virtual void InitDialogComplete();
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 
 	void UpdateDialogSize();
@@ -155,7 +155,9 @@ protected:
 	afx_msg LRESULT OnUpdateLineColor(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
+
 	DECLARE_DHTML_EVENT_MAP()
+
 public:
 	COLORREF GetLineColor(DWORD index);
 

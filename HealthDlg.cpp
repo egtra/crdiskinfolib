@@ -10,20 +10,23 @@
 #include "DiskInfoDlg.h"
 #include "HealthDlg.h"
 
-CDiskInfoDlg *h;
+static CDiskInfoDlg *p;
 
-IMPLEMENT_DYNCREATE(CHealthDlg, CDHtmlDialog)
+IMPLEMENT_DYNAMIC(CHealthDlg, CDialog)
 
 CHealthDlg::CHealthDlg(CWnd* pParent /*=NULL*/)
-	: CDHtmlDialogEx(CHealthDlg::IDD, CHealthDlg::IDH, pParent)
+	: CDialogCx(CHealthDlg::IDD, pParent)
 {
-	h = (CDiskInfoDlg*)pParent;
-
+	p = (CDiskInfoDlg*)pParent;
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
 
-	m_CurrentLangPath = ((CDHtmlMainDialog*)pParent)->m_CurrentLangPath;
-	m_DefaultLangPath = ((CDHtmlMainDialog*)pParent)->m_DefaultLangPath;
-	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
+	m_CurrentLangPath = ((CMainDialog*)pParent)->m_CurrentLangPath;
+	m_DefaultLangPath = ((CMainDialog*)pParent)->m_DefaultLangPath;
+	m_ZoomType = ((CMainDialog*)pParent)->GetZoomType();
+	m_FontFace = ((CMainDialog*)pParent)->m_FontFace;
+	m_CxThemeDir = ((CDiskInfoApp*)AfxGetApp())->m_ThemeDir;
+	m_CxCurrentTheme = ((CMainDialog*)pParent)->m_CurrentTheme;
+	m_CxDefaultTheme = ((CMainDialog*)pParent)->m_DefaultTheme;
 }
 
 CHealthDlg::~CHealthDlg()
@@ -32,92 +35,210 @@ CHealthDlg::~CHealthDlg()
 
 void CHealthDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDHtmlDialog::DoDataExchange(pDX);
+	CDialogCx::DoDataExchange(pDX);
 
-	DDX_DHtml_ElementInnerText(pDX, _T("Value05"), m_Value05);
-	DDX_DHtml_ElementInnerText(pDX, _T("ValueC5"), m_ValueC5);
-	DDX_DHtml_ElementInnerText(pDX, _T("ValueC6"), m_ValueC6);
+	DDX_Text(pDX, IDC_VALUE_05, m_Value05);
+	DDX_Text(pDX, IDC_VALUE_C5, m_ValueC5);
+	DDX_Text(pDX, IDC_VALUE_C6, m_ValueC6);
+	DDX_Text(pDX, IDC_VALUE_FF, m_ValueFF);
+	DDX_Text(pDX, IDC_VALUE_05X, m_Value05X);
+	DDX_Text(pDX, IDC_VALUE_C5X, m_ValueC5X);
+	DDX_Text(pDX, IDC_VALUE_C6X, m_ValueC6X);
+	DDX_Text(pDX, IDC_VALUE_FFX, m_ValueFFX);
+	DDX_Text(pDX, IDC_LABEL_05, m_Label05);
+	DDX_Text(pDX, IDC_LABEL_C5, m_LabelC5);
+	DDX_Text(pDX, IDC_LABEL_C6, m_LabelC6);
+	DDX_Text(pDX, IDC_LABEL_FF, m_LabelFF);
 
-	DDX_DHtml_ElementInnerText(pDX, _T("Value05X"), m_Value05X);
-	DDX_DHtml_ElementInnerText(pDX, _T("ValueC5X"), m_ValueC5X);
-	DDX_DHtml_ElementInnerText(pDX, _T("ValueC6X"), m_ValueC6X);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("Label05"), m_Label05);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelC5"), m_LabelC5);
-	DDX_DHtml_ElementInnerText(pDX, _T("LabelC6"), m_LabelC6);
-
-	DDX_DHtml_ElementInnerText(pDX, _T("Apply"), m_Apply);
-	DDX_DHtml_ElementInnerText(pDX, _T("Default"), m_Default);
-
-	DDX_Control(pDX, IDC_SCROLLBAR_05, m_Scrollbar05);
-	DDX_Control(pDX, IDC_SCROLLBAR_C5, m_ScrollbarC5);
-	DDX_Control(pDX, IDC_SCROLLBAR_C6, m_ScrollbarC6);
-
-	DDX_DHtml_SelectValue(pDX, _T("SelectDisk"), m_SelectDisk);
+	DDX_Control(pDX, IDC_SCROLLBAR_05, m_CtrlScrollbar05);
+	DDX_Control(pDX, IDC_SCROLLBAR_C5, m_CtrlScrollbarC5);
+	DDX_Control(pDX, IDC_SCROLLBAR_C6, m_CtrlScrollbarC6);
+	DDX_Control(pDX, IDC_SCROLLBAR_FF, m_CtrlScrollbarFF);
+	DDX_Control(pDX, IDC_VALUE_05, m_CtrlValue05);
+	DDX_Control(pDX, IDC_VALUE_C5, m_CtrlValueC5);
+	DDX_Control(pDX, IDC_VALUE_C6, m_CtrlValueC6);
+	DDX_Control(pDX, IDC_VALUE_FF, m_CtrlValueFF);
+	DDX_Control(pDX, IDC_VALUE_05X, m_CtrlValue05X);
+	DDX_Control(pDX, IDC_VALUE_C5X, m_CtrlValueC5X);
+	DDX_Control(pDX, IDC_VALUE_C6X, m_CtrlValueC6X);
+	DDX_Control(pDX, IDC_VALUE_FFX, m_CtrlValueFFX);
+	DDX_Control(pDX, IDC_LABEL_05, m_CtrlLabel05);
+	DDX_Control(pDX, IDC_LABEL_C5, m_CtrlLabelC5);
+	DDX_Control(pDX, IDC_LABEL_C6, m_CtrlLabelC6);
+	DDX_Control(pDX, IDC_LABEL_FF, m_CtrlLabelFF);
+	DDX_Control(pDX, IDC_SELECT_DISK, m_CtrlSelectDisk);
+	DDX_Control(pDX, IDC_APPLY, m_CtrlApply);
+	DDX_Control(pDX, IDC_DEFAULT, m_CtrlDefault);
 }
+
+
+BEGIN_MESSAGE_MAP(CHealthDlg, CDialogCx)
+	ON_WM_HSCROLL()
+	ON_BN_CLICKED(IDC_APPLY, &CHealthDlg::OnBnClickedApply)
+	ON_BN_CLICKED(IDC_DEFAULT, &CHealthDlg::OnBnClickedDefault)
+	ON_CBN_SELCHANGE(IDC_SELECT_DISK, &CHealthDlg::OnCbnSelchangeSelectDisk)
+END_MESSAGE_MAP()
 
 BOOL CHealthDlg::OnInitDialog()
 {
-	CDHtmlDialogEx::OnInitDialog();
+	CDialogCx::OnInitDialog();
 
 	SetWindowText(i18n(_T("WindowTitle"), _T("HEALTH_STATUS_SETTING"))
 		+ _T(" - ") + i18n(_T("HealthStatus"), _T("THRESHOLD_OF_CAUTION"))
 		+ _T(" (") + i18n(_T("Dialog"), _T("LIST_RAW_VALUES")) + _T(")"));
 
-	m_Scrollbar05.SetScrollRange(0x00, 0xFF);
-	m_ScrollbarC5.SetScrollRange(0x00, 0xFF);
-	m_ScrollbarC6.SetScrollRange(0x00, 0xFF);
+	m_CtrlScrollbar05.SetScrollRange(0x00, 0xFF);
+	m_CtrlScrollbarC5.SetScrollRange(0x00, 0xFF);
+	m_CtrlScrollbarC6.SetScrollRange(0x00, 0xFF);
+	m_CtrlScrollbarFF.SetScrollRange(0x00, 0x63);
 
-	EnableDpiAware();
-	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_HealthDlgPath);
+	m_FlagShowWindow = TRUE;
+
+	InitLang();
+	InitSelectDisk();
+
+	UpdateDialogSize();
+
+	CenterWindow();
+	ShowWindow(SW_SHOW);
+
+	if (p->m_Ata.vars.GetCount() == 0)
+	{
+		m_CtrlSelectDisk.EnableWindow(FALSE);
+
+		m_CtrlScrollbar05.EnableWindow(FALSE);
+		m_CtrlScrollbarC5.EnableWindow(FALSE);
+		m_CtrlScrollbarC6.EnableWindow(FALSE);
+		m_CtrlScrollbarFF.EnableWindow(FALSE);
+
+		m_CtrlLabel05.EnableWindow(FALSE);
+		m_CtrlLabelC5.EnableWindow(FALSE);
+		m_CtrlLabelC6.EnableWindow(FALSE);
+		m_CtrlLabelFF.EnableWindow(FALSE);
+
+		m_CtrlValue05.EnableWindow(FALSE);
+		m_CtrlValueC5.EnableWindow(FALSE);
+		m_CtrlValueC6.EnableWindow(FALSE);
+		m_CtrlValueFF.EnableWindow(FALSE);
+
+		m_CtrlValue05X.EnableWindow(FALSE);
+		m_CtrlValueC5X.EnableWindow(FALSE);
+		m_CtrlValueC6X.EnableWindow(FALSE);
+		m_CtrlValueFFX.EnableWindow(FALSE);
+
+		m_CtrlApply.EnableWindow(FALSE);
+		m_CtrlDefault.EnableWindow(FALSE);
+	}
 
 	return TRUE;
 }
 
-BEGIN_MESSAGE_MAP(CHealthDlg, CDHtmlDialogEx)
-	ON_WM_HSCROLL()
-END_MESSAGE_MAP()
-
-BEGIN_DHTML_EVENT_MAP(CHealthDlg)
-	DHTML_EVENT_ONCLICK(_T("SelectDisk"), OnSelectDisk)
-	DHTML_EVENT_ONCLICK(_T("Apply"), OnApply)
-	DHTML_EVENT_ONCLICK(_T("Default"), OnDefault)
-END_DHTML_EVENT_MAP()
-
-void CHealthDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
+void CHealthDlg::UpdateDialogSize()
 {
-	CString cstr;
-	cstr = szUrl;
-	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
-	{
-		m_FlagShowWindow = TRUE;
+	ChangeZoomType(m_ZoomType);
+	SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
 
-		InitLang();
-		InitSelectDisk();
+	UpdateBackground();
 
-		ChangeZoomType(m_ZoomType);
-		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+	m_CtrlScrollbar05.MoveWindow((DWORD)(16 * m_ZoomRatio), (DWORD)( 72 * m_ZoomRatio), (DWORD)(280 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+	m_CtrlScrollbarC5.MoveWindow((DWORD)(16 * m_ZoomRatio), (DWORD)(128 * m_ZoomRatio), (DWORD)(280 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+	m_CtrlScrollbarC6.MoveWindow((DWORD)(16 * m_ZoomRatio), (DWORD)(184 * m_ZoomRatio), (DWORD)(280 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+	m_CtrlScrollbarFF.MoveWindow((DWORD)(16 * m_ZoomRatio), (DWORD)(240 * m_ZoomRatio), (DWORD)(280 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
 
-		m_Scrollbar05.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(81 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
-		m_ScrollbarC5.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(144 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
-		m_ScrollbarC6.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(207 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+	m_CtrlLabel05.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlLabelC5.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlLabelC6.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlLabelFF.SetFontEx(m_FontFace, 12, m_ZoomRatio);
 
-	//	CenterWindow();
-		ShowWindow(SW_SHOW);
-	}
+	m_CtrlValue05.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueC5.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueC6.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueFF.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+
+	m_CtrlValue05X.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueC5X.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueC6X.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlValueFFX.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+
+	m_CtrlLabel05.InitControl(8,  44, 384, 24, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlLabelC5.InitControl(8, 100, 384, 24, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlLabelC6.InitControl(8, 156, 384, 24, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlLabelFF.InitControl(8, 212, 384, 24, m_ZoomRatio, NULL, 0, SS_LEFT, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_CtrlValue05.InitControl(300,  72, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueC5.InitControl(300, 128, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueC6.InitControl(300, 184, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueFF.InitControl(300, 240, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_CtrlValue05X.InitControl(344,  72, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueC5X.InitControl(344, 128, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueC6X.InitControl(344, 184, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+	m_CtrlValueFFX.InitControl(344, 240, 40, 20, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawGlass | m_IsHighContrast);
+
+	m_CtrlApply.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+	m_CtrlDefault.SetFontEx(m_FontFace, 12, m_ZoomRatio);
+
+	m_CtrlApply.InitControl(220, 268, 160, 28, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::SystemDraw | m_IsHighContrast);
+	m_CtrlDefault.InitControl(20, 268, 160, 28, m_ZoomRatio, NULL, 0, SS_CENTER, CButtonCx::SystemDraw | m_IsHighContrast);
+
+	m_CtrlSelectDisk.SetFontEx(m_FontFace, 14, m_ZoomRatio);
+	m_CtrlSelectDisk.MoveWindow((DWORD)(8 * m_ZoomRatio), (DWORD)(8 * m_ZoomRatio), (DWORD)(384 * m_ZoomRatio), (DWORD)(40 * m_ZoomRatio));
+
+	m_IsDrawFrame = IsDrawFrame();
+
+	m_CtrlValue05.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueC5.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueC6.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueFF.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValue05X.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueC5X.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueC6X.SetDrawFrame(m_IsDrawFrame);
+	m_CtrlValueFFX.SetDrawFrame(m_IsDrawFrame);
+
+	Invalidate();
 }
 
 void CHealthDlg::InitLang()
 {
-	m_Label05 = _T("[05] ") + i18n(_T("Smart"), _T("05"));
-	m_LabelC5 = _T("[C5] ") + i18n(_T("Smart"), _T("C5"));
-	m_LabelC6 = _T("[C6] ") + i18n(_T("Smart"), _T("C6"));
+	m_CtrlLabel05.SetWindowTextW(_T("[05] ") + i18n(_T("Smart"), _T("05")));
+	m_CtrlLabelC5.SetWindowTextW(_T("[C5] ") + i18n(_T("Smart"), _T("C5")));
+	m_CtrlLabelC6.SetWindowTextW(_T("[C6] ") + i18n(_T("Smart"), _T("C6")));
+	m_CtrlLabelFF.SetWindowTextW(_T("[FF] ") + i18n(_T("SmartSsd"), _T("FF")));
 
-	m_Apply =   i18n(_T("HealthStatus"), _T("APPLY"));
-	m_Default = i18n(_T("HealthStatus"), _T("DEFAULT"));
-
-	UpdateData(FALSE);
+	m_CtrlApply.SetWindowTextW(i18n(_T("HealthStatus"), _T("APPLY")));
+	m_CtrlDefault.SetWindowTextW(i18n(_T("HealthStatus"), _T("DEFAULT")));
 }
+
+void CHealthDlg::InitSelectDisk()
+{
+	CString select;
+	CString cstr;
+
+	if(p->m_Ata.vars.GetCount() <= 0)
+	{
+		return ;
+	}
+
+	for(int i = 0; i < p->m_Ata.vars.GetCount(); i++)
+	{
+		CString temp;
+		if(p->m_Ata.vars[i].IsSsd)
+		{
+			temp = _T("[SSD]");	
+		}
+		cstr.Format(_T("(%d) %s %s"), i + 1, p->m_Ata.vars.GetAt(i).Model, temp);
+		m_CtrlSelectDisk.AddString(cstr);
+	}
+	m_CtrlSelectDisk.SetCurSel(0);
+
+	UpdateData(TRUE);
+	UpdateSelectDisk(0);
+
+	UpdateData(TRUE);
+	m_DiskIndex = 0;
+	UpdateSelectDisk(m_DiskIndex);
+}
+
 
 void CHealthDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
@@ -147,203 +268,138 @@ void CHealthDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	}
 	pScrollBar->SetScrollPos(position);
 
-	if(*pScrollBar == m_Scrollbar05)
+	CString cstr;
+	if(*pScrollBar == m_CtrlScrollbar05)
 	{
-		m_Value05X.Format(_T("%02Xh"), m_Scrollbar05.GetScrollPos());
-		m_Value05.Format(_T("%d"), m_Scrollbar05.GetScrollPos());
-		if(m_Scrollbar05.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
+		m_Value05X.Format(L"%02Xh", m_CtrlScrollbar05.GetScrollPos());
+		m_Value05.Format(L"%d", m_CtrlScrollbar05.GetScrollPos());
 	}
-	else if(*pScrollBar == m_ScrollbarC5)
+	else if(*pScrollBar == m_CtrlScrollbarC5)
 	{
-		m_ValueC5X.Format(_T("%02Xh"), m_ScrollbarC5.GetScrollPos());
-		m_ValueC5.Format(_T("%d"), m_ScrollbarC5.GetScrollPos());
-		if(m_ScrollbarC5.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
+		m_ValueC5X.Format(L"%02Xh", m_CtrlScrollbarC5.GetScrollPos());
+		m_ValueC5.Format(L"%d", m_CtrlScrollbarC5.GetScrollPos());
 	}
-	else if(*pScrollBar == m_ScrollbarC6)
+	else if(*pScrollBar == m_CtrlScrollbarC6)
 	{
-		m_ValueC6X.Format(_T("%02Xh"), m_ScrollbarC6.GetScrollPos());
-		m_ValueC6.Format(_T("%d"), m_ScrollbarC6.GetScrollPos());
-		if(m_ScrollbarC6.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
+		m_ValueC6X.Format(L"%02Xh", m_CtrlScrollbarC6.GetScrollPos());
+		m_ValueC6.Format(L"%d", m_CtrlScrollbarC6.GetScrollPos());
+	}
+	else if(*pScrollBar == m_CtrlScrollbarFF)
+	{
+		m_ValueFFX.Format(L"%02Xh", m_CtrlScrollbarFF.GetScrollPos());
+		m_ValueFF.Format(L"%d", m_CtrlScrollbarFF.GetScrollPos());
 	}
 
 	UpdateData(FALSE);
 
-	CDHtmlDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
+	CDialogCx::OnHScroll(nSBCode, nPos, pScrollBar);
 }
-
-HRESULT CHealthDlg::OnDefault(IHTMLElement* /*pElement*/)
-{
-	if(! h->m_Ata.vars[m_DiskIndex].IsSsd)
-	{
-		m_Scrollbar05.SetScrollPos(1);
-		m_ScrollbarC5.SetScrollPos(1);
-		m_ScrollbarC6.SetScrollPos(1);
-
-		m_Value05.Format(_T("%d"), m_Scrollbar05.GetScrollPos());
-		m_ValueC5.Format(_T("%d"), m_ScrollbarC5.GetScrollPos());
-		m_ValueC6.Format(_T("%d"), m_ScrollbarC6.GetScrollPos());
-		m_Value05X.Format(_T("%02Xh"), m_Scrollbar05.GetScrollPos());
-		m_ValueC5X.Format(_T("%02Xh"), m_ScrollbarC5.GetScrollPos());
-		m_ValueC6X.Format(_T("%02Xh"), m_ScrollbarC6.GetScrollPos());
-
-		SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-
-		UpdateData(FALSE);
-	}
-
-	return S_FALSE;
-}
-
-HRESULT CHealthDlg::OnApply(IHTMLElement* /*pElement*/)
-{
-	if(! h->m_Ata.vars[m_DiskIndex].IsSsd)
-	{
-		WritePrivateProfileString(_T("ThreasholdOfCaution05"), h->m_Ata.vars[m_DiskIndex].ModelSerial, m_Value05, m_Ini);
-		WritePrivateProfileString(_T("ThreasholdOfCautionC5"), h->m_Ata.vars[m_DiskIndex].ModelSerial, m_ValueC5, m_Ini);
-		WritePrivateProfileString(_T("ThreasholdOfCautionC6"), h->m_Ata.vars[m_DiskIndex].ModelSerial, m_ValueC6, m_Ini);
-		h->m_Ata.vars[m_DiskIndex].Threshold05 = _tstoi(m_Value05);
-		h->m_Ata.vars[m_DiskIndex].ThresholdC5 = _tstoi(m_ValueC5);
-		h->m_Ata.vars[m_DiskIndex].ThresholdC6 = _tstoi(m_ValueC6);
-
-		h->SendMessage(WM_COMMAND, ID_REFRESH);
-	}
-
-	return S_FALSE;
-}
-
-void CHealthDlg::InitSelectDisk()
-{
-	CString select;
-	CString cstr;
-
-	select = _T("<select id=\"SelectDisk\" onchange=\"this.click()\">");
-
-	for(int i = 0; i < h->m_Ata.vars.GetCount(); i++)
-	{
-		CString temp;
-		if(h->m_Ata.vars[i].IsSsd)
-		{
-			temp = _T("[SSD]");	
-		}
-
-		if(i == h->GetSelectDisk())
-		{
-			cstr.Format(_T("<option value=\"%d\" selected=\"selected\">(%d) %s %s</option>"), i, i + 1, h->m_Ata.vars[i].Model, temp);
-		}
-		else
-		{
-			cstr.Format(_T("<option value=\"%d\">(%d) %s %s</option>"), i, i + 1, h->m_Ata.vars[i].Model, temp);
-		}
-		select += cstr;
-	}
-	select += _T("</select>");
-	SetElementOuterHtmlEx(_T("SelectDisk"), select);
-
-	UpdateData(TRUE);
-	m_DiskIndex = _tstoi(m_SelectDisk);
-	UpdateSelectDisk(m_DiskIndex);
-}
-
-HRESULT CHealthDlg::OnSelectDisk(IHTMLElement* /*pElement*/)
-{
-	UpdateData(TRUE);
-
-	if(m_DiskIndex != _tstoi(m_SelectDisk))
-	{
-		m_DiskIndex = _tstoi(m_SelectDisk);
-		UpdateSelectDisk(m_DiskIndex);
-	}
-
-	return S_FALSE;
-}
-
 
 void CHealthDlg::UpdateSelectDisk(DWORD index)
 {
-	if(h->m_Ata.vars[index].IsSsd)
+	if(p->m_Ata.vars[index].IsSsd)
 	{
-		m_Scrollbar05.SetScrollPos(0);
-		m_ScrollbarC5.SetScrollPos(0);
-		m_ScrollbarC6.SetScrollPos(0);
-
-		m_Scrollbar05.EnableWindow(FALSE);
-		m_ScrollbarC5.EnableWindow(FALSE);
-		m_ScrollbarC6.EnableWindow(FALSE);
-
-		SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelUnsupported"));
-		SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelUnsupported"));
-		SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelUnsupported"));
-
-		SetElementPropertyEx(_T("Default"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
-		SetElementPropertyEx(_T("Apply"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
+		m_CtrlScrollbar05.SetScrollPos(0);
+		m_CtrlScrollbarC5.SetScrollPos(0);
+		m_CtrlScrollbarC6.SetScrollPos(0);
+		if(p->m_Ata.vars[index].Life < 0)
+		{
+			m_CtrlScrollbarFF.SetScrollPos(0);
+			m_CtrlScrollbarFF.EnableWindow(FALSE);
+			m_ValueFF = L"";
+			m_ValueFFX = L"";
+		}
+		else
+		{
+			m_CtrlScrollbarFF.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCautionFF"), p->m_Ata.vars[index].ModelSerial, 10, m_Ini));
+			m_CtrlScrollbarFF.EnableWindow(TRUE);
+			m_ValueFF.Format(_T("%d"), m_CtrlScrollbarFF.GetScrollPos());
+			m_ValueFFX.Format(_T("%02Xh"), m_CtrlScrollbarFF.GetScrollPos());
+		}
+		m_CtrlScrollbar05.EnableWindow(FALSE);
+		m_CtrlScrollbarC5.EnableWindow(FALSE);
+		m_CtrlScrollbarC6.EnableWindow(FALSE);
+		m_Value05 = L"";
+		m_Value05X = L"";
+		m_ValueC5 = L"";
+		m_ValueC5X = L"";
+		m_ValueC6 = L"";
+		m_ValueC6X = L"";
 	}
 	else
 	{
-		m_Scrollbar05.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCaution05"), h->m_Ata.vars[index].ModelSerial, 1, m_Ini));
-		m_ScrollbarC5.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCautionC5"), h->m_Ata.vars[index].ModelSerial, 1, m_Ini));
-		m_ScrollbarC6.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), h->m_Ata.vars[index].ModelSerial, 1, m_Ini));
+		m_CtrlScrollbar05.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCaution05"), p->m_Ata.vars[index].ModelSerial, 1, m_Ini));
+		m_CtrlScrollbarC5.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCautionC5"), p->m_Ata.vars[index].ModelSerial, 1, m_Ini));
+		m_CtrlScrollbarC6.SetScrollPos(GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), p->m_Ata.vars[index].ModelSerial, 1, m_Ini));
+		m_CtrlScrollbarFF.SetScrollPos(0);
 
-		m_Scrollbar05.EnableWindow(TRUE);
-		m_ScrollbarC5.EnableWindow(TRUE);
-		m_ScrollbarC6.EnableWindow(TRUE);
-
-		if(m_Scrollbar05.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
-		if(m_ScrollbarC5.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
-		if(m_ScrollbarC6.GetScrollPos() == 0)
-		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
-		}
-		else
-		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
-		}
-		SetElementPropertyEx(_T("Default"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
-		SetElementPropertyEx(_T("Apply"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
+		m_CtrlScrollbar05.EnableWindow(TRUE);
+		m_CtrlScrollbarC5.EnableWindow(TRUE);
+		m_CtrlScrollbarC6.EnableWindow(TRUE);
+		m_CtrlScrollbarFF.EnableWindow(FALSE);
+		m_Value05.Format(_T("%d"), m_CtrlScrollbar05.GetScrollPos());
+		m_ValueC5.Format(_T("%d"), m_CtrlScrollbarC5.GetScrollPos());
+		m_ValueC6.Format(_T("%d"), m_CtrlScrollbarC6.GetScrollPos());
+		m_Value05X.Format(_T("%02Xh"), m_CtrlScrollbar05.GetScrollPos());
+		m_ValueC5X.Format(_T("%02Xh"), m_CtrlScrollbarC5.GetScrollPos());
+		m_ValueC6X.Format(_T("%02Xh"), m_CtrlScrollbarC6.GetScrollPos());
+		m_ValueFF = L"";
+		m_ValueFFX = L"";
 	}
-
-	m_Value05.Format(_T("%d"), m_Scrollbar05.GetScrollPos());
-	m_ValueC5.Format(_T("%d"), m_ScrollbarC5.GetScrollPos());
-	m_ValueC6.Format(_T("%d"), m_ScrollbarC6.GetScrollPos());
-	m_Value05X.Format(_T("%02Xh"), m_Scrollbar05.GetScrollPos());
-	m_ValueC5X.Format(_T("%02Xh"), m_ScrollbarC5.GetScrollPos());
-	m_ValueC6X.Format(_T("%02Xh"), m_ScrollbarC6.GetScrollPos());
-
 	UpdateData(FALSE);
+}
+
+void CHealthDlg::OnBnClickedApply()
+{
+	UpdateData(TRUE);
+
+	if(! p->m_Ata.vars[m_DiskIndex].IsSsd)
+	{
+		WritePrivateProfileString(_T("ThreasholdOfCaution05"), p->m_Ata.vars[m_DiskIndex].ModelSerial, m_Value05, m_Ini);
+		WritePrivateProfileString(_T("ThreasholdOfCautionC5"), p->m_Ata.vars[m_DiskIndex].ModelSerial, m_ValueC5, m_Ini);
+		WritePrivateProfileString(_T("ThreasholdOfCautionC6"), p->m_Ata.vars[m_DiskIndex].ModelSerial, m_ValueC6, m_Ini);
+
+		p->m_Ata.vars[m_DiskIndex].Threshold05 = _tstoi(m_Value05);
+		p->m_Ata.vars[m_DiskIndex].ThresholdC5 = _tstoi(m_ValueC5);
+		p->m_Ata.vars[m_DiskIndex].ThresholdC6 = _tstoi(m_ValueC6);
+	}
+	else if(p->m_Ata.vars[m_DiskIndex].Life >= 0)
+	{
+		WritePrivateProfileString(_T("ThreasholdOfCautionFF"), p->m_Ata.vars[m_DiskIndex].ModelSerial, m_ValueFF, m_Ini);
+		p->m_Ata.vars[m_DiskIndex].ThresholdFF = _tstoi(m_ValueFF);
+	}
+	p->SendMessage(WM_COMMAND, ID_REFRESH);
+}
+
+void CHealthDlg::OnBnClickedDefault()
+{
+	if(! p->m_Ata.vars[m_DiskIndex].IsSsd)
+	{
+		m_CtrlScrollbar05.SetScrollPos(1);
+		m_CtrlScrollbarC5.SetScrollPos(1);
+		m_CtrlScrollbarC6.SetScrollPos(1);
+		m_Value05.Format(_T("%d"), m_CtrlScrollbar05.GetScrollPos());
+		m_ValueC5.Format(_T("%d"), m_CtrlScrollbarC5.GetScrollPos());
+		m_ValueC6.Format(_T("%d"), m_CtrlScrollbarC6.GetScrollPos());
+		m_Value05X.Format(_T("%02Xh"), m_CtrlScrollbar05.GetScrollPos());
+		m_ValueC5X.Format(_T("%02Xh"), m_CtrlScrollbarC5.GetScrollPos());
+		m_ValueC6X.Format(_T("%02Xh"), m_CtrlScrollbarC6.GetScrollPos());
+
+	}
+	else if(p->m_Ata.vars[m_DiskIndex].Life >= 0)
+	{
+		m_CtrlScrollbarFF.SetScrollPos(10);
+		m_ValueFF.Format(_T("%d"), m_CtrlScrollbarFF.GetScrollPos());
+		m_ValueFFX.Format(_T("%02Xh"), m_CtrlScrollbarFF.GetScrollPos());
+	}
+	UpdateData(FALSE);
+}
+
+void CHealthDlg::OnCbnSelchangeSelectDisk()
+{
+	if(m_DiskIndex != m_CtrlSelectDisk.GetCurSel())
+	{
+		m_DiskIndex = m_CtrlSelectDisk.GetCurSel();
+		UpdateSelectDisk(m_DiskIndex);
+	}
 }

@@ -9,24 +9,29 @@
 
 #pragma once
 #include "afxwin.h"
+#include "DialogCx.h"
 
-class CSettingDlg : public CDHtmlDialogEx
+#include "StaticCx.h"
+#include "ButtonCx.h"
+#include "ComboBoxCx.h"
+
+class CSettingDlg : public CDialogCx
 {
 	DECLARE_DYNCREATE(CSettingDlg)
 
-	static const int SIZE_X = 444;
-	static const int SIZE_Y = 310;
+	static const int SIZE_X = 400;
+	static const int SIZE_Y = 304;
 
 public:
 	CSettingDlg(CWnd* pParent = NULL);
 	virtual ~CSettingDlg();
 
-	enum { IDD = IDD_SETTING, IDH = IDR_HTML_DUMMY };
+	enum { IDD = IDD_SETTING };
 
 protected:
 	DWORD m_DiskIndex;
-	CString m_SelectDisk;
 
+	CString m_SelectDisk;
 	CString m_AamLow;
 	CString m_AamHigh;
 	CString m_AamRecommend;
@@ -49,25 +54,48 @@ protected:
 	CString m_EnableApm;
 	CString m_DisableApm;
 
+	CStaticCx m_CtrlAamStatus;
+	CStaticCx m_CtrlApmStatus;
+	CStaticCx m_CtrlCurrentAam;
+	CStaticCx m_CtrlCurrentApm;
+	CStaticCx m_CtrlRecommendAam;
+
+	CStaticCx m_CtrlLabelAam;
+	CStaticCx m_CtrlLabelApm;
+
+	CStaticCx m_CtrlLabelAamLow;
+	CStaticCx m_CtrlLabelAamHigh;
+	CStaticCx m_CtrlLabelAamRecommend;
+	CStaticCx m_CtrlLabelApmLow;
+	CStaticCx m_CtrlLabelApmHigh;
+
+	CButtonCx m_CtrlEnableAam;
+	CButtonCx m_CtrlDisableAam;
+	CButtonCx m_CtrlEnableApm;
+	CButtonCx m_CtrlDisableApm;
+
+	CComboBoxCx	m_CtrlSelectDisk;
+	CScrollBar m_AamScrollbar;
+	CScrollBar m_ApmScrollbar;
+
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();
-	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
+	virtual void UpdateDialogSize();
 
 	void InitSelectDisk();
 	void InitLang();
 
-	HRESULT OnSelectDisk(IHTMLElement* /*pElement*/);
-	HRESULT OnEnableAam(IHTMLElement* /*pElement*/);
-	HRESULT OnDisableAam(IHTMLElement* /*pElement*/);
-	HRESULT OnEnableApm(IHTMLElement* /*pElement*/);
-	HRESULT OnDisableApm(IHTMLElement* /*pElement*/);
+	void OnEnableAam();
+	void OnDisableAam();
+	void OnEnableApm();
+	void OnDisableApm();
 
 	void UpdateSelectDisk(DWORD index);
 
 	DECLARE_MESSAGE_MAP()
-	DECLARE_DHTML_EVENT_MAP()
+
 public:
-	CScrollBar m_AamScrollbar;
-	CScrollBar m_ApmScrollbar;
+
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnCbnSelchangeSelectDisk();
 };

@@ -9,35 +9,43 @@
 #include "GetFileVersion.h"
 #include "GetOsInfo.h"
 
-UINT CDHtmlMainDialog::wmTaskbarCreated = ::RegisterWindowMessage(_T("TaskbarCreated"));
+#include "MainDialog.h"
 
-CDHtmlMainDialog::CDHtmlMainDialog(UINT dlgResouce, UINT dlgHtml, 
+UINT CMainDialog::wmTaskbarCreated = ::RegisterWindowMessage(_T("TaskbarCreated"));
+
+CMainDialog::CMainDialog(UINT dlgResouce, 
 		CString ThemeDir, DWORD ThemeIndex, CString LangDir, DWORD LangIndex,
 		CWnd* pParent)
-		:CDHtmlDialogEx(dlgResouce, dlgHtml, pParent)
+		:CDialogCx(dlgResouce, pParent)
 {
+
+	DebugPrint(L"CMainDialog::CMainDialog");
 	m_ThemeDir = ThemeDir;
 	m_ThemeIndex = ThemeIndex;
 	m_LangDir = LangDir;
 	m_LangIndex = LangIndex;
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_DefaultTheme = L"Shizuku";
+	m_RecommendTheme = L"ShizukuTaishoRoman";
+#else
+	m_DefaultTheme = L"default";
+#endif
 
 	m_FlagInitializing = TRUE;
 	m_FlagWindoowMinimizeOnce = TRUE;
 	m_FlagResidentMinimize = FALSE;
 }
 
-CDHtmlMainDialog::~CDHtmlMainDialog()
+CMainDialog::~CMainDialog()
 {
 }
 
-BEGIN_MESSAGE_MAP(CDHtmlMainDialog, CDHtmlDialogEx)
+BEGIN_MESSAGE_MAP(CMainDialog, CDialogCx)
 	ON_WM_WINDOWPOSCHANGING()
 END_MESSAGE_MAP()
 
-BEGIN_DHTML_EVENT_MAP(CDHtmlMainDialog)
-END_DHTML_EVENT_MAP()
-
-void CDHtmlMainDialog::SetWindowTitle(CString message, CString mode)
+void CMainDialog::SetWindowTitle(CString message, CString mode)
 {
 	CString title;
 
@@ -56,7 +64,7 @@ void CDHtmlMainDialog::SetWindowTitle(CString message, CString mode)
 	SetWindowText(title);
 }
 
-void CDHtmlMainDialog::InitThemeLang()
+void CMainDialog::InitThemeLang()
 {
 	TCHAR str[256];
 	TCHAR *ptrEnd;
@@ -71,7 +79,16 @@ void CDHtmlMainDialog::InitThemeLang()
 // Set Theme
 	if(m_CurrentTheme.IsEmpty())
 	{
-		GetPrivateProfileString(_T("Setting"), _T("Theme"), _T("default"), str, 256, m_Ini);
+		CString defaultTheme = m_DefaultTheme;
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+		if (IsFileExist(m_ThemeDir + m_RecommendTheme + L"\\ShizukuBackground-100.png"))
+		{
+			defaultTheme = m_RecommendTheme;
+		}
+#endif
+
+		GetPrivateProfileString(_T("Setting"), _T("Theme"), defaultTheme, str, 256, m_Ini);
 		m_CurrentTheme = str;
 	}
 
@@ -135,7 +152,7 @@ void CDHtmlMainDialog::InitThemeLang()
 	}
 }
 
-void CDHtmlMainDialog::InitMenu()
+void CMainDialog::InitMenu()
 {
 	CMenu menu;
 	CMenu subMenu;
@@ -146,9 +163,8 @@ void CDHtmlMainDialog::InitMenu()
 	UINT defaultStyleItemID = 0;
 	UINT defaultLanguageItemID = 0;
 	WIN32_FIND_DATA findData;
-	WIN32_FIND_DATA findCssData;
+	 
 	HANDLE hFind;
-	HANDLE hCssFind;
 	CString themePath;
 	CString themeCssPath;
 	CString langPath;
@@ -169,10 +185,12 @@ void CDHtmlMainDialog::InitMenu()
 		{
 			if(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-//				themeCssPath.Format(_T("%s\\%s\\%s"), m_ThemeDir,
-//									findData.cFileName, MAIN_CSS_FILE_NAME);
-				hCssFind = ::FindFirstFile(themeCssPath, &findCssData);
-				if(hCssFind != INVALID_HANDLE_VALUE)
+				CString name = findData.cFileName;
+#ifdef SUISHO_SHIZUKU_SUPPORT
+				if(name.Find(L"Shizuku") == 0)
+#else
+				if(name.Find(L"Shizuku") != 0 && name.Find(L".") != 0)
+#endif
 				{
 					// Add Theme
 					newItemID = WM_THEME_ID + i;
@@ -184,7 +202,8 @@ void CDHtmlMainDialog::InitMenu()
 						currentItemID = newItemID;
 						FlagHitTheme = TRUE;
 					}
-					if(_tcsstr(findData.cFileName, _T("default")) != NULL)
+
+					if(_tcsstr(findData.cFileName, m_DefaultTheme) != NULL)
 					{
 						defaultStyleItemID = newItemID;
 					}
@@ -197,7 +216,7 @@ void CDHtmlMainDialog::InitMenu()
 	if(! FlagHitTheme)
 	{
 		currentItemID = defaultStyleItemID;
-		m_CurrentTheme = _T("default");
+		m_CurrentTheme = m_DefaultTheme;
 	}
 
 	subMenu.CheckMenuRadioItem(WM_THEME_ID, WM_THEME_ID + (UINT)m_MenuArrayTheme.GetSize(),
@@ -316,61 +335,18 @@ void CDHtmlMainDialog::InitMenu()
 	}
 }
 
-BOOL CDHtmlMainDialog::OnInitDialog()
+BOOL CMainDialog::OnInitDialog()
 {
-	return CDHtmlDialogEx::OnInitDialog();
+	return CDialogCx::OnInitDialog();
 }
 
-void CDHtmlMainDialog::ChangeTheme(CString ThemeName)
+void CMainDialog::ChangeTheme(CString ThemeName)
 {
-	CComPtr<IHTMLDocument2> pHtmlDoc;
-	CComPtr<IHTMLStyleSheet> pHtmlStyleSheet;
-	CComPtr<IHTMLStyleSheetsCollection> pStyleSheetsCollection;
-
-	HRESULT hr;
-	CComBSTR bstr;
-	CString cstr;
-	LONG length;
-
-	hr = GetDHtmlDocument(&pHtmlDoc);
-	if(FAILED(hr)) return ;
-
-	hr = pHtmlDoc->get_styleSheets(&pStyleSheetsCollection);
-	if(FAILED(hr)) return ;
-
-	hr = pStyleSheetsCollection->get_length(&length);
-	if(FAILED(hr)) return ;
-
-	VARIANT index;
-	VariantInit(&index);
-// by ordinal
-	index.vt = VT_I4;
-	index.intVal = 0;
-// by name
-//	index.vt = VT_BSTR;
-//	index.bstrVal = L"StyleSheet";
-	VARIANT dispatch;
-	VariantInit(&dispatch);
-	dispatch.vt = VT_DISPATCH;
-
-	hr = pStyleSheetsCollection->item(&index, &dispatch);
-	if(FAILED(hr)) return ;
-
-	dispatch.pdispVal->QueryInterface(IID_IHTMLStyleSheet, (void **) &pHtmlStyleSheet);
-	if(FAILED(hr)) return ;
-
-	cstr.Format(_T("%s\\%s\\%s"), m_ThemeDir, ThemeName, MAIN_CSS_FILE_NAME);
-	bstr = cstr;
-	hr = pHtmlStyleSheet->put_href(bstr);
-	if(FAILED(hr)) return ;
-
-	VariantClear(&index);
-	VariantClear(&dispatch);
-
+	UpdateDialogSize();
 	WritePrivateProfileString(_T("Setting"), _T("Theme"), ThemeName, m_Ini);
 }
 
-BOOL CDHtmlMainDialog::OnCommand(WPARAM wParam, LPARAM lParam) 
+BOOL CMainDialog::OnCommand(WPARAM wParam, LPARAM lParam) 
 {
 	// Select Theme
 	if(WM_THEME_ID <= wParam && wParam < WM_THEME_ID + (UINT)m_MenuArrayTheme.GetSize())
@@ -388,10 +364,10 @@ BOOL CDHtmlMainDialog::OnCommand(WPARAM wParam, LPARAM lParam)
 		menu.Detach();
 	}
 
-	return CDHtmlDialogEx::OnCommand(wParam, lParam);
+	return CDialogCx::OnCommand(wParam, lParam);
 }
 
-void CDHtmlMainDialog::OnWindowPosChanging(WINDOWPOS * lpwndpos)
+void CMainDialog::OnWindowPosChanging(WINDOWPOS * lpwndpos)
 {
 	if(! m_FlagShowWindow)
 	{
@@ -410,12 +386,12 @@ void CDHtmlMainDialog::OnWindowPosChanging(WINDOWPOS * lpwndpos)
     CDialog::OnWindowPosChanging(lpwndpos);
 }
 
-DWORD CDHtmlMainDialog::GetZoomType()
+DWORD CMainDialog::GetZoomType()
 {
 	return GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
 }
 
-void CDHtmlMainDialog::SetZoomType(DWORD zoomType)
+void CMainDialog::SetZoomType(DWORD zoomType)
 {
 	CString cstr;
 	cstr.Format(_T("%d"), m_ZoomType);
@@ -429,7 +405,7 @@ void CDHtmlMainDialog::SetZoomType(DWORD zoomType)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Add TaskTray
-BOOL CDHtmlMainDialog::AddTaskTray(UINT id, UINT callback, HICON icon, CString tip)
+BOOL CMainDialog::AddTaskTray(UINT id, UINT callback, HICON icon, CString tip)
 {
 	if(m_FlagResident)
 	{
@@ -462,7 +438,7 @@ BOOL CDHtmlMainDialog::AddTaskTray(UINT id, UINT callback, HICON icon, CString t
 }
 
 // Update TaskTray Icon
-BOOL CDHtmlMainDialog::ModifyTaskTrayIcon(UINT id, HICON icon)
+BOOL CMainDialog::ModifyTaskTrayIcon(UINT id, HICON icon)
 {
 	if(m_FlagResident)
 	{
@@ -485,7 +461,7 @@ BOOL CDHtmlMainDialog::ModifyTaskTrayIcon(UINT id, HICON icon)
 }
 
 // Update TaskTray Tips
-BOOL CDHtmlMainDialog::ModifyTaskTrayTip(UINT id, CString tip)
+BOOL CMainDialog::ModifyTaskTrayTip(UINT id, CString tip)
 {
 	if(m_FlagResident)
 	{
@@ -510,7 +486,7 @@ BOOL CDHtmlMainDialog::ModifyTaskTrayTip(UINT id, CString tip)
 }
 
 // Update TaskTray
-BOOL CDHtmlMainDialog::ModifyTaskTray(UINT id, HICON icon, CString tip)
+BOOL CMainDialog::ModifyTaskTray(UINT id, HICON icon, CString tip)
 {
 	if(m_FlagResident)
 	{
@@ -535,7 +511,7 @@ BOOL CDHtmlMainDialog::ModifyTaskTray(UINT id, HICON icon, CString tip)
 }
 
 // Show Balloon
-BOOL CDHtmlMainDialog::ShowBalloon(UINT id, DWORD infoFlag, CString infoTitle, CString info)
+BOOL CMainDialog::ShowBalloon(UINT id, DWORD infoFlag, CString infoTitle, CString info)
 {
 	if(m_FlagResident)
 	{
@@ -562,7 +538,7 @@ BOOL CDHtmlMainDialog::ShowBalloon(UINT id, DWORD infoFlag, CString infoTitle, C
 }
 
 // Remove TaskTray
-BOOL CDHtmlMainDialog::RemoveTaskTray(UINT id)
+BOOL CMainDialog::RemoveTaskTray(UINT id)
 {
 	if(m_FlagResident)
 	{

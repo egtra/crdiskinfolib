@@ -45,11 +45,11 @@ BOOL CDHtmlDialogEx::OnInitDialog()
 }
 
 BEGIN_MESSAGE_MAP(CDHtmlDialogEx, CDHtmlDialog)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CDHtmlDialogEx)
 END_DHTML_EVENT_MAP()
-
 
 BOOL CDHtmlDialogEx::PreTranslateMessage(MSG* pMsg) 
 {
@@ -90,14 +90,21 @@ void CDHtmlDialogEx::ChangeAmbient(void)
 
 void CDHtmlDialogEx::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 {
-	CString cstr;
-	cstr = szUrl;
+	DebugPrint(_T("OnDocumentComplete"));
+	CString cstr = szUrl;
 	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
 	{
-		UpdateData(FALSE);
-		m_FlagShowWindow = TRUE;
-		ShowWindow(SW_SHOW);
+		InitDialogComplete();
 	}
+}
+
+void CDHtmlDialogEx::InitDialogComplete()
+{
+	DebugPrint(_T("InitDialogComplete"));
+	UpdateData(FALSE);
+	m_FlagShowWindow = TRUE;
+	ShowWindow(SW_SHOW);
+	DebugPrint(_T("InitDialogComplete - once"));
 }
 
 double CDHtmlDialogEx::GetZoomRatio()
@@ -167,7 +174,7 @@ DWORD CDHtmlDialogEx::ChangeZoomType(DWORD zoomType)
 	return zoomType;
 }
 
-void CDHtmlDialogEx::InitDHtmlDialog(DWORD sizeX, DWORD sizeY, CString dialogPath)
+void CDHtmlDialogEx::InitDialogEx(DWORD sizeX, DWORD sizeY, CString dialogPath)
 {
 // Enabled Visual Style
 	DOCHOSTUIINFO info;
@@ -186,6 +193,9 @@ void CDHtmlDialogEx::InitDHtmlDialog(DWORD sizeX, DWORD sizeY, CString dialogPat
 	DWORD length = MAX_PATH * 3;
 	UrlCreateFromPath(dialogPath, url, &length, NULL);
 	Navigate(url, navNoHistory);
+
+//	DebugPrint(_T("SetTimer(TIMER_INIT_DHTML_DIALOG,"));
+//	SetTimer(TIMER_INIT_DHTML_DIALOG, 100, 0);
 }
 
 // 2008/1/19 //
@@ -480,4 +490,40 @@ STDMETHODIMP CDHtmlDialogEx::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid,
 		return CDHtmlEventSink::Invoke(dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
 	}
 	return S_FALSE;
+}
+
+void CDHtmlDialogEx::OnTimer(UINT_PTR nIDEvent)
+{
+	if(nIDEvent == TIMER_INIT_DHTML_DIALOG)
+	{
+		if(IsLoadHtmlCompleted())
+		{
+			DebugPrint(_T("KillTimer(TIMER_INIT_DHTML_DIALOG)"));
+			KillTimer(TIMER_INIT_DHTML_DIALOG);
+			InitDialogComplete();
+		}
+	}
+
+	return CDHtmlDialog::OnTimer(nIDEvent);
+}
+
+BOOL CDHtmlDialogEx::IsLoadHtmlCompleted()
+{
+	CComPtr<IHTMLElement> sphtmlElem = NULL;
+	GetElement(_T("complete"), &sphtmlElem);
+	if(sphtmlElem)
+	{
+		DebugPrint(_T("IsLoadHtmlCompleted - TRUE"));
+		return TRUE;
+	}
+	else
+	{
+	//	DebugPrint(_T("IsLoadHtmlCompleted - FALSE"));
+		return FALSE;
+	}
+}
+
+void CDHtmlDialogEx::HideControl(int nIDDlgItem)
+{
+	GetDlgItem(nIDDlgItem)->ShowWindow(SW_HIDE);
 }
