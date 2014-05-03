@@ -987,10 +987,18 @@ BOOL CGraphDlg::UpdateGraph()
 			i + 1, m_Model[i],
 			values);
 */
-		cstr.Format(_T("{label: \"(%d) %s\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
-			i + 1, m_Model[i],
-			GetRValue(m_LineColor[i]), GetGValue(m_LineColor[i]), GetBValue(m_LineColor[i]),
-			values);
+		if(m_Drive[i].IsEmpty())
+		{
+			cstr.Format(_T("{label: \"(%d) %s\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
+				i + 1, m_Model[i], 
+				GetRValue(m_LineColor[i]), GetGValue(m_LineColor[i]), GetBValue(m_LineColor[i]), values);
+		}
+		else
+		{
+			cstr.Format(_T("{label: \"(%d) %s [%s]\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
+				i + 1, m_Model[i], m_Drive[i],
+				GetRValue(m_LineColor[i]), GetGValue(m_LineColor[i]), GetBValue(m_LineColor[i]), values);
+		}
 
 	//	cstr.Format(_T("{label: \"%s\", color: \"rgb(%d, %d, %d)\", data:[%s]}, "),
 	//		m_Ata->vars[i].Model, rand() % 256, rand() % 256, rand() % 256, values);
