@@ -1154,11 +1154,17 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						VariantClear(&pVal);
 
 						// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=994;id=diskinfo#994
-						if(model.Find(_T("SanDisk Extreme USB Device")) == 0)
+						if(model.Find(_T("SanDisk Extreme")) == 0)
 						{
 							flagTarget = TRUE;
 							detectUSBMemory = TRUE;
-						}						
+						}
+						// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1198;id=diskinfo#1198
+						else if(model.Find(_T("Kingston DT Ultimate")) == 0)
+						{
+							flagTarget = TRUE;
+							detectUSBMemory = TRUE;
+						}
 						else if(FlagUsbMemory)
 						{
 							flagTarget = TRUE;
@@ -3274,7 +3280,19 @@ BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 	{
 		flagSmartType = TRUE;
 	}
-
+	else
+	if(asi.Attribute[ 0].Id == 0x09
+	&& asi.Attribute[ 1].Id == 0x0C
+	&& asi.Attribute[ 2].Id == 0xB1
+	&& asi.Attribute[ 3].Id == 0xB2
+	&& asi.Attribute[ 4].Id == 0xB3
+	&& asi.Attribute[ 5].Id == 0xB4
+	&& asi.Attribute[ 6].Id == 0xB7
+	)
+	{
+		flagSmartType = TRUE;
+	}
+	else 
 	if(asi.Attribute[ 0].Id == 0x09
 	&& asi.Attribute[ 1].Id == 0x0C
 	&& asi.Attribute[ 2].Id == 0xAF
@@ -3287,7 +3305,7 @@ BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 	{
 		flagSmartType = TRUE;
 	}
-
+	else 
 	if(asi.Attribute[ 0].Id == 0x05
 	&& asi.Attribute[ 1].Id == 0x09
 	&& asi.Attribute[ 2].Id == 0x0C
@@ -3300,7 +3318,7 @@ BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
-	return ((asi.Model.Find(_T("SAMSUNG")) >= 0 && asi.IsSsd) || flagSmartType == TRUE);
+	return ((asi.Model.Find(_T("SAMSUNG")) >= 0 && asi.IsSsd) || (asi.Model.Find(_T("MZ-")) >= 0 && asi.IsSsd) || flagSmartType == TRUE);
 }
 
 BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
