@@ -932,11 +932,11 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 	GetPrivateProfileString(disk, _T("HealthStatus"), _T("0"), str, 256, dir + _T("\\") + SMART_INI);
 	pre = _tstoi(str);
 
-	if(m_Ata.vars[i].DiskStatus == 0)
+	if(m_Ata.vars[i].DiskStatus == m_Ata.DISK_STATUS_UNKNOWN)
 	{
 
 	}
-	else if(m_Ata.vars[i].DiskStatus > (DWORD)pre && pre != 0)
+	else if(m_Ata.vars[i].DiskStatus > (DWORD)pre && m_Ata.vars[i].DiskStatus != m_Ata.DISK_STATUS_GOOD)
 	{
 		cstr.Format(_T("%s: [%s] -> [%s]\r\n"), i18n(_T("Dialog"), _T("HEALTH_STATUS")),
 					GetDiskStatus(pre), GetDiskStatus(m_Ata.vars[i].DiskStatus));
@@ -948,7 +948,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		AlertSound(601, AS_SET_SOUND_ID);
 #endif
 	}
-	else if(m_Ata.vars[i].DiskStatus < (DWORD)pre && pre != 0)
+	else if(m_Ata.vars[i].DiskStatus < (DWORD)pre)
 	{
 		cstr.Format(_T("%s: [%s] -> [%s]\r\n"), i18n(_T("Dialog"), _T("HEALTH_STATUS")),
 					GetDiskStatus(pre), GetDiskStatus(m_Ata.vars[i].DiskStatus));
