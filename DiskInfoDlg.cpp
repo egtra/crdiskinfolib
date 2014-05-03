@@ -1027,7 +1027,14 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		{
 			if(CTime::GetTickCount() > preTime[i] + ALARM_TEMPERATURE_PERIOD)
 			{
-				cstr.Format(_T("%s: %d C\r\n"), i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), m_Ata.vars[i].Temperature);
+				if(m_FlagFahrenheit)
+				{
+					cstr.Format(_T("%s: %d F\r\n"), i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), m_Ata.vars[i].Temperature * 9 / 5 + 32);
+				}
+				else
+				{
+					cstr.Format(_T("%s: %d C\r\n"), i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), m_Ata.vars[i].Temperature);
+				}
 				AddEventLog(606, 2, name + cstr);
 				SendMail(606, title, cstr);
 #ifdef ALERT_VOICE_SUPPORT
@@ -1216,7 +1223,16 @@ void CDiskInfoDlg::AlarmOverheat()
 		if(m_Ata.vars[i].AlarmTemperature > 0 && m_Ata.vars[i].Temperature >= m_Ata.vars[i].AlarmTemperature)
 		{
 			diskStatus = GetDiskStatus(m_Ata.vars[i].DiskStatus);
-			cstr.Format(_T("(%d) %s [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus, m_Ata.vars[i].Temperature);
+			
+			if(m_FlagFahrenheit)
+			{
+				cstr.Format(_T("(%d) %s [%s] %d F\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus, m_Ata.vars[i].Temperature * 9 / 5 + 32);
+			}
+			else
+			{
+				cstr.Format(_T("(%d) %s [%s] %d C\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus, m_Ata.vars[i].Temperature);
+			}
+			
 			overheat += cstr;
 		}
 	}

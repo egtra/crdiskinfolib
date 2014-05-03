@@ -68,6 +68,7 @@ public:
 		POWER_ON_HALF_MINUTES,
 		POWER_ON_SECONDS,
 		POWER_ON_10_MINUTES,
+		POWER_ON_MILLI_SECONDS,
 	};
 
 	enum COMMAND_TYPE
@@ -418,6 +419,7 @@ public:
 		INT					HostWrites;
 		INT					HostReads;
 		INT					GBytesErased;
+		INT					NandWrites;
 
 		INT					Life;
 
@@ -489,6 +491,7 @@ public:
 
 	BOOL IsWorkaroundHD204UI;
 	BOOL IsWorkaroundAdataSsd;
+
 	DWORD MeasuredGetTickCount;
 
 	BOOL FlagUsbSat;
@@ -560,7 +563,6 @@ protected:
 	BOOL IsSsdJMicron61x(ATA_SMART_INFO &asi);
 	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
-	BOOL IsSsdSamsung2(ATA_SMART_INFO &asi);
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
 	BOOL IsSsdMicron(ATA_SMART_INFO &asi);
 

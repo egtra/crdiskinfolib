@@ -824,7 +824,7 @@ void CGraphDlg::InitMenuBar()
 	// HostWrites
 	if(flagAttribute[0xE1])
 	{
-		cstr.Format(_T("<option value=\"481\">%s[E1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("E1"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"481\">%s[E1] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 481)
 		{
@@ -836,7 +836,7 @@ void CGraphDlg::InitMenuBar()
 	// HostWrites
 	if(flagAttribute[0xF1])
 	{
-		cstr.Format(_T("<option value=\"497\">%s[F1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("F1"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"497\">%s[F1] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 497)
 		{
@@ -848,9 +848,21 @@ void CGraphDlg::InitMenuBar()
 	// HostReads
 	if(flagAttribute[0xF2])
 	{
-		cstr.Format(_T("<option value=\"498\">%s[F2] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("F2"), m_FlagSmartEnglish));
+		cstr.Format(_T("<option value=\"498\">%s[F2] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_HOST_READS"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 498)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
+	// NandWrites
+	if(flagAttribute[0xF9])
+	{
+		cstr.Format(_T("<option value=\"505\">%s[F2] %s (GB)</option>"), space, i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"), m_FlagSmartEnglish));
+		select += cstr;
+		if(SelectedAttributeId == 505)
 		{
 			index = counter;
 		}
@@ -952,6 +964,7 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1E1:fileName = _T("HostWrites");					min = 0; break;
 		case 0x1F1:fileName = _T("HostWrites");					min = 0; break;
 		case 0x1F2:fileName = _T("HostReads");					min = 0; break;
+		case 0x1F9:fileName = _T("NandWrites");					min = 0; break;
 		case 0x164:fileName = _T("GBytesErased");				min = 0; break;
 		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:

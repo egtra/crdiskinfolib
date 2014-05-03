@@ -342,8 +342,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,2,0,2012
- PRODUCTVERSION 4,2,0,2012
+ FILEVERSION 4,3,0,2012
+ PRODUCTVERSION 4,3,0,2012
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -361,12 +361,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.2.0.2012"
+            VALUE "FileVersion", "4.3.0.2012"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2012 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.2.0.2012"
+            VALUE "ProductVersion", "4.3.0.2012"
         END
     END
     BLOCK "VarFileInfo"

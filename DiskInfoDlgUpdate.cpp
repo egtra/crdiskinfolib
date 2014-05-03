@@ -1119,8 +1119,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		}
 	}
 	
-	// Temp
-	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE) && m_Ata.vars[i].HostReads >= 0)
+	if(m_Ata.vars[i].HostReads >= 0)
 	{
 		if(m_Ata.vars[i].HostReads > 1024 * 1024)
 		{
@@ -1135,7 +1134,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 			m_BufferSize.Format(_T("%d GB"), m_Ata.vars[i].HostReads);
 		}
 		
-		m_LabelBufferSize = i18n(_T("SmartIntel"), _T("F2"));
+		m_LabelBufferSize = i18n(_T("DIALOG"), _T("TOTAL_HOST_READS"));
 
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
@@ -1158,8 +1157,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("unsupported"));
 	}
 
-	// Temp
-	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG) && m_Ata.vars[i].HostWrites >= 0)
+	if(m_Ata.vars[i].HostWrites >= 0)
 	{
 		if(m_Ata.vars[i].HostWrites > 1024 * 1024)
 		{
@@ -1174,7 +1172,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 			m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].HostWrites);
 		}
 
-		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("F1"));
+		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"));
 	}
 	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{
@@ -1187,7 +1185,13 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	}
 
-	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE && m_Ata.vars[i].GBytesErased > 0)
+	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL && m_Ata.vars[i].NandWrites >= 0)
+	{
+		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].NandWrites);		
+		m_LabelRotationRate = i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"));
+		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
+	}
+	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE && m_Ata.vars[i].GBytesErased >= 0)
 	{
 		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);		
 		m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
@@ -1196,16 +1200,19 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	else if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
 		m_RotationRate = _T("---- (SSD)");
+		m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
 		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
 	else if(m_Ata.vars[i].NominalMediaRotationRate > 0)
 	{
 		m_RotationRate.Format(_T("%d RPM"), m_Ata.vars[i].NominalMediaRotationRate);
+		m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
 		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
 	else
 	{
 		m_RotationRate = i18n(_T("Dialog"), _T("UNKNOWN"));
+		m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
 		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("unsupported"));
 	}
 
@@ -1858,26 +1865,32 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	m_LabelPowerOnHours = i18n(_T("Dialog"), _T("POWER_ON_HOURS"));
 	m_LabelPowerOnCount = i18n(_T("Dialog"), _T("POWER_ON_COUNT"));
 	m_LabelFeature = i18n(_T("Dialog"), _T("FEATURE"));
-	m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
 	m_LabelDriveMap = i18n(_T("Dialog"), _T("DRIVE_LETTER"));
 	m_LabelInterface = i18n(_T("Dialog"), _T("INTERFACE"));
 	m_LabelTransferMode = i18n(_T("Dialog"), _T("TRANSFER_MODE"));
 	m_LabelAtaAtapi = i18n(_T("Dialog"), _T("STANDARD"));
 	m_LabelDiskStatus = i18n(_T("Dialog"), _T("HEALTH_STATUS"));
 	m_LabelSmartStatus = i18n(_T("Dialog"), _T("SMART_STATUS"));
-	if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
-	{
-		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
-	}
-	else if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE && m_Ata.vars[m_SelectDisk].GBytesErased > 0)
-	{
-		m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("64"));
-	}
-	else
-	{
-		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
-	}
+	m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
+	m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
+	
+	if(m_Ata.vars.GetCount() > 0)
+	{
+		if(m_Ata.vars[m_SelectDisk].HostReads >= 0)
+		{
+			m_LabelBufferSize = i18n(_T("Dialog"), _T("TOTAL_HOST_READS"));
+		}
+
+		if(m_Ata.vars[m_SelectDisk].HostWrites >= 0)
+		{
+			m_LabelNvCacheSize = i18n(_T("Dialog"), _T("TOTAL_HOST_WRITES"));
+		}
+		if(m_Ata.vars[m_SelectDisk].GBytesErased >= 0)
+		{
+			m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
+		}
+	}
 
 	UpdateData(FALSE);
 
@@ -2081,7 +2094,7 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 		AppendLog(dir, disk, _T("PowerOnHours"), time, m_Ata.vars[i].MeasuredPowerOnHours, flagFirst);
 	}
 
-	if(m_Ata.vars[i].PowerOnCount > 0)
+	if(m_Ata.vars[i].PowerOnCount >= 0)
 	{
 		AppendLog(dir, disk, _T("PowerOnCount"), time, m_Ata.vars[i].PowerOnCount, flagFirst);
 	}
@@ -2101,11 +2114,16 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 		AppendLog(dir, disk, _T("HostReads"), time, m_Ata.vars[i].HostReads, flagFirst);
 	}
 
+	if(m_Ata.vars[i].NandWrites >= 0)
+	{
+		AppendLog(dir, disk, _T("NandWrites"), time, m_Ata.vars[i].NandWrites, flagFirst);
+	}
+
 	if(m_Ata.vars[i].GBytesErased >= 0)
 	{
 		AppendLog(dir, disk, _T("GBytesErased"), time, m_Ata.vars[i].GBytesErased, flagFirst);
 	}
-
+	
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
 	{
 		cstr.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);

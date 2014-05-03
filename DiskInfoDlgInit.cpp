@@ -194,7 +194,11 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 		int unitType = GetPrivateProfileInt(_T("PowerOnUnit"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
 		if(unitType >= 0)
 		{
-			if(m_Ata.vars[i].DetectedTimeUnitType == m_Ata.POWER_ON_10_MINUTES)
+			if(m_Ata.vars[i].DetectedTimeUnitType == m_Ata.POWER_ON_MILLI_SECONDS)
+			{
+				unitType = m_Ata.POWER_ON_MILLI_SECONDS;
+			}
+			else if(m_Ata.vars[i].DetectedTimeUnitType == m_Ata.POWER_ON_10_MINUTES)
 			{
 				unitType = m_Ata.POWER_ON_10_MINUTES;
 			}

@@ -399,7 +399,11 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 
 		DWORD test = vars[i].PowerOnRawValue - vars[i].PowerOnStartRawValue;
 
-		if(vars[i].DetectedTimeUnitType == POWER_ON_10_MINUTES)
+		if(vars[i].DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+		{
+			vars[i].MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
+		}
+		else if(vars[i].DetectedTimeUnitType == POWER_ON_10_MINUTES)
 		{
 			vars[i].MeasuredTimeUnitType = POWER_ON_10_MINUTES;
 		}
@@ -1772,6 +1776,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.HostWrites = -1;
 	asi.HostReads = -1;
 	asi.GBytesErased = -1;
+	asi.NandWrites = -1;
 
 	asi.Major = 0;
 	asi.Minor = 0;
@@ -1884,7 +1889,12 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 						identify->UltraDmaMode, asi.CurrentTransferMode, asi.MaxTransferMode,
 						asi.Interface, &asi.InterfaceType);
 	asi.DetectedTimeUnitType = GetTimeUnitType(asi.Model, asi.FirmwareRev, asi.Major, asi.TransferModeType);
-	if(asi.DetectedTimeUnitType == POWER_ON_10_MINUTES && asi.MeasuredTimeUnitType != POWER_ON_10_MINUTES)
+
+	if(asi.DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+	{
+		asi.MeasuredTimeUnitType = POWER_ON_MILLI_SECONDS;
+	}
+	else if(asi.DetectedTimeUnitType == POWER_ON_10_MINUTES)
 	{
 		asi.MeasuredTimeUnitType = POWER_ON_10_MINUTES;
 	}
@@ -2289,7 +2299,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 		asi.IsRawValues8 = TRUE;
-		return ;
 	}
 	else if(IsSsdJMicron61x(asi))
 	{
@@ -2297,7 +2306,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.DiskVendorId = SSD_VENDOR_JMICRON;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
-		return ;
 	}
 	else if(IsSsdIndlinx(asi))
 	{
@@ -2317,13 +2325,6 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 	else if(IsSsdSamsung(asi))
 	{
 		asi.SmartKeyName = _T("SmartSamsung");
-		asi.DiskVendorId = SSD_VENDOR_SAMSUNG;
-		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
-		asi.IsSsd = TRUE;
-	}
-	else if(IsSsdSamsung2(asi))
-	{
-		asi.SmartKeyName = _T("SmartSamsung2");
 		asi.DiskVendorId = SSD_VENDOR_SAMSUNG;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
@@ -2434,6 +2435,27 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			else if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
 			{
 				asi.HostReads  = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
+			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+			{
+				asi.HostReads  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
+			break;
+		case 0xF9:
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
+			{
+				asi.NandWrites  = (INT)(MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					));
@@ -2623,10 +2645,11 @@ BOOL CAtaSmart::IsSsdIntel(ATA_SMART_INFO &asi)
 		}
 	}
 
-	return (asi.Model.Find(_T("INTEL")) == 0 || asi.Model.Find(_T(" INTEL")) > 0 || flagSmartType == TRUE);
+	return (asi.Model.Find(_T("INTEL")) >= 0 || flagSmartType == TRUE);
 }
 
 
+// http://www.samsung.com/us/business/oem-solutions/pdfs/General_NSSD_25_SATA_III_Spec_0.2.pdf
 BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 {
 	BOOL flagSmartType = FALSE;
@@ -2654,14 +2677,6 @@ BOOL CAtaSmart::IsSsdSamsung(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
-	return flagSmartType;
-}
-
-// http://www.samsung.com/us/business/oem-solutions/pdfs/General_NSSD_25_SATA_III_Spec_0.2.pdf
-BOOL CAtaSmart::IsSsdSamsung2(ATA_SMART_INFO &asi)
-{
-	BOOL flagSmartType = FALSE;
-
 	if(asi.Attribute[ 0].Id == 0x05
 	&& asi.Attribute[ 1].Id == 0x09
 	&& asi.Attribute[ 2].Id == 0x0C
@@ -2674,7 +2689,7 @@ BOOL CAtaSmart::IsSsdSamsung2(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
-	return flagSmartType;
+	return ((asi.Model.Find(_T("SAMSUNG")) >= 0 && asi.IsSsd) || flagSmartType == TRUE);
 }
 
 BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
@@ -2704,7 +2719,7 @@ BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
-	return (asi.Model.Find(_T("SandForce")) == 0 || flagSmartType);
+	return (asi.Model.Find(_T("SandForce")) >= 0 || flagSmartType);
 }
 
 
@@ -4544,6 +4559,19 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 				{
 					rawValue = asi->Attribute[j].WorstValue * 256 + asi->Attribute[j].CurrentValue;
 				}
+				// Intel SSD 520 Series
+				else if(asi->DetectedTimeUnitType == POWER_ON_MILLI_SECONDS)
+				{
+					int value = 0; 
+					rawValue = value = asi->Attribute[j].RawValue[2] * 256 * 256
+									 + asi->Attribute[j].RawValue[1] * 256
+									 + asi->Attribute[j].RawValue[0] - 0x0DA753; // http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=560;id=diskinfo#560
+					if(value < 0)
+					{
+						rawValue = 0;
+					}
+				}
+
 				asi->PowerOnRawValue = rawValue;
 				asi->DetectedPowerOnHours = GetPowerOnHours(rawValue, asi->DetectedTimeUnitType);
 				asi->MeasuredPowerOnHours = GetPowerOnHours(rawValue, asi->MeasuredTimeUnitType);
@@ -4666,6 +4694,27 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
 				{
 					asi->HostReads  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
+				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SAMSUNG)
+				{
+					asi->HostReads  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
+				break;
+			case 0xF9:
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
+				{
+					asi->NandWrites  = (INT)(MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						));
@@ -4942,6 +4991,9 @@ DWORD CAtaSmart::GetPowerOnHours(DWORD rawValue, DWORD timeUnitType)
 	case POWER_ON_10_MINUTES:
 		return rawValue / 6;
 		break;
+	case POWER_ON_MILLI_SECONDS:
+		return rawValue;
+		break;
 	default:
 		return rawValue;
 		break;
@@ -4970,6 +5022,9 @@ DWORD CAtaSmart::GetPowerOnHoursEx(DWORD i, DWORD timeUnitType)
 		break;
 	case POWER_ON_10_MINUTES:
 		return rawValue / 6;
+		break;
+	case POWER_ON_MILLI_SECONDS:
+		return rawValue;
 		break;
 	default:
 		return rawValue;
@@ -5092,6 +5147,10 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 	{
 		return POWER_ON_10_MINUTES;
 	}
+	else if(model.Find(_T("INTEL SSDSC2CW")) == 0)
+	{
+		return POWER_ON_MILLI_SECONDS;
+	}
 	else
 	{
 		return POWER_ON_HOURS;
@@ -5122,11 +5181,11 @@ DWORD CAtaSmart::GetAtaMajorVersion(WORD w80, CString &majorVersion)
 	}
 	else if(major == 10)
 	{
-		majorVersion = _T("ACS3");
+		majorVersion = _T("ACS-3");
 	}
 	else if(major == 9)
 	{
-		majorVersion = _T("ACS2");
+		majorVersion = _T("ACS-2");
 	}
 	else if(major == 8)
 	{
