@@ -29,12 +29,17 @@ public:
 	COLORREF GetBkColor2();
 	COLORREF GetLineColor();
 
+	void SetFontSize(double zoomRatio);
+
 protected:
 	COLORREF m_TextColor1;
 	COLORREF m_TextColor2;
 	COLORREF m_BkColor1;
 	COLORREF m_BkColor2;
 	COLORREF m_LineColor;
+
+	CFont    m_Font;
+	CImageList m_Image;
 
 	DECLARE_MESSAGE_MAP()
 public:

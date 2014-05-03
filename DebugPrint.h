@@ -4,9 +4,10 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                                Copyright 2008 hiyohiyo. All rights reserved.
+//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once
 
+void SetDebugMode(DWORD mode);
 void DebugPrint(CString cstr);

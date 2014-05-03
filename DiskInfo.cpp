@@ -39,7 +39,6 @@ CDiskInfoApp::CDiskInfoApp()
 // The one and only CDiskInfoApp object
 
 CDiskInfoApp theApp;
-CString m_Ini;
 
 //-----------------------------------------------------------------------------
 // Prototypes
@@ -51,6 +50,7 @@ static BOOL RunAsRestart();
 BOOL CDiskInfoApp::InitInstance()
 {
 	BOOL flagEarthlight = FALSE;
+	BOOL flagStartupExit = FALSE;
 	int defaultDisk = -1;
 	HANDLE hMutex = NULL;
 
@@ -86,14 +86,15 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 	m_Ini = ini;
 
-	int argc;
+	int argc = 0;
+	int index = 0;
 	LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
 	if(argc > 1)
 	{
 		CString cstr;
 		cstr = argv[1];
-		if(cstr.Compare(_T("/Earthlight")) == 0)
+		if(cstr.CompareNoCase(_T("/Earthlight")) == 0)
 		{
 			flagEarthlight = TRUE;
 			if(argc > 2)
@@ -101,7 +102,7 @@ BOOL CDiskInfoApp::InitInstance()
 				defaultDisk = _tstoi(argv[2]);
 			}
 		}
-		if(cstr.Compare(_T("/Startup")) == 0)
+		if(cstr.CompareNoCase(_T("/Startup")) == 0)
 		{
 			int time = 0;
 			time = GetPrivateProfileInt(_T("Setting"), _T("StartupWaitTime"), 30, m_Ini);
@@ -113,6 +114,10 @@ BOOL CDiskInfoApp::InitInstance()
 			::GetModuleFileName(NULL, str, MAX_PATH);
 			ShellExecute(NULL, NULL, str, NULL, NULL, SW_SHOWNORMAL);
 			return FALSE;
+		}
+		if(cstr.CompareNoCase(_T("/Exit")) == 0)
+		{
+			flagStartupExit = TRUE;
 		}
 	}
 
@@ -160,7 +165,6 @@ BOOL CDiskInfoApp::InitInstance()
 		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR MAIN_DIALOG, tmp);
 	}
 
-
 	m_AboutDlgPath.Format(_T("%s\\") DIALOG_DIR ABOUT_DIALOG, tmp);
 	m_SettingDlgPath.Format(_T("%s\\") DIALOG_DIR SETTING_DIALOG, tmp);
 	m_HealthDlgPath.Format(_T("%s\\") DIALOG_DIR HEALTH_DIALOG, tmp);
@@ -191,15 +195,29 @@ BOOL CDiskInfoApp::InitInstance()
 	{
 		CGraphDlg dlg(NULL, defaultDisk);
 		m_pMainWnd = &dlg;
-		INT_PTR nResponse = dlg.DoModal();		
+		INT_PTR nResponse = dlg.DoModal();
 	}
 	else
 	{
-		CDiskInfoDlg dlg;
+		CDiskInfoDlg dlg(NULL, flagStartupExit);
 		m_pMainWnd = &dlg;
-		INT_PTR nResponse = dlg.DoModal();
+
+		BOOL flagReExec = FALSE;
+
+		if(dlg.DoModal() == RE_EXEC)
+		{
+			flagReExec = TRUE;
+		}
+
 		::ReleaseMutex(hMutex);
 		::CloseHandle(hMutex);
+
+		if(flagReExec)
+		{
+			TCHAR str[MAX_PATH];
+			::GetModuleFileName(NULL, str, MAX_PATH);
+			ShellExecute(NULL, NULL, str, NULL, NULL, SW_SHOWNORMAL);
+		}
 	}
 
 	// CoUninitialize();

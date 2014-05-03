@@ -26,7 +26,7 @@ class CDiskInfoDlg : public CDHtmlMainDialog
 {
 // Construction
 public:
-	CDiskInfoDlg(CWnd* pParent = NULL);	// standard constructor
+	CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStarupExit);
 	virtual ~CDiskInfoDlg();
 
 	CAtaSmart m_Ata;
@@ -62,6 +62,7 @@ public:
 	{
 		MY_EXIT = (WM_APP + 0x1100),
 		MY_SHOW_MAIN_DIALOG,
+		MY_SHOW_TEMPERATURE_ICON_ONLY,
 	};
 
 	HMENU m_hMenu;
@@ -72,8 +73,11 @@ public:
 // Implementation
 protected:
 	HICON m_hIcon;
+	HICON m_hIconMini;
 	HICON m_hTempIcon[2][100];
 	UINT m_TempIconIndex[CAtaSmart::MAX_DISK];
+
+	UINT m_MainIconId;
 
 	CAboutDlg*		m_AboutDlg;
 	CSettingDlg*	m_SettingDlg;
@@ -101,19 +105,21 @@ protected:
 	int m_PreTemp[CAtaSmart::MAX_DISK];
 	BOOL m_FlagTrayTemperatureIcon[CAtaSmart::MAX_DISK];
 	BOOL m_FlagAutoRefreshTarget[CAtaSmart::MAX_DISK];
+	BOOL m_FlagTrayMainIcon;
 
 	// Options
+	BOOL m_FlagStartupExit;
 	BOOL m_FlagHideSmartInfo;
 	BOOL m_FlagHideSerialNumber;
 	BOOL m_FlagAdvancedDiskSearch;
 	BOOL m_FlagEventLog;
-	BOOL m_FlagEventLogMenu;
-	BOOL m_FlagUseEventCreate;		// Use eventcreate.exe (XP Pro or later)
+//	BOOL m_FlagUseEventCreate;		// Use eventcreate.exe (XP Pro or later)
 	BOOL m_FlagFahrenheit;
 	BOOL m_FlagAutoAamApm;
 	BOOL m_FlagDumpIdentifyDevice;
 	BOOL m_FlagDumpSmartReadData;
 	BOOL m_FlagDumpSmartReadThreshold;
+	BOOL m_FlagShowTemperatureIconOnly;
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -178,6 +184,10 @@ protected:
 	void CheckResident();
 	void CheckStartup();
 	void AutoAamApmAdaption();
+	void ShowTemperatureIconOnly();
+
+	BOOL AddTrayMainIcon();
+	BOOL RemoveTrayMainIcon();
 
 	CString GetDiskStatus(DWORD statusCode);
 	CString GetDiskStatusClass(DWORD statusCode);
@@ -190,14 +200,18 @@ protected:
 
 	void CheckRadioAutoRefresh(int id, int value);
 	void CheckRadioWaitTime(int id, int value);
+	BOOL CheckRadioZoomType(int id, int value);
 	void CheckRadioAutoRefresh();
 	void CheckRadioWaitTime();
+	void CheckRadioZoomType();
+	void ReExecute();
 	void AlarmOverheat();
 	void AlarmHealthStatus(DWORD i, CString dir, CString disk);
 	void CheckPage();
 	void CheckTrayTemperatureIcon();
 	void UpdateTrayTemperatureIcon(BOOL flagForce);
 	void UpdateToolTip();
+	BOOL IsTemperatureIconExist();
 
 	void TaskTrayRightMenu(DWORD index);
 	void SaveSmartInfo(DWORD index);
@@ -341,4 +355,9 @@ public:
 	afx_msg void OnDumpSmartReadThreshold();
 	afx_msg void OnResidentMinimize();
 	afx_msg void OnResidentHide();
+	afx_msg void OnZoom100();
+	afx_msg void OnZoom125();
+	afx_msg void OnZoom150();
+	afx_msg void OnZoom200();
+	afx_msg void OnZoomAuto();
 };	

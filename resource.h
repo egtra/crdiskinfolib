@@ -20,6 +20,8 @@
 #define IDD_OPTION                      143
 #define IDD_SETTING                     144
 #define IDD_HEALTH                      145
+#define IDI_TRAY_ICON                   145
+#define IDI_MINI_ICON                   145
 #define IDI_TEMP00                      200
 #define IDI_TEMP01                      201
 #define IDI_TEMP02                      202
@@ -356,13 +358,27 @@
 #define ID_DUMP_SMART_READ_THRESHOLD    32989
 #define ID_RESIDENT_HIDE                32993
 #define ID_RESIDENT_MINIMIZE            32994
+#define ID_FUNCTION_ZOOM                32995
+#define ID_ZOOM_100                     32996
+#define ID_ZOOM_125                     32997
+#define ID_ZOOM_150                     32998
+#define ID_ZOOM_200                     32999
+#define ID_ZOOM_AUTO                    33000
+#define ID_HDD                          33001
+#define ID_SSD                          33002
+#define ID_SSD_INDILINX                 33003
+#define ID_SSD_MTRON                    33004
+#define ID_SSD_JMICRON                  33005
+#define ID_SSD_INTEL                    33006
+#define ID_SSD_SAMSUNG                  33007
+#define ID_Menu                         33008
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        145
-#define _APS_NEXT_COMMAND_VALUE         32995
+#define _APS_NEXT_RESOURCE_VALUE        146
+#define _APS_NEXT_COMMAND_VALUE         33009
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

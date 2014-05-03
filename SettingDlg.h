@@ -24,7 +24,6 @@ public:
 	enum { IDD = IDD_SETTING, IDH = IDR_HTML_DUMMY };
 
 protected:
-	HICON m_hIcon;
 	DWORD m_DiskIndex;
 	CString m_SelectDisk;
 
@@ -46,8 +45,6 @@ protected:
 	CString m_DisableAam;
 	CString m_EnableApm;
 	CString m_DisableApm;
-
-	VARIANT dummy;
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();

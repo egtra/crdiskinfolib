@@ -12,6 +12,8 @@
 #include "DiskInfoDlg.h"
 #include "GetFileVersion.h"
 
+#include "DebugPrint.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -23,7 +25,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	CDHtmlMainDialog::OnInitDialog();
 
 	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+	SetIcon(m_hIconMini, FALSE);		// Set small icon
 
 	InitThemeLang();
 	InitMenu();
@@ -41,22 +43,31 @@ BOOL CDiskInfoDlg::OnInitDialog()
 
 	switch(GetPrivateProfileInt(_T("Setting"), _T("StartupWaitTime"), 30, m_Ini))
 	{
-	case   0:  OnWait0Sec(); break;
-	case   5:  OnWait5Sec(); break;
-	case  10:  OnWait10Sec(); break;
-	case  15:  OnWait15Sec(); break;
-	case  20:  OnWait20Sec(); break;
-	case  30:  OnWait30Sec(); break;
-	case  40:  OnWait40Sec(); break;
-	case  50:  OnWait50Sec(); break;
-	case  60:  OnWait60Sec(); break;
-	case  90:  OnWait90Sec(); break;
+	case   0: OnWait0Sec();   break;
+	case   5: OnWait5Sec();   break;
+	case  10: OnWait10Sec();  break;
+	case  15: OnWait15Sec();  break;
+	case  20: OnWait20Sec();  break;
+	case  30: OnWait30Sec();  break;
+	case  40: OnWait40Sec();  break;
+	case  50: OnWait50Sec();  break;
+	case  60: OnWait60Sec();  break;
+	case  90: OnWait90Sec();  break;
 	case 120: OnWait120Sec(); break;
 	case 150: OnWait150Sec(); break;
 	case 180: OnWait180Sec(); break;
 	case 210: OnWait210Sec(); break;
 	case 240: OnWait240Sec(); break;
-	default:  OnWait0Sec(); break;
+	default:  OnWait0Sec();   break;
+	}
+
+	switch(GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), 0, m_Ini))
+	{
+	case 100:  CheckRadioZoomType(ID_ZOOM_100, 100); break;
+	case 125:  CheckRadioZoomType(ID_ZOOM_125, 125); break;
+	case 150:  CheckRadioZoomType(ID_ZOOM_150, 150); break;
+	case 200:  CheckRadioZoomType(ID_ZOOM_200, 200); break;
+	default:   CheckRadioZoomType(ID_ZOOM_AUTO, 0); break;
 	}
 
 	switch(GetPrivateProfileInt(_T("Setting"), _T("Temperature"), 0, m_Ini))
@@ -70,6 +81,12 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	case   1:	OnResidentMinimize(); break;
 	default:	OnResidentHide();	  break;
 	}
+
+	CString cstr;
+	DWORD debugMode = GetPrivateProfileInt(_T("Setting"), _T("DebugMode"), 0, m_Ini);
+	SetDebugMode(debugMode);
+	cstr.Format(_T("%d"), debugMode);
+	WritePrivateProfileString(_T("Setting"), _T("DebugMode"), cstr, m_Ini);
 
 	// USB/IEEE1394 Support
 	m_Ata.FlagUsbSat     = ! GetPrivateProfileInt(_T("USB"), _T("SAT"), 1, m_Ini);
@@ -88,24 +105,29 @@ BOOL CDiskInfoDlg::OnInitDialog()
 
 	if(! InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL))
 	{
-		AfxMessageBox(i18n(_T("Message"), _T("PLEASE_ENABLE_WMI")));
-		ShellExecute(NULL, NULL, _T("services.msc"), NULL, NULL, SW_SHOWNORMAL);	
-		EndDialog(0);
+//		AfxMessageBox(i18n(_T("Message"), _T("PLEASE_ENABLE_WMI")));
+//		ShellExecute(NULL, NULL, _T("services.msc"), NULL, NULL, SW_SHOWNORMAL);	
+//		EndDialog(0);
 	}
-	else
+//	else
 	{
-		CheckResident();
-		InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
-		InitListCtrl();
-		SetWindowTitle(_T("Initializing..."));
-	}
+		if(m_FlagStartupExit)
+		{
+			EndDialog(0);
+			return FALSE;
+		}
 
+		EnableDpiAware();
+		InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
+	//	SetWindowTitle(_T("Initializing..."));
+	}
+/*
 	DEV_BROADCAST_DEVICEINTERFACE filter;
 	filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
 	filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 	filter.dbcc_classguid = StrageGUID;
-
-//	m_hDevNotify = RegisterDeviceNotification(m_hWnd, &filter, DEVICE_NOTIFY_WINDOW_HANDLE);
+	m_hDevNotify = RegisterDeviceNotification(m_hWnd, &filter, DEVICE_NOTIFY_WINDOW_HANDLE);
+*/
 
 	return TRUE; 
 }
@@ -122,17 +144,19 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			CheckStartup();
 			CheckHideSerialNumber();
 			ChangeTheme(m_CurrentTheme);
-			ChangeLang(m_CurrentLang);
+			ChangeZoomType(m_ZoomType);
 			UpdateDialogSize();
+			ChangeLang(m_CurrentLang);
 			CheckPage();
 			
 			m_FlagShowWindow = TRUE;		
 
 			CenterWindow();
+
 			if(m_FlagResident)
 			{
 				AlarmOverheat();
-				CheckTrayTemperatureIcon();
+			//	CheckTrayTemperatureIcon();
 				if(! m_FlagResidentMinimize)
 				{
 					m_FlagShowWindow = FALSE;
@@ -150,6 +174,7 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 			once = TRUE;
 			m_FlagInitializing = FALSE;
+
 		}
 	}
 }
@@ -171,6 +196,11 @@ BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 
 	if(m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk))
 	{
+		if(! m_FlagStartupExit)
+		{
+			CheckResident();
+		}
+
 		DWORD errorCount = 0;
 		for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 		{
@@ -226,7 +256,7 @@ void CDiskInfoDlg::InitListCtrl()
 	// Get Cntrol Width
 	// CRect cr;
 	// m_List.GetWindowRect(&cr);
-	width = 620 - GetSystemMetrics(SM_CXVSCROLL);
+	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
 
 	DWORD style = ListView_GetExtendedListViewStyle(m_List.m_hWnd);
 	style |= LVS_EX_FULLROWSELECT | /*LVS_EX_GRIDLINES |*/ LVS_EX_LABELTIP ;
@@ -237,12 +267,12 @@ void CDiskInfoDlg::InitListCtrl()
 	while(m_List.DeleteColumn(0)){}
 	m_List.DeleteAllItems();
 	m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-	m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, 35, 0);
-	m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, 70, 0);
-	m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, 70, 0);
-	m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, 70, 0);
-	m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, 100, 0);
-	m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, width - 375, 0);
+	m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+	m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+	m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+	m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+	m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(124 * m_ZoomRatio), 0);
+	m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 372 * m_ZoomRatio - 25), 0);
 }
 
 CString CDiskInfoDlg::GetDiskStatus(DWORD statusCode)
@@ -326,7 +356,7 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 			&& 	m_Ata.vars[index].Attribute[j].CurrentValue < m_Ata.vars[index].Threshold[j].ThresholdValue)
 			{
 				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
-				result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" (") + cstr + _T(") ")+ i18n(_T("Smart"), cstr);
+				result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" (") + cstr + _T(") ")+ i18n(m_Ata.vars[index].SmartKeyName, cstr);
 				cstr.Format(_T("\n"));
 				result += cstr;
 			}
@@ -351,7 +381,7 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 								m_Ata.vars[index].Attribute[j].RawValue[2],
 								m_Ata.vars[index].Attribute[j].RawValue[3])
 							);
-				if(value != 0xFFFFFFFF && value != 0x0)
+				if(value != 0xFFFFFFFF && value != 0x0 && ! m_Ata.vars[index].IsSsd)
 				{
 					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
 					result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ")+ i18n(_T("Smart"), cstr);
@@ -360,21 +390,56 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 				}
 				break;
 			case 0xBB:
-				if(m_Ata.vars[index].VendorId == m_Ata.VENDOR_MTRON)
+				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_MTRON)
 				{
 					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
 					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
 					{
-						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] Total Erase Count (SSD)");
+						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
 					}
 					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
 					{
-						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] Total Erase Count (SSD)");
+						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
 					}
-					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Attribute[j].CurrentValue);
+					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
 					result += cstr;
 				}
 				break;
+			case 0xD1:
+				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INDILINX)
+				{
+					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
+					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
+					{
+						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					}
+					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
+					{
+						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					}
+					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
+					result += cstr;
+				}
+				break;
+			// Debug
+			/*
+			case 0xE8:
+				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL)
+				{
+					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
+					if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION)
+					{
+						result += i18n(_T("DiskStatus"), _T("CAUTION")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					}
+					else if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
+					{
+						result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" [") + cstr + _T("] ") + i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					}
+					cstr.Format(_T(" : %d\n"), m_Ata.vars[index].Life);
+					result += cstr;
+				}
+				break;
+			*/
 			default:
 				break;
 			}
@@ -417,16 +482,13 @@ CString CDiskInfoDlg::GetLogicalDriveInfo(DWORD index)
 void CDiskInfoDlg::InitDriveList()
 {
 	CString cstr;
-	VARIANT dummy;
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
 
 	for(int i = 0; i < 8; i++)
 	{
 		m_LiDisk[i] = _T("");
 		cstr.Format(_T("Disk%d"), i);
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("hidden"));
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_TITLE, &dummy, _T(""));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("hidden"));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_TITLE, _T(""));
 	}
 
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
@@ -481,7 +543,7 @@ void CDiskInfoDlg::InitDriveList()
 				}
 			//	CString fahrenheit;
 			//	fahrenheit.Format(_T("%d ÅãF"), m_Ata.vars[i].Temperature * 9 / 5 + 32);
-			//	SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, &dummy, fahrenheit);
+			//	SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, fahrenheit);
 			}
 			else if(m_Ata.vars[i].IsSmartEnabled && m_Ata.vars[i].DiskStatus != CAtaSmart::DISK_STATUS_UNKNOWN)
 			{
@@ -505,7 +567,7 @@ void CDiskInfoDlg::InitDriveList()
 					m_LiDisk[i % 8].Format(_T("----<br>-- ÅãC<br>%s"), driveLetter);
 				}
 			}
-			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, className);
+			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_CLASSNAME, className);
 
 			if(m_Ata.vars[i].DriveMap.GetLength() > 15)
 			{
@@ -515,7 +577,7 @@ void CDiskInfoDlg::InitDriveList()
 			{
 				cstr.Format(_T("Disk %d : %s %.1f GB"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
 			}
-			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, &dummy, cstr);
+			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, cstr);
 		}
 	}
 

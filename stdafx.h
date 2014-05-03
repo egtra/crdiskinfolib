@@ -57,8 +57,8 @@
 // Version Information
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("2.7.5")
-#define PRODUCT_RELEASE			_T("2009/9/6")
+#define PRODUCT_VERSION			_T("3.0.0")
+#define PRODUCT_RELEASE			_T("2009/9/23")
 #define PRODUCT_COPY_YEAR		_T("2008-2009")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2009 hiyohiyo.")
 
@@ -77,6 +77,8 @@ static const int ALARM_SETTING_HEALTH_STATUS_BASE	= WM_APP + 0x1900;
 static const int ALARM_SETTING_TEMPERATURE_BASE		= WM_APP + 0x2000; // Main Only
 static const int GRAPH_DISK_INDEX					= WM_APP + 0x2000; // Graph Only
 
+static const int RE_EXEC = 5963;
+
 #ifdef _UNICODE
 #if defined _M_IX86
 #define PRODUCT_EDITION			_T("NT - x86 - Unicode")
@@ -88,4 +90,14 @@ static const int GRAPH_DISK_INDEX					= WM_APP + 0x2000; // Graph Only
 #endif
 #endif
 
-
+#ifdef _UNICODE
+#if defined _M_IX86
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
+#endif

@@ -83,7 +83,7 @@ BEGIN_DHTML_EVENT_MAP(CDiskInfoDlg)
 #endif
 END_DHTML_EVENT_MAP()
 
-CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/)
+CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	: CDHtmlMainDialog(CDiskInfoDlg::IDD, CDiskInfoDlg::IDH,
 	((CDiskInfoApp*)AfxGetApp())->m_ThemeDir,
 	((CDiskInfoApp*)AfxGetApp())->m_ThemeIndex,
@@ -93,10 +93,14 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/)
 {
 	m_hMenu = NULL;
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIconMini = AfxGetApp()->LoadIcon(IDI_TRAY_ICON);
+	m_MainIconId = gRegIconId;
 
 	m_SmartDir = ((CDiskInfoApp*)AfxGetApp())->m_SmartDir;
 	m_ExeDir = ((CDiskInfoApp*)AfxGetApp())->m_ExeDir;
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
+
+	m_FlagStartupExit = flagStartupExit;
 
 	m_AboutDlg = NULL;
 	m_SettingDlg = NULL;
@@ -142,6 +146,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/)
 	m_TempIconIndex[30] = gTempIcon30;
 	m_TempIconIndex[31] = gTempIcon31;
 
+	m_FlagTrayMainIcon = FALSE;
 	for(int i = 0; i < CAtaSmart::MAX_DISK; i++)
 	{
 		m_PreTemp[i] = 0;
@@ -169,11 +174,24 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/)
 	m_FlagDumpSmartReadData = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadData"), 0, m_Ini);
 	m_FlagDumpSmartReadThreshold = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadThreshold"), 0, m_Ini);
 	m_FlagResidentMinimize = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ResidentMinimize"), 0, m_Ini);
+	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
+
+	m_ZoomType = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
 
 	// Setting
 	SAVE_SMART_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("SAVE_SMART_PERIOD"), 150, m_Ini);
 	ALARM_TEMPERATURE_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("ALARM_TEMPERATURE_PERIOD"), 60 * 60, m_Ini);
 
+
+	if(m_FlagEventLog)
+	{
+		InstallEventSource();
+	}
+	else
+	{
+		UninstallEventSource();
+	}
+	/*
 	CString cstr;
 	TCHAR str[MAX_PATH];
 	GetSystemDirectory(str, MAX_PATH);
@@ -181,14 +199,13 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/)
 
 	if(IsFileExist(cstr))
 	{
-		m_FlagEventLogMenu = TRUE;
 		m_FlagUseEventCreate = TRUE;
 	}
 	else
 	{
-		m_FlagEventLogMenu = TRUE;
 		m_FlagUseEventCreate = FALSE;
 	}
+	*/
 }
 
 CDiskInfoDlg::~CDiskInfoDlg()
@@ -225,7 +242,7 @@ void CDiskInfoDlg::OnCancel()
 void CDiskInfoDlg::OnExit()
 {
 	ShowWindow(SW_HIDE);
-	RemoveTaskTray(gRegIconId);
+	RemoveTrayMainIcon();
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
 		RemoveTemperatureIcon(i);
@@ -358,8 +375,8 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
 
-	ON_MESSAGE(WM_POWERBROADCAST, OnPowerBroadcast)
-	ON_MESSAGE(WM_DEVICECHANGE, OnDeviceChange)
+//	ON_MESSAGE(WM_POWERBROADCAST, OnPowerBroadcast)
+//	ON_MESSAGE(WM_DEVICECHANGE, OnDeviceChange)
 
 	// Task Tray
 	ON_REGISTERED_MESSAGE(gRegMessageId, OnRegMessage)
@@ -437,6 +454,11 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_DUMP_SMART_READ_THRESHOLD, &CDiskInfoDlg::OnDumpSmartReadThreshold)
 	ON_COMMAND(ID_RESIDENT_HIDE, &CDiskInfoDlg::OnResidentHide)
 	ON_COMMAND(ID_RESIDENT_MINIMIZE, &CDiskInfoDlg::OnResidentMinimize)
+	ON_COMMAND(ID_ZOOM_100, &CDiskInfoDlg::OnZoom100)
+	ON_COMMAND(ID_ZOOM_125, &CDiskInfoDlg::OnZoom125)
+	ON_COMMAND(ID_ZOOM_150, &CDiskInfoDlg::OnZoom150)
+	ON_COMMAND(ID_ZOOM_200, &CDiskInfoDlg::OnZoom200)
+	ON_COMMAND(ID_ZOOM_AUTO, &CDiskInfoDlg::OnZoomAuto)
 	END_MESSAGE_MAP()
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -517,7 +539,7 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 	// Task Tray Menu
 	else if(wParam == MY_EXIT)
 	{
-		RemoveTaskTray(gRegIconId);
+		RemoveTrayMainIcon();
 		for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 		{
 			RemoveTemperatureIcon(i);
@@ -546,6 +568,10 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 		{
 			ShowWindowEx(SW_RESTORE);
 		}
+	}
+	else if(wParam == MY_SHOW_TEMPERATURE_ICON_ONLY)
+	{
+		ShowTemperatureIconOnly();
 	}
 	else if(wParam == SHOW_GRAPH_BASE + CAtaSmart::MAX_DISK)
 	{
@@ -632,9 +658,14 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
+			if(m_FlagShowTemperatureIconOnly && ! IsTemperatureIconExist())
+			{
+				AddTrayMainIcon();
+			}
 		}
 		else if(i == CAtaSmart::MAX_DISK) // Show All
 		{
+			int max = gRegIconId;
 			for(int j = (int)m_Ata.vars.GetCount() -1; j >= 0; j--)
 			{
 				if(! m_FlagTrayTemperatureIcon[j])
@@ -644,8 +675,20 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 						CString cstr;
 						cstr.Format(_T("%d"), 1);
 						WritePrivateProfileString(_T("TemperatureIcon"), m_Ata.vars[j].ModelSerial, cstr, m_Ini);
+						max = TRAY_TEMPERATURE_ICON_BASE + j;
 					}
 				}
+			}
+			if(m_FlagShowTemperatureIconOnly && IsTemperatureIconExist())
+			{
+				if(RemoveTrayMainIcon())
+				{
+					m_MainIconId = max;
+				}
+			}
+			else
+			{
+				AddTrayMainIcon();
 			}
 		}
 		else
@@ -657,15 +700,25 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 					CString cstr;
 					cstr.Format(_T("%d"), 0);
 					WritePrivateProfileString(_T("TemperatureIcon"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
+					
+					if(! IsTemperatureIconExist())
+					{
+						AddTrayMainIcon();
+					}
 				}
 			}
-			else
+			else if(AddTemperatureIcon(i))
 			{
-				if(AddTemperatureIcon(i))
+				CString cstr;
+				cstr.Format(_T("%d"), 1);
+				WritePrivateProfileString(_T("TemperatureIcon"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
+
+				if(m_FlagShowTemperatureIconOnly && IsTemperatureIconExist())
 				{
-					CString cstr;
-					cstr.Format(_T("%d"), 1);
-					WritePrivateProfileString(_T("TemperatureIcon"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
+					if(RemoveTrayMainIcon())
+					{
+						m_MainIconId = TRAY_TEMPERATURE_ICON_BASE + i;
+					}
 				}
 			}
 		}
@@ -742,7 +795,8 @@ void CDiskInfoDlg::UpdateDialogSize()
 		m_SizeX = SIZE_X;
 		m_SizeY = SIZE_Y;
 		m_FlagHideSmartInfo = TRUE;
-		SetClientRect(m_SizeX, m_SizeY, 1);
+		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 0);
+		m_List.SetFontSize(m_ZoomRatio);
 
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_CHECKED);
@@ -760,7 +814,8 @@ void CDiskInfoDlg::UpdateDialogSize()
 		{
 			m_SizeY = SIZE_SMART_Y;
 		}
-		SetClientRect(m_SizeX, m_SizeY, 1);
+		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 1);
+		m_List.SetFontSize(m_ZoomRatio);
 		m_FlagHideSmartInfo = FALSE;
 		CMenu *menu = GetMenu();
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_UNCHECKED);
@@ -777,7 +832,8 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 
 	if(flag)
 	{
-		m_List.SetWindowPos(NULL, 10, SIZE_Y, cx - 20, cy - SIZE_Y - 10, SWP_SHOWWINDOW);
+		m_List.SetWindowPos(NULL, (int)(8 * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
+		(int)(cx - 16 * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
 	}
 	flag = TRUE;
 	
@@ -786,17 +842,21 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 		RECT rect;
 		CString cstr;
 		GetClientRect(&rect);
-		cstr.Format(_T("%d"), rect.bottom - rect.top);
-		WritePrivateProfileString(_T("Setting"), _T("Height"), cstr, m_Ini);	
+		if(rect.bottom - rect.top > 0)
+		{
+			cstr.Format(_T("%d"), (DWORD)((rect.bottom - rect.top) / m_ZoomRatio));
+			WritePrivateProfileString(_T("Setting"), _T("Height"), cstr, m_Ini);
+		}
 	}
 }
 
 void CDiskInfoDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	lpMMI->ptMinTrackSize.x = 640 + GetSystemMetrics(SM_CXFRAME) * 2;
-	lpMMI->ptMinTrackSize.y = 48 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION);
-	lpMMI->ptMaxTrackSize.x = 640 + GetSystemMetrics(SM_CXFRAME) * 2;
-	lpMMI->ptMaxTrackSize.y = 1200;
+	lpMMI->ptMinTrackSize.x = (LONG)(640 * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
+	lpMMI->ptMinTrackSize.y = (LONG)(48  * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
+							+ GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION));
+	lpMMI->ptMaxTrackSize.x = (LONG)(640 * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
+	lpMMI->ptMaxTrackSize.y = (LONG)(1200 * m_ZoomRatio);
 
 	CDHtmlMainDialog::OnGetMinMaxInfo(lpMMI);
 }
@@ -826,57 +886,54 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		AddEventLog(701, 4, name + cstr);
 	}
 
-	if(m_FlagEventLog)
+	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
 	{
-		for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
+		if(( m_Ata.vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count
+		||  m_Ata.vars[i].Attribute[j].Id == 0xC4 // Reallocation Event Count
+		||  m_Ata.vars[i].Attribute[j].Id == 0xC5 // Current Pending Sector Count
+		||  m_Ata.vars[i].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
+		) && ! m_Ata.vars[i].IsSsd)
 		{
-			if( m_Ata.vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count
-			||  m_Ata.vars[i].Attribute[j].Id == 0xC4 // Reallocation Event Count
-			||  m_Ata.vars[i].Attribute[j].Id == 0xC5 // Current Pending Sector Count
-			||  m_Ata.vars[i].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
-			)
+			CString target;
+			DWORD eventId = 0;
+			if(m_Ata.vars[i].Attribute[j].Id == 0x05)
 			{
-				CString target;
-				DWORD eventId = 0;
-				if(m_Ata.vars[i].Attribute[j].Id == 0x05)
-				{
-					target = _T("ReallocatedSectorsCount");
-					eventId = 602;
-				}
-				else if(m_Ata.vars[i].Attribute[j].Id == 0xC4)
-				{
-					target = _T("ReallocationEventCount");
-					eventId = 603;
-				}
-				else if(m_Ata.vars[i].Attribute[j].Id == 0xC5)
-				{
-					target = _T("CurrentPendingSectorCount");
-					eventId = 604;
-				}
-				else if(m_Ata.vars[i].Attribute[j].Id == 0xC6)
-				{
-					target = _T("UncorrectableSectorCount");
-					eventId = 605;
-				}
+				target = _T("ReallocatedSectorsCount");
+				eventId = 602;
+			}
+			else if(m_Ata.vars[i].Attribute[j].Id == 0xC4)
+			{
+				target = _T("ReallocationEventCount");
+				eventId = 603;
+			}
+			else if(m_Ata.vars[i].Attribute[j].Id == 0xC5)
+			{
+				target = _T("CurrentPendingSectorCount");
+				eventId = 604;
+			}
+			else if(m_Ata.vars[i].Attribute[j].Id == 0xC6)
+			{
+				target = _T("UncorrectableSectorCount");
+				eventId = 605;
+			}
 
-				GetPrivateProfileString(disk, target, _T("-1"), str, 256, dir + _T("\\") + SMART_INI);
-				pre = _tstoi(str);
-				id.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);
-				int rawValue = MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[0], m_Ata.vars[i].Attribute[j].RawValue[1]);
-				if(rawValue > pre && pre != -1)
-				{
-					cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("DEGRADATION")),
-						m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
-					alarm += cstr;
-					AddEventLog(eventId, 2, name + cstr);
-				}
-				else if(rawValue < pre && pre != -1)
-				{
-					cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("RECOVERY")),
-						m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
-					alarm += cstr;
-					AddEventLog(eventId + 100, 4, name + cstr);
-				}
+			GetPrivateProfileString(disk, target, _T("-1"), str, 256, dir + _T("\\") + SMART_INI);
+			pre = _tstoi(str);
+			id.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);
+			int rawValue = MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[0], m_Ata.vars[i].Attribute[j].RawValue[1]);
+			if(rawValue > pre && pre != -1)
+			{
+				cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("DEGRADATION")),
+					m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
+				alarm += cstr;
+				AddEventLog(eventId, 2, name + cstr);
+			}
+			else if(rawValue < pre && pre != -1)
+			{
+				cstr.Format(_T("%s: (%02X) %s [%d->%d]\r\n"), i18n(_T("Alarm"), _T("RECOVERY")),
+					m_Ata.vars[i].Attribute[j].Id, i18n(_T("Smart"), id), pre, rawValue);
+				alarm += cstr;
+				AddEventLog(eventId + 100, 4, name + cstr);
 			}
 		}
 
@@ -895,7 +952,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 	if(! alarm.IsEmpty())
 	{
 		cstr.Format(_T("(%d) %s\n"), i + 1, m_Ata.vars[i].Model);
-		ShowBalloon(gRegIconId, NIIF_WARNING, i18n(_T("Alarm"), _T("ALARM_HEALTH_STATUS")), cstr + alarm);
+		ShowBalloon(m_MainIconId, NIIF_WARNING, i18n(_T("Alarm"), _T("ALARM_HEALTH_STATUS")), cstr + alarm);
 	}
 }
 
@@ -906,14 +963,9 @@ BOOL CDiskInfoDlg::AddEventLog(DWORD eventId, WORD eventType, CString message)
 		return FALSE;
 	}
 
-	BOOL result;
-	CString cstr, type;
-
-	STARTUPINFO si = {0};
-	PROCESS_INFORMATION pi = {0};
-	si.cb			= sizeof(STARTUPINFO);
-	si.dwFlags		= STARTF_USESHOWWINDOW;
-	si.wShowWindow	= SW_HIDE;
+//	BOOL result = FALSE;
+	/*
+	CString type;
 
 	switch(eventType)
 	{
@@ -926,20 +978,23 @@ BOOL CDiskInfoDlg::AddEventLog(DWORD eventId, WORD eventType, CString message)
 		break;
 	}
 
-	if(m_FlagUseEventCreate && 0)
+	if(m_FlagUseEventCreate)
 	{
+		CString cstr; 
+		STARTUPINFO si = {0};
+		PROCESS_INFORMATION pi = {0};
+		si.cb			= sizeof(STARTUPINFO);
+		si.dwFlags		= STARTF_USESHOWWINDOW;
+		si.wShowWindow	= SW_HIDE;
 		cstr.Format(_T("eventcreate /ID %d /L APPLICATION /SO CrystalDiskinfo /T %s /D \"%s\""), eventId, type, message); 
+		result = ::CreateProcess(NULL, (LPWSTR)cstr.GetString(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+		WaitForSingleObject(pi.hProcess, 5000);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
 	}
-	else
-	{
-		WriteEventLog(eventId, eventType, _T("CrystalDiskInfo"), message);
-	}
-	result = ::CreateProcess(NULL, (LPWSTR)cstr.GetString(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-	WaitForSingleObject(pi.hProcess, 5000);
-	CloseHandle(pi.hThread);
-	CloseHandle(pi.hProcess);
+	*/
 
-	return result;
+	return WriteEventLog(eventId, eventType, _T("CrystalDiskInfo"), message);
 }
 
 void CDiskInfoDlg::AlarmOverheat()
@@ -959,7 +1014,7 @@ void CDiskInfoDlg::AlarmOverheat()
 	overheat.Trim();
 	if(! overheat.IsEmpty())
 	{
-		ShowBalloon(gRegIconId, NIIF_WARNING, i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), overheat);
+		ShowBalloon(m_MainIconId, NIIF_WARNING, i18n(_T("Alarm"), _T("ALARM_TEMPERATURE")), overheat);
 	}
 }
 
@@ -974,11 +1029,7 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		if(m_Ata.MeasuredTimeUnit())
 		{
 			m_PowerOnHoursClass = _T("valueR");
-			VARIANT dummy;
-			VariantInit(&dummy);
-			dummy.vt = VT_BSTR;
-
-			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, m_PowerOnHoursClass);
+			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
 			for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 			{
 				m_Ata.vars[i].MeasuredPowerOnHours = m_Ata.GetPowerOnHoursEx(i, m_Ata.vars[i].MeasuredTimeUnitType);
@@ -1208,4 +1259,16 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 			m_Ata.UpdateIdInfo(i);
 		}
 	}
+}
+
+void CDiskInfoDlg::ReExecute()
+{
+	ShowWindow(SW_HIDE);
+	RemoveTrayMainIcon();
+	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
+	{
+		RemoveTemperatureIcon(i);
+	}
+	KillGraphDlg();
+	EndDialog(RE_EXEC);
 }

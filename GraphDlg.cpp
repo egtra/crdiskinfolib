@@ -8,11 +8,23 @@
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
+#include "AtaSmart.h"
 #include "DiskInfo.h"
 #include "GraphDlg.h"
 #include "GetOsInfo.h"
 
 #include "DiskInfoDlg.h"
+
+static const TCHAR *attributeString[] = 
+{
+	_T("Smart"),
+	_T("SmartSsd"),
+	_T("SmartMtron"),
+	_T("SmartIndlinx"),
+	_T("SmartJMicron"),
+	_T("SmartIntel"),
+	_T("SmartSamsung"),
+};
 
 
 IMPLEMENT_DYNCREATE(CGraphDlg, CDHtmlDialog)
@@ -28,6 +40,7 @@ CGraphDlg::CGraphDlg(CWnd* pParent /*=NULL*/, int defaultDisk)
 	CString cstr;
 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIconMini = AfxGetApp()->LoadIcon(IDI_MINI_ICON);
 	m_SmartDir = ((CDiskInfoApp*)AfxGetApp())->m_SmartDir;
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini.GetString());
 
@@ -92,7 +105,7 @@ BOOL CGraphDlg::OnInitDialog()
 	CDHtmlMainDialog::OnInitDialog();
 
 	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+	SetIcon(m_hIconMini, FALSE);	// Set small icon
 
 	InitThemeLang();
 	InitMenu();
@@ -141,6 +154,13 @@ BEGIN_MESSAGE_MAP(CGraphDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_DMY, &CGraphDlg::OnDmy)
 	ON_COMMAND(ID_DMYHM2, &CGraphDlg::OnDmyhm2)
 	ON_COMMAND(ID_DMY2, &CGraphDlg::OnDmy2)
+	ON_COMMAND(ID_HDD, &CGraphDlg::OnHdd)
+	ON_COMMAND(ID_SSD, &CGraphDlg::OnSsd)
+	ON_COMMAND(ID_SSD_MTRON, &CGraphDlg::OnSsdMtron)
+	ON_COMMAND(ID_SSD_INDILINX, &CGraphDlg::OnSsdIndilinx)
+	ON_COMMAND(ID_SSD_JMICRON, &CGraphDlg::OnSsdJmicron)
+	ON_COMMAND(ID_SSD_INTEL, &CGraphDlg::OnSsdIntel)
+	ON_COMMAND(ID_SSD_SAMSUNG, &CGraphDlg::OnSsdSamsung)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CGraphDlg)
@@ -246,6 +266,8 @@ void CGraphDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		UpdateGraph();
 		CenterWindow();
 
+	//	ChangeZoomType(ZOOM_TYPE_100);
+
 		ShowWindow(SW_SHOW);
 	}
 }
@@ -349,6 +371,16 @@ void CGraphDlg::InitVars(int defaultDisk)
 	else
 	{
 		m_MaxPlotPoint = 0;
+	}
+
+	GetPrivateProfileString(_T("Setting"), _T("Attribute"), _T("0"), str, 256, m_Ini);
+	if(_tstoi(str) > 0)
+	{
+		m_Attribute = _tstoi(str);
+	}
+	else
+	{
+		m_Attribute = 0;
 	}
 
 	// Graph Color
@@ -487,18 +519,13 @@ HRESULT CGraphDlg::OnDisk31(IHTMLElement* /*pElement*/){CheckDisk(31);UpdateGrap
 
 HRESULT CGraphDlg::OnAllOn(IHTMLElement* /*pElement*/)
 {
-	VARIANT dummy;
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
 	CString cstr;
-
 	for(int i = 0; i < m_DetectedDisk; i++)
 	{
 		cstr.Format(_T("Disk%d"), i);
 		m_FlagGraph[i] = TRUE;
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("selected"));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("selected"));
 	}
-
 	UpdateGraph();
 
 	return S_FALSE;
@@ -506,16 +533,12 @@ HRESULT CGraphDlg::OnAllOn(IHTMLElement* /*pElement*/)
 
 HRESULT CGraphDlg::OnAllOff(IHTMLElement* /*pElement*/)
 {
-	VARIANT dummy;
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
 	CString cstr;
-
 	for(int i = 0; i < m_DetectedDisk; i++)
 	{
 		cstr.Format(_T("Disk%d"), i);
 		m_FlagGraph[i] = FALSE;
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T(""));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T(""));
 	}
 	UpdateGraph();
 
@@ -530,9 +553,6 @@ HRESULT CGraphDlg::OnReset(IHTMLElement* /*pElement*/)
 
 BOOL CGraphDlg::CheckDisk(DWORD disk)
 {
-	VARIANT dummy;
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
 	CString cstr;
 
 	m_FlagGraph[disk] = ! m_FlagGraph[disk];
@@ -540,11 +560,11 @@ BOOL CGraphDlg::CheckDisk(DWORD disk)
 	cstr.Format(_T("Disk%d"), disk);
 	if(m_FlagGraph[disk])
 	{
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("selected"));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("selected"));
 	}
 	else
 	{
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T(""));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T(""));
 	}
 
 	return TRUE;
@@ -552,9 +572,6 @@ BOOL CGraphDlg::CheckDisk(DWORD disk)
 
 void CGraphDlg::InitMenuBar()
 {
-	VARIANT dummy;
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
 	CString cstr, temp, space;
 
 	int counter = 0, index = 0;
@@ -565,7 +582,7 @@ void CGraphDlg::InitMenuBar()
 	{
 		m_LiDisk[i] = _T("");
 		cstr.Format(_T("Disk%d"), i);
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("hidden"));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("hidden"));
 	}
 
 	for(int i = 0; i < m_DetectedDisk; i++)
@@ -573,15 +590,15 @@ void CGraphDlg::InitMenuBar()
 		cstr.Format(_T("%d"), i + 1);
 		m_LiDisk[i] = cstr;
 		cstr.Format(_T("Disk%d"), i);
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("visible"));
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("visible"));
 		
 		temp.Format(_T("%s"), m_Model[i]);
-		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_TITLE, &dummy, temp);
+		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_TITLE, temp);
 	}
 
-	SetElementPropertyEx(_T("AllOn"), DISPID_IHTMLELEMENT_TITLE, &dummy, i18n(_T("Graph"), _T("ALL_ON")));
-	SetElementPropertyEx(_T("AllOff"), DISPID_IHTMLELEMENT_TITLE, &dummy, i18n(_T("Graph"), _T("ALL_OFF")));
-	SetElementPropertyEx(_T("Reset"), DISPID_IHTMLELEMENT_TITLE, &dummy, i18n(_T("Graph"), _T("RESET")));
+	SetElementPropertyEx(_T("AllOn"), DISPID_IHTMLELEMENT_TITLE, i18n(_T("Graph"), _T("ALL_ON")));
+	SetElementPropertyEx(_T("AllOff"), DISPID_IHTMLELEMENT_TITLE, i18n(_T("Graph"), _T("ALL_OFF")));
+	SetElementPropertyEx(_T("Reset"), DISPID_IHTMLELEMENT_TITLE, i18n(_T("Graph"), _T("RESET")));
 
 	CString select;
 
@@ -623,7 +640,7 @@ void CGraphDlg::InitMenuBar()
 			}
 		}
 	}
-	
+
 	// Reallocated Sectors Count
 	if(flagAttribute[0x05])
 	{
@@ -713,6 +730,20 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
+	/*
+	// Life
+	if(flagAttribute[0xFF])
+	{
+		cstr.Format(_T("<option value=\"511\">%s[FF] %s</option>"), space, i18n(_T("SmartSsd"), _T("FF")));
+		select += cstr;
+		if(SelectedAttributeId == 511)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+	*/
+
 	if(m_IeVersion >= 700)
 	{
 		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("NORMALIZED_VALUE")));
@@ -729,18 +760,20 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
+	CString sectionName = attributeString[m_Attribute];
+
 	for(int i = 1; i < 255; i++)
 	{
 		if(flagAttribute[i])
 		{
 			cstr.Format(_T("%02X"), i);
-			if(i18n(_T("Smart"), cstr).IsEmpty())
+			if(i18n(sectionName, cstr).IsEmpty())
 			{
 				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(_T("Smart"), _T("UNKNOWN")));
 			}
 			else
 			{
-				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(_T("Smart"), cstr));
+				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(sectionName, cstr));
 			}
 			if(SelectedAttributeId == i)
 			{
@@ -791,6 +824,7 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1C4:fileName = _T("ReallocationEventCount");		min = 0; break;
 		case 0x1C5:fileName = _T("CurrentPendingSectorCount");	min = 0; break;
 		case 0x1C6:fileName = _T("UncorrectableSectorCount");	min = 0; break;
+//		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:
 			return FALSE;
 			break;
@@ -1102,6 +1136,8 @@ void CGraphDlg::InitMenu()
 	subMenu.ModifyMenu(1, MF_BYPOSITION, 1, cstr);
 	cstr = i18n(_T("Menu"), _T("TIME_FORMAT"));
 	subMenu.ModifyMenu(2, MF_BYPOSITION, 2, cstr);
+	cstr = i18n(_T("Menu"), _T("ATTRIBUTE"));
+	subMenu.ModifyMenu(3, MF_BYPOSITION, 3, cstr);
 
 	subMenu.Detach();
 
@@ -1183,6 +1219,22 @@ void CGraphDlg::InitMenu()
 	default:
 		m_MaxPlotPoint = 0;
 		menu->CheckMenuRadioItem(ID_POINT_100, ID_POINT_ALL, ID_POINT_ALL, MF_BYCOMMAND);
+		break;
+	}
+
+	switch(m_Attribute)
+	{
+	case CAtaSmart::HDD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_HDD, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_GENERAL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_MTRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_MTRON, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_INDILINX: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_INDILINX, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_JMICRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_JMICRON, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_INTEL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_INTEL, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_SAMSUNG: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_SSD_SAMSUNG, MF_BYCOMMAND);break;
+
+	default:
+		m_Attribute = CAtaSmart::HDD_GENERAL;
+		menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, ID_HDD, MF_BYCOMMAND);
 		break;
 	}
 
@@ -1419,3 +1471,59 @@ LRESULT CGraphDlg::OnUpdateLineColor(WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+void CGraphDlg::OnHdd()
+{
+	SetAttribute(ID_HDD, CAtaSmart::HDD_GENERAL);
+}
+
+void CGraphDlg::OnSsd()
+{
+	SetAttribute(ID_SSD, CAtaSmart::SSD_GENERAL);
+}
+
+void CGraphDlg::OnSsdMtron()
+{
+	SetAttribute(ID_SSD_MTRON, CAtaSmart::SSD_VENDOR_MTRON);
+}
+
+void CGraphDlg::OnSsdIndilinx()
+{
+	SetAttribute(ID_SSD_INDILINX, CAtaSmart::SSD_VENDOR_INDILINX);
+}
+
+void CGraphDlg::OnSsdJmicron()
+{
+	SetAttribute(ID_SSD_JMICRON, CAtaSmart::SSD_VENDOR_JMICRON);
+}
+
+void CGraphDlg::OnSsdIntel()
+{
+	SetAttribute(ID_SSD_INTEL, CAtaSmart::SSD_VENDOR_INTEL);
+}
+
+void CGraphDlg::OnSsdSamsung()
+{
+	SetAttribute(ID_SSD_SAMSUNG, CAtaSmart::SSD_VENDOR_SAMSUNG);
+}
+
+void CGraphDlg::SetAttribute(DWORD id, DWORD type)
+{
+	CString cstr;
+	cstr.Format(_T("%d"), type);
+	WritePrivateProfileString(_T("Setting"), _T("Attribute"), cstr, m_Ini);
+	if(type <= CAtaSmart::SSD_VENDOR_SAMSUNG)
+	{
+		m_Attribute = type;
+	}
+	else
+	{
+		m_Attribute = CAtaSmart::HDD_GENERAL;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_HDD, ID_SSD_SAMSUNG, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+
+	InitMenuBar();
+}

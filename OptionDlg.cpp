@@ -21,6 +21,7 @@ COptionDlg::COptionDlg(CWnd* pParent /*=NULL*/)
 	
 	m_CurrentLangPath = ((CDHtmlMainDialog*)pParent)->m_CurrentLangPath;
 	m_DefaultLangPath = ((CDHtmlMainDialog*)pParent)->m_DefaultLangPath;
+	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
 
 	for(int i = 0; i <= CAtaSmart::MAX_DISK; i++)
 	{
@@ -83,6 +84,7 @@ BOOL COptionDlg::OnInitDialog()
 
 	SetWindowText(i18n(_T("WindowTitle"), _T("CUSTOMIZE")));
 
+	EnableDpiAware();
 	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_OptionDlgPath);
 
 	return TRUE;
@@ -159,6 +161,9 @@ void COptionDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		}
 
 		UpdateData(FALSE);
+		ChangeZoomType(m_ZoomType);
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+
 		ShowWindow(SW_SHOW);
 	}
 }

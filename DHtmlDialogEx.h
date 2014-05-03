@@ -4,14 +4,13 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2007-2008 hiyohiyo. All rights reserved.
+//                           Copyright 2007-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once
 
 class CDHtmlDialogEx : public CDHtmlDialog
 {
-
 public:
 	CDHtmlDialogEx(UINT dlgResouce, UINT dlgHtml, CWnd* pParent = NULL);
 	virtual ~CDHtmlDialogEx();
@@ -24,6 +23,15 @@ public:
 
 	CString m_CurrentLangPath;
 	CString m_DefaultLangPath;
+
+	enum ZOOM_TYPE
+	{
+		ZOOM_TYPE_AUTO = 0,
+		ZOOM_TYPE_100 = 100,
+		ZOOM_TYPE_125 = 125,
+		ZOOM_TYPE_150 = 150,
+		ZOOM_TYPE_200 = 200,
+	};
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);
@@ -39,9 +47,15 @@ protected:
 	UINT m_MenuId;
 	TCHAR m_Ini[MAX_PATH];
 
-	void SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, VARIANT *pVar, CString className);
+	double m_ZoomRatio;
+	DWORD m_ZoomType;
+
+	void SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, CString className);
 	void SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtml);
 	void CallScript(CString funcition, CString argument);
+	void EnableDpiAware();
+	DWORD ChangeZoomType(DWORD zoomType);
+	double GetZoomRatio();
 	CString i18n(CString section, CString key);
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);

@@ -62,6 +62,7 @@ public:
 
 protected:
 	HICON m_hIcon;
+	HICON m_hIconMini;
 	time_t GetTimeT(CString time);
 	TIME_ZONE_INFORMATION m_TimeZoneInformation;
 
@@ -117,6 +118,7 @@ protected:
 	void SetLegendPosition(DWORD id, CString position);
 	void SetTimeFormat(DWORD id, CString format);
 	void SetPlotPoint(DWORD id, DWORD point);
+	void SetAttribute(DWORD id, DWORD type);
 	void InitVars(int defaultDisk);
 	void UpdateColor();
 	void UpdateBgImage();
@@ -124,6 +126,7 @@ protected:
 	BOOL m_FlagFahrenheit;
 	BOOL m_FlagPaintWeekend;
 	DWORD m_MaxPlotPoint;
+	DWORD m_Attribute;
 
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
 	afx_msg void OnPaint();
@@ -168,4 +171,11 @@ public:
 	afx_msg void OnDmy2();
 
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnHdd();
+	afx_msg void OnSsd();
+	afx_msg void OnSsdMtron();
+	afx_msg void OnSsdIndilinx();
+	afx_msg void OnSsdJmicron();
+	afx_msg void OnSsdIntel();
+	afx_msg void OnSsdSamsung();
 };

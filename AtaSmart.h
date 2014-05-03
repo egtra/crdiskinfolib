@@ -13,7 +13,6 @@
 #include "winioctl.h"
 #include "SPTIUtil.h"
 
-
 class CAtaSmart
 {
 public:
@@ -86,9 +85,15 @@ public:
 
 	enum VENDOR_ID
 	{
-		VENDOR_UNKNOWN      = 0x0000,
-		VENDOR_MTRON        = 0x0001,
+		HDD_GENERAL         = 0,
+		SSD_GENERAL         = 1,
+		SSD_VENDOR_MTRON    = 2,
+		SSD_VENDOR_INDILINX = 3,
+		SSD_VENDOR_JMICRON  = 4,
+		SSD_VENDOR_INTEL    = 5,
+		SSD_VENDOR_SAMSUNG  = 6,
 
+		VENDOR_UNKNOWN      = 0x0000,
 		USB_VENDOR_BUFFALO  = 0x0411,
 		USB_VENDOR_IO_DATA  = 0x04BB,
 		USB_VENDOR_LOGITEC  = 0x0789,
@@ -98,7 +103,7 @@ public:
 		USB_VENDOR_CYPRESS  = 0x04B4,
 		USB_VENDOR_OXFORD   = 0x0928,
 		USB_VENDOR_PROLIFIC = 0x067B,
-
+		USB_VENDOR_ALL      = 0xFFFF,
 	};
 
 	enum INTERFACE_TYPE
@@ -157,7 +162,8 @@ protected:
 		DWORD   DataTransferLength;
 		DWORD   TimeOutValue;
 		DWORD   ReservedAsUlong;
-		DWORD_PTR   DataBufferOffset;
+		DWORD   DataBufferOffset;
+	//	DWORD_PTR   DataBufferOffset;
 		IDEREGS PreviousTaskFile;
 		IDEREGS CurrentTaskFile;
 	} ATA_PASS_THROUGH_EX, *PCMD_ATA_PASS_THROUGH_EX;
@@ -165,6 +171,7 @@ protected:
 	typedef struct
 	{
 		ATA_PASS_THROUGH_EX Apt;
+		DWORD Filer;
 		BYTE  Buf[512];
 	} ATA_PASS_THROUGH_EX_WITH_BUFFERS;
 
@@ -342,6 +349,7 @@ public:
 		BOOL				IsCheckSumError;
 		BOOL				IsWord88;
 		BOOL				IsWord64_76;
+		BOOL				IsRawValues8;
 
 		BOOL				IsSmartSupported;
 		BOOL				IsLba48Supported;
@@ -419,7 +427,10 @@ public:
 		CString				Interface;
 		CString				Enclosure;
 		CString				CommandTypeString;
+		CString				SsdVendorString;
 		CString				DeviceNominalFormFactor;
+
+		CString				SmartKeyName;
 	};
 
 	struct EXTERNAL_DISK_INFO
@@ -461,7 +472,6 @@ protected:
 	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify);
 	DWORD CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SMART_ATTRIBUTE* cur);
 
-
 	BOOL CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2);
 
 	VOID WakeUp(INT physicalDriveId);
@@ -498,6 +508,14 @@ protected:
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);
 //	DWORD GetMaxtorPowerOnHours(DWORD currentValue, DWORD rawValue);
+
+	void CheckSsdSupport(ATA_SMART_INFO &asi);
+	BOOL IsSsdOld(ATA_SMART_INFO &asi);
+	BOOL IsSsdMtron(ATA_SMART_INFO &asi);
+	BOOL IsSsdIndlinx(ATA_SMART_INFO &asi);
+	BOOL IsSsdJMicron(ATA_SMART_INFO &asi);
+	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
+	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
 };

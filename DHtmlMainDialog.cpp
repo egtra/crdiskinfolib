@@ -168,7 +168,7 @@ void CDHtmlMainDialog::InitMenu()
 	
 	menu.Attach(GetMenu()->GetSafeHmenu());
 	subMenu.Attach(menu.GetSubMenu(m_ThemeIndex)->GetSafeHmenu());
-	subMenu.RemoveMenu(0, MF_BYPOSITION);
+//	subMenu.RemoveMenu(0, MF_BYPOSITION);
 
 	themePath.Format(_T("%s\\*.*"), m_ThemeDir);
 
@@ -352,6 +352,7 @@ void CDHtmlMainDialog::ChangeTheme(CString ThemeName)
 	if(FAILED(hr)) return ;
 
 	VARIANT index;
+	VariantInit(&index);
 // by ordinal
 	index.vt = VT_I4;
 	index.intVal = 0;
@@ -359,6 +360,7 @@ void CDHtmlMainDialog::ChangeTheme(CString ThemeName)
 //	index.vt = VT_BSTR;
 //	index.bstrVal = L"StyleSheet";
 	VARIANT dispatch;
+	VariantInit(&dispatch);
 	dispatch.vt = VT_DISPATCH;
 
 	hr = pStyleSheetsCollection->item(&index, &dispatch);
@@ -367,10 +369,13 @@ void CDHtmlMainDialog::ChangeTheme(CString ThemeName)
 	dispatch.pdispVal->QueryInterface(IID_IHTMLStyleSheet, (void **) &pHtmlStyleSheet);
 	if(FAILED(hr)) return ;
 
-	cstr.Format(_T("..\\theme\\%s\\%s"), ThemeName, MAIN_CSS_FILE_NAME);
+	cstr.Format(_T("%s\\%s\\%s"), m_ThemeDir, ThemeName, MAIN_CSS_FILE_NAME);
 	bstr = cstr;
 	hr = pHtmlStyleSheet->put_href(bstr);
 	if(FAILED(hr)) return ;
+
+	VariantClear(&index);
+	VariantClear(&dispatch);
 
 	WritePrivateProfileString(_T("Setting"), _T("Theme"), ThemeName, m_Ini);
 }
@@ -415,6 +420,18 @@ void CDHtmlMainDialog::OnWindowPosChanging(WINDOWPOS * lpwndpos)
     CDialog::OnWindowPosChanging(lpwndpos);
 }
 
+DWORD CDHtmlMainDialog::GetZoomType()
+{
+	return GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
+}
+
+void CDHtmlMainDialog::SetZoomType(DWORD zoomType)
+{
+	CString cstr;
+	cstr.Format(_T("%d"), m_ZoomType);
+	WritePrivateProfileString(_T("Setting"), _T("ZoomType"), cstr, m_Ini);
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Task Tray
@@ -448,7 +465,7 @@ BOOL CDHtmlMainDialog::AddTaskTray(UINT id, UINT callback, HICON icon, CString t
 			{
 				return TRUE;
 			}
-			Sleep(500 * i);
+			Sleep(100 * i);
 		}
 	}
 	return FALSE;

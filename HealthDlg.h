@@ -24,8 +24,6 @@ public:
 	enum { IDD = IDD_HEALTH, IDH = IDR_HTML_DUMMY };
 
 protected:
-	HICON m_hIcon;
-
 	CString m_Value05;
 	CString m_ValueC5;
 	CString m_ValueC6;
@@ -40,8 +38,6 @@ protected:
 
 	CString m_Apply;
 	CString m_Default;
-
-	VARIANT dummy;
 
 	virtual void DoDataExchange(CDataExchange* pDX);
 	virtual BOOL OnInitDialog();

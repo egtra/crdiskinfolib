@@ -19,10 +19,14 @@ CListCtrlEx::CListCtrlEx()
 	m_BkColor1   = RGB(255, 255, 255);
 	m_BkColor2   = RGB(248, 248, 248);
 	m_LineColor  = RGB(224, 224, 224);
+
+//	m_Image.Create(1, 50, ILC_COLOR, 0, 0);
 }
 
 CListCtrlEx::~CListCtrlEx()
 {
+	m_Font.DeleteObject();
+//	m_Image.DeleteImageList();
 }
 
 BEGIN_MESSAGE_MAP(CListCtrlEx, CListCtrl)
@@ -88,3 +92,17 @@ COLORREF CListCtrlEx::GetTextColor2(){return m_TextColor2;}
 COLORREF CListCtrlEx::GetBkColor1()  {return m_BkColor1;}
 COLORREF CListCtrlEx::GetBkColor2()  {return m_BkColor2;}
 COLORREF CListCtrlEx::GetLineColor() {return m_LineColor;}
+
+void CListCtrlEx::SetFontSize(double zoomRatio)
+{
+	LOGFONT logFont;
+
+	GetFont()->GetLogFont(&logFont);
+	logFont.lfHeight = (LONG)(-12 * zoomRatio);
+
+	m_Font.DeleteObject();
+	m_Font.CreateFontIndirect(&logFont);
+//	GetHeaderCtrl()->SetFont(&m_Font);
+	SetFont(&m_Font);
+//	SetImageList(&m_Image, LVSIL_STATE);
+}

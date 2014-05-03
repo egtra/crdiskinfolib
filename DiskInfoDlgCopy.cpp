@@ -97,28 +97,36 @@ void CDiskInfoDlg::OnEditCopy()
 		
 		if(m_Ata.vars[i].PhysicalDriveId < 0)
 		{
-			temp.Format(_T(" [X-%d-%d, %s]\r\n"),
+			temp.Format(_T(" [X-%d-%d, %s]"),
 				m_Ata.vars[i].ScsiPort, m_Ata.vars[i].ScsiTargetId, m_Ata.vars[i].CommandTypeString);
 		}
 		else if(m_Ata.vars[i].ScsiPort < 0)
 		{
 			if(m_Ata.vars[i].VendorId > 0 && m_Ata.vars[i].ProductId > 0)
 			{
-				temp.Format(_T(" [%d-X-X, %s] (VID=%04Xh, PID=%04Xh)\r\n"),
+				temp.Format(_T(" [%d-X-X, %s] (VID=%04Xh, PID=%04Xh)"),
 					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString, m_Ata.vars[i].VendorId, m_Ata.vars[i].ProductId);
 			}
 			else
 			{
-				temp.Format(_T(" [%d-X-X, %s]\r\n"),
+				temp.Format(_T(" [%d-X-X, %s]"),
 					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString);
 			}
 		}
 		else
 		{
-			temp.Format(_T(" [%d-%d-%d, %s]\r\n"),
+			temp.Format(_T(" [%d-%d-%d, %s]"),
 				m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].ScsiPort, m_Ata.vars[i].ScsiTargetId, m_Ata.vars[i].CommandTypeString);
 		}
+
 		cstr += temp;
+
+		if(! m_Ata.vars[i].SsdVendorString.IsEmpty())
+		{
+			cstr += _T(" - ") + m_Ata.vars[i].SsdVendorString;
+		}
+
+		cstr += _T("\r\n");
 	}
 	clip.Replace(_T("%DISK_LIST%"), cstr);
 
@@ -191,6 +199,11 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		drive.Replace(_T("%NUMBER_OF_SECTORS%"), temp);
 		CString diskStatus;
 		diskStatus = GetDiskStatus(m_Ata.vars[i].DiskStatus);
+		if(m_Ata.vars[i].Life > 0)
+		{
+			cstr.Format(_T(" (%d %%)"), m_Ata.vars[i].Life);
+			diskStatus += cstr; 
+		}
 		drive.Replace(_T("%DISK_STATUS%"), diskStatus);
 
 		CString IsMinutes;
@@ -276,7 +289,12 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		}
 		drive.Replace(_T("%TOTAL_DISK_SIZE%"), cstr);
 
-		if(m_Ata.vars[i].BufferSize > 0)
+
+		if(m_Ata.vars[i].IsSsd && m_Ata.vars[i].BufferSize == 0xFFFF * 512)
+		{
+			cstr.Format(_T(">= %d KB"), m_Ata.vars[i].BufferSize / 1024);
+		}
+		else if(m_Ata.vars[i].BufferSize > 0)
 		{
 			cstr.Format(_T("%d KB"), m_Ata.vars[i].BufferSize / 1024);
 		}
@@ -401,31 +419,83 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		{
 			cstr.Format(_T("-- S.M.A.R.T. --------------------------------------------------------------\r\n"));
 			line = cstr;
-			line += _T("ID Cur Wor Thr Raw Values   Attribute Name\r\n");
+
+			if(m_Ata.vars[i].IsRawValues8)
+			{
+				line += _T("ID Raw Values (8)   Attribute Name\r\n");
+			}
+			else
+			{
+				line += _T("ID Cur Wor Thr RawValues(6) Attribute Name\r\n");
+			}
 
 			for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
-//			for(DWORD j = 0; j < CAtaSmart::MAX_ATTRIBUTE; j++)
 			{
 				TCHAR str[256];
 				TCHAR unknown[256];
+				TCHAR vendorSpecific[256];
 				cstr.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);
-
 				GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, m_CurrentLangPath);
-				GetPrivateProfileString(_T("Smart"), cstr, unknown, str, 256, m_CurrentLangPath);
+				GetPrivateProfileString(_T("Smart"), _T("VENDOR_SPECIFIC"), _T("Vendor Specific"), vendorSpecific, 256, m_CurrentLangPath);
 
-				cstr.Format(_T("%02X %s %s %s %02X%02X%02X%02X%02X%02X %s\r\n"),
-					m_Ata.vars[i].Attribute[j].Id,
-					__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
-					__Number(m_Ata.vars[i].Attribute[j].WorstValue),
-					__Number(m_Ata.vars[i].Threshold[j].ThresholdValue),
-					m_Ata.vars[i].Attribute[j].RawValue[5],
-					m_Ata.vars[i].Attribute[j].RawValue[4],
-					m_Ata.vars[i].Attribute[j].RawValue[3],
-					m_Ata.vars[i].Attribute[j].RawValue[2],
-					m_Ata.vars[i].Attribute[j].RawValue[1],
-					m_Ata.vars[i].Attribute[j].RawValue[0],
-					str
-					);
+				BYTE id = m_Ata.vars[i].Attribute[j].Id;
+
+				if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
+				|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFF))
+				{
+					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_CurrentLangPath);
+				}
+				else
+				{
+					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
+				}
+
+				if(m_Ata.vars[i].IsRawValues8 && m_Ata.vars[i].VendorId == m_Ata.SSD_VENDOR_JMICRON)
+				{
+					cstr.Format(_T("%02X %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
+						m_Ata.vars[i].Attribute[j].Id,
+						m_Ata.vars[i].Attribute[j].Reserved,
+						m_Ata.vars[i].Attribute[j].RawValue[5],
+						m_Ata.vars[i].Attribute[j].RawValue[4],
+						m_Ata.vars[i].Attribute[j].RawValue[3],
+						m_Ata.vars[i].Attribute[j].RawValue[2],
+						m_Ata.vars[i].Attribute[j].RawValue[1],
+						m_Ata.vars[i].Attribute[j].RawValue[0],
+						m_Ata.vars[i].Attribute[j].WorstValue,
+						str
+						);
+				}
+				else if(m_Ata.vars[i].IsRawValues8)
+				{
+					cstr.Format(_T("%02X %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
+						m_Ata.vars[i].Attribute[j].Id,
+						m_Ata.vars[i].Attribute[j].RawValue[5],
+						m_Ata.vars[i].Attribute[j].RawValue[4],
+						m_Ata.vars[i].Attribute[j].RawValue[3],
+						m_Ata.vars[i].Attribute[j].RawValue[2],
+						m_Ata.vars[i].Attribute[j].RawValue[1],
+						m_Ata.vars[i].Attribute[j].RawValue[0],
+						m_Ata.vars[i].Attribute[j].WorstValue,
+						m_Ata.vars[i].Attribute[j].CurrentValue,
+						str
+						);
+				}
+				else
+				{
+					cstr.Format(_T("%02X %s %s %s %02X%02X%02X%02X%02X%02X %s\r\n"),
+						m_Ata.vars[i].Attribute[j].Id,
+						__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
+						__Number(m_Ata.vars[i].Attribute[j].WorstValue),
+						__Number(m_Ata.vars[i].Threshold[j].ThresholdValue),
+						m_Ata.vars[i].Attribute[j].RawValue[5],
+						m_Ata.vars[i].Attribute[j].RawValue[4],
+						m_Ata.vars[i].Attribute[j].RawValue[3],
+						m_Ata.vars[i].Attribute[j].RawValue[2],
+						m_Ata.vars[i].Attribute[j].RawValue[1],
+						m_Ata.vars[i].Attribute[j].RawValue[0],
+						str
+						);
+				}
 				line += cstr;
 			}
 			clip += line;

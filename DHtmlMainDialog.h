@@ -53,6 +53,9 @@ public:
 	BOOL ModifyTaskTrayTip(UINT id, CString tip);
 	BOOL ShowBalloon(UINT id, DWORD infoFlag, CString infoTitle, CString info);
 
+	DWORD GetZoomType();
+	void SetZoomType(DWORD zoomType);
+
 	afx_msg void OnWindowPosChanging(WINDOWPOS* lpwndpos);
 	virtual BOOL OnInitDialog();
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);

@@ -74,6 +74,7 @@ void CDiskInfoDlg::SetMeter(double score)
 	CComBSTR bstr;
 	CString cstr;
 	VARIANT va;
+	VariantInit(&va);
 
 	hr = GetElementInterface(_T("BenchmarkMeter"), IID_IHTMLElement, (void **) &pHtmlElement);
 	if(FAILED(hr)){ return ;}
@@ -96,6 +97,8 @@ void CDiskInfoDlg::SetMeter(double score)
 	va.vt = VT_BSTR;
 	va.bstrVal = bstr;
 	pHtmlStyle->put_backgroundPositionX(va);
+
+	VariantClear(&va);
 
 	cstr.Format(_T("%.1f MB/s"), score);
 	m_BenchmarkMeter = cstr;
@@ -173,7 +176,7 @@ void CDiskInfoDlg::OnHideSmartInfo()
 	{
 		m_SizeX = SIZE_SMART_X;
 		m_SizeY = SIZE_SMART_Y;
-		SetClientRect(m_SizeX, m_SizeY, 1);
+		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 1);
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_UNCHECKED);
 		m_FlagHideSmartInfo = FALSE;
 		WritePrivateProfileStringW(_T("Setting"), _T("HideSmartInfo"), _T("0"), m_Ini);
@@ -182,14 +185,14 @@ void CDiskInfoDlg::OnHideSmartInfo()
 	{
 		m_SizeX = SIZE_X;
 		m_SizeY = SIZE_Y;
-		SetClientRect(m_SizeX, m_SizeY, 1);
+		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 1);
 		menu->CheckMenuItem(ID_HIDE_SMART_INFO, MF_CHECKED);
 		m_FlagHideSmartInfo = TRUE;
 		WritePrivateProfileStringW(_T("Setting"), _T("HideSmartInfo"), _T("1"), m_Ini);
 	}
 
 	CString cstr;
-	cstr.Format(_T("%d"),m_SizeY);
+	cstr.Format(_T("%d"), m_SizeY);
 	WritePrivateProfileString(_T("Setting"), _T("Height"), cstr, m_Ini);
 
 	SetMenu(menu);
@@ -490,10 +493,10 @@ void CDiskInfoDlg::OnEventLog()
 		menu->CheckMenuItem(ID_EVENT_LOG, MF_UNCHECKED);
 		WritePrivateProfileString(_T("Setting"), _T("EventLog"), _T("0"), m_Ini);
 
-		if(! m_FlagUseEventCreate)
-		{
+	//	if(! m_FlagUseEventCreate)
+	//	{
 			UninstallEventSource();
-		}
+	//	}
 	}
 	else
 	{
@@ -501,10 +504,10 @@ void CDiskInfoDlg::OnEventLog()
 		menu->CheckMenuItem(ID_EVENT_LOG, MF_CHECKED);
 		WritePrivateProfileString(_T("Setting"), _T("EventLog"), _T("1"), m_Ini);
 
-		if(m_FlagUseEventCreate)
-		{
+	//	if(m_FlagUseEventCreate)
+	//	{
 			InstallEventSource();
-		}
+	//	}
 	}
 	SetMenu(menu);
 	DrawMenuBar();
@@ -714,7 +717,7 @@ void CDiskInfoDlg::OnUsbIodata()
 
 void CDiskInfoDlg::OnUsbSunplus()
 {
-		CMenu *menu = GetMenu();
+	CMenu *menu = GetMenu();
 	if(m_Ata.FlagUsbSunplus)
 	{
 		m_Ata.FlagUsbSunplus = FALSE;
@@ -897,4 +900,85 @@ void CDiskInfoDlg::OnResidentMinimize()
 	DrawMenuBar();
 	m_FlagResidentMinimize = TRUE;
 	WritePrivateProfileString(_T("Setting"), _T("ResidentMinimize"), _T("1"), m_Ini);
+}
+
+
+void CDiskInfoDlg::OnZoom100()
+{
+	if(CheckRadioZoomType(ID_ZOOM_100, 100))
+	{
+		ReExecute();
+	}
+}
+
+void CDiskInfoDlg::OnZoom125()
+{
+	if(CheckRadioZoomType(ID_ZOOM_125, 125))
+	{
+		ReExecute();
+	}
+}
+
+void CDiskInfoDlg::OnZoom150()
+{
+	if(CheckRadioZoomType(ID_ZOOM_150, 150))
+	{
+		ReExecute();
+	}
+}
+
+void CDiskInfoDlg::OnZoom200()
+{
+	if(CheckRadioZoomType(ID_ZOOM_200, 200))
+	{
+		ReExecute();
+	}
+}
+
+void CDiskInfoDlg::OnZoomAuto()
+{
+	if(CheckRadioZoomType(ID_ZOOM_AUTO, 0))
+	{
+		ReExecute();
+	}
+}
+
+BOOL CDiskInfoDlg::CheckRadioZoomType(int id, int value)
+{
+	if(m_ZoomType == value)
+	{
+		return FALSE;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_ZOOM_100, ID_ZOOM_AUTO, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+
+	m_ZoomType = value;
+
+	CString cstr;
+	cstr.Format(_T("%d"), value);
+	WritePrivateProfileString(_T("Setting"), _T("ZoomType"), cstr, m_Ini);
+
+	return TRUE;
+}
+
+void CDiskInfoDlg::CheckRadioZoomType()
+{
+	int id = ID_ZOOM_AUTO;
+
+	switch(m_ZoomType)
+	{
+	case 100: id = ID_ZOOM_100;	break;
+	case 125: id = ID_ZOOM_125;	break;
+	case 150: id = ID_ZOOM_150;	break;
+	case 200: id = ID_ZOOM_200;	break;
+	default:  id = ID_ZOOM_AUTO;	break;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_ZOOM_100, ID_ZOOM_AUTO, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
 }

@@ -269,6 +269,7 @@ IDI_TEMP_F96            ICON                    "res\\F96.ico"
 IDI_TEMP_F97            ICON                    "res\\F97.ico"
 IDI_TEMP_F98            ICON                    "res\\F98.ico"
 IDI_TEMP_F99            ICON                    "res\\F99.ico"
+IDI_MINI_ICON           ICON                    "res\\DiskInfo16.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -334,8 +335,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,7,5,2009
- PRODUCTVERSION 2,7,5,2009
+ FILEVERSION 3,0,0,2009
+ PRODUCTVERSION 3,0,0,2009
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -353,12 +354,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "2.7.5.2009"
+            VALUE "FileVersion", "3.0.0.2009"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2009 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "2.7.5.2009"
+            VALUE "ProductVersion", "3.0.0.2009"
         END
     END
     BLOCK "VarFileInfo"
@@ -521,7 +522,15 @@ BEGIN
     END
     POPUP "&Theme"
     BEGIN
-        MENUITEM "DUMMY",                       ID_DUMMY
+        POPUP "Zoom"
+        BEGIN
+            MENUITEM "100%",                        ID_ZOOM_100
+            MENUITEM "125%",                        ID_ZOOM_125
+            MENUITEM "150%",                        ID_ZOOM_150
+            MENUITEM "200%",                        ID_ZOOM_200
+            MENUITEM "Auto",                        ID_ZOOM_AUTO
+        END
+        MENUITEM SEPARATOR
     END
     POPUP "&Disk"
     BEGIN
@@ -593,6 +602,16 @@ BEGIN
             MENUITEM "DD/MM/YYYY",                  ID_DMY
             MENUITEM "DD.MM.YYYY hh:mm",            ID_DMYHM2
             MENUITEM "DD.MM.YYYY",                  ID_DMY2
+        END
+        POPUP "Attribute"
+        BEGIN
+            MENUITEM "HDD",                         ID_HDD
+            MENUITEM "SSD",                         ID_SSD
+            MENUITEM "SSD - MTRON",                 ID_SSD_MTRON
+            MENUITEM "SSD - Indilinx",              ID_SSD_INDILINX
+            MENUITEM "SSD - JMicron",               ID_SSD_JMICRON
+            MENUITEM "SSD - Intel",                 ID_SSD_INTEL
+            MENUITEM "SSD - SAMSUNG",               ID_SSD_SAMSUNG
         END
         MENUITEM "Paint Weekend",               ID_PAINT_WEEKEND
     END

@@ -4,12 +4,13 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2007-2008 hiyohiyo. All rights reserved.
+//                           Copyright 2007-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 #include "resource.h"
 #include "DHtmlDialogEx.h"
+#include "GetOsInfo.h"
 
 CDHtmlDialogEx::CDHtmlDialogEx(UINT dlgResouce, UINT dlgHtml, CWnd* pParent)
 				:CDHtmlDialog(dlgResouce, dlgHtml, pParent)
@@ -19,6 +20,9 @@ CDHtmlDialogEx::CDHtmlDialogEx(UINT dlgResouce, UINT dlgHtml, CWnd* pParent)
 	m_ParentWnd = NULL;
 	m_DlgWnd = NULL;
 	m_MenuId = 0;
+
+	m_ZoomRatio = 1.0;
+	m_ZoomType = ZOOM_TYPE_AUTO;
 }
 
 CDHtmlDialogEx::~CDHtmlDialogEx()
@@ -95,6 +99,73 @@ void CDHtmlDialogEx::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 	}
 }
 
+double CDHtmlDialogEx::GetZoomRatio()
+{
+	return m_ZoomRatio;
+}
+
+#ifndef DOCHOSTUIFLAG_DPI_AWARE
+#define DOCHOSTUIFLAG_DPI_AWARE 0x40000000
+#endif
+
+void CDHtmlDialogEx::EnableDpiAware()
+{
+	if(GetIeVersion() >= 800)
+	{
+		DOCHOSTUIINFO info;
+		info.cbSize = sizeof(info);
+		GetHostInfo(&info);
+		SetHostFlags(info.dwFlags | DOCHOSTUIFLAG_DIALOG | DOCHOSTUIFLAG_THEME | DOCHOSTUIFLAG_DPI_AWARE);
+	}
+}
+
+DWORD CDHtmlDialogEx::ChangeZoomType(DWORD zoomType)
+{
+	if(GetIeVersion() < 800)
+	{
+		return (DWORD)-1;
+	}
+
+	DWORD current;
+	VARIANT zoom;
+	VariantInit(&zoom);
+	zoom.vt	= VT_I4;
+	m_pBrowserApp->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DODEFAULT, NULL, &zoom);
+	current = zoom.lVal;
+
+	if(zoomType == ZOOM_TYPE_AUTO)
+	{
+		if(current >= 200)
+		{
+			zoomType = ZOOM_TYPE_200;
+		}
+		else if(current >= 150)
+		{
+			zoomType = ZOOM_TYPE_150;
+		}
+		else if(current >= 125)
+		{
+			zoomType = ZOOM_TYPE_125;
+		}
+		else
+		{
+			zoomType = ZOOM_TYPE_100;
+		}
+	}
+
+	// Force reset Zoom value
+	zoom.lVal = 10;
+	m_pBrowserApp->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DODEFAULT, &zoom, NULL);
+	zoom.lVal = zoomType;
+	m_pBrowserApp->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DODEFAULT, &zoom, NULL);
+
+	m_ZoomRatio = zoomType / 100.0;
+
+	VariantClear(&zoom);
+
+	return zoomType;
+}
+
 void CDHtmlDialogEx::InitDHtmlDialog(DWORD sizeX, DWORD sizeY, CString dialogPath)
 {
 // Enabled Visual Style
@@ -104,7 +175,7 @@ void CDHtmlDialogEx::InitDHtmlDialog(DWORD sizeX, DWORD sizeY, CString dialogPat
 	SetHostFlags(info.dwFlags | DOCHOSTUIFLAG_DIALOG | DOCHOSTUIFLAG_THEME);
 
 // ReSize Dialog
-	SetClientRect(sizeX, sizeY);
+	SetClientRect((DWORD)(sizeX * m_ZoomRatio), (DWORD)(sizeY * m_ZoomRatio));
 	CenterWindow();
 
 // Navigate
@@ -206,13 +277,14 @@ void CDHtmlDialogEx::ShowWindowEx(int nCmdShow)
 	SetForegroundWindow();
 }
 
-void CDHtmlDialogEx::SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, VARIANT *pVar, CString className)
+void CDHtmlDialogEx::SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, CString className)
 {
 	CComPtr<IDispatch> spdispElem;
 
-	VARIANT t = *pVar;
 	GetElement(szElementId, &spdispElem);
-	VARIANT v = *pVar;
+	VARIANT v;
+	VariantInit(&v);
+	v.vt = VT_BSTR;
 	v.bstrVal = CComBSTR(className);
 
 	if(spdispElem)
@@ -226,6 +298,7 @@ void CDHtmlDialogEx::SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, VA
 				LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUT,
 				&dispparams, NULL, NULL, NULL);
 	}
+	VariantClear(&v);
 }
 
 void CDHtmlDialogEx::SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtml)
@@ -263,6 +336,8 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 	DISPPARAMS params = {&arg1, NULL, 1, 0};
 
 	VARIANT ret;
+	VariantInit(&ret);
+
 	EXCEPINFO exp;
 
 	hr = script->Invoke(
@@ -275,6 +350,8 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 			&exp,
 			NULL);
 	ASSERT( hr == S_OK );
+
+	VariantClear(&ret);
 }
 
 CString CDHtmlDialogEx::i18n(CString section, CString key)

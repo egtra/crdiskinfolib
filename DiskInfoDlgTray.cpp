@@ -106,10 +106,9 @@ LRESULT CDiskInfoDlg::OnRegMessage(WPARAM wParam, LPARAM lParam)
 }
 
 LRESULT CDiskInfoDlg::OnTaskbarCreated(WPARAM, LPARAM) 
-{ 
+{
 	if(m_FlagResident)
 	{
-		AddTaskTray(gRegIconId, gRegMessageId, m_hIcon, m_StatusTip);
 		for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 		{
 			if(m_FlagTrayTemperatureIcon[i])
@@ -117,6 +116,11 @@ LRESULT CDiskInfoDlg::OnTaskbarCreated(WPARAM, LPARAM)
 				m_FlagTrayTemperatureIcon[i] = FALSE; // Force Add Temperature Icon
 				AddTemperatureIcon(i);
 			}
+		}
+		if(m_FlagTrayMainIcon)
+		{
+			m_FlagTrayMainIcon = FALSE; // Force Add Main Icon
+			AddTrayMainIcon();
 		}
 	}
 
@@ -459,6 +463,24 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 
 	menuInfo.fType = MFT_STRING;
 
+	if(m_FlagShowTemperatureIconOnly)
+	{
+		menuInfo.fState = MFS_CHECKED;
+	}
+	else
+	{
+		menuInfo.fState = MFS_UNCHECKED;
+	}
+	if(!IsTemperatureIconExist())
+	{
+		menuInfo.fState |= MFS_DISABLED;
+	}
+
+	cstr = i18n(_T("TrayMenu"), _T("SHOW_TEMPERATURE_ICON_ONLY"));
+	menuInfo.dwTypeData = (LPWSTR)cstr.GetString();
+	menuInfo.wID = MY_SHOW_TEMPERATURE_ICON_ONLY;
+	InsertMenuItem(m_hMenu, -1, TRUE, &menuInfo);
+
 	if(m_FlagResidentMinimize)
 	{
 		if(! IsIconic())
@@ -481,7 +503,6 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 			menuInfo.fState = MFS_UNCHECKED;
 		}
 	}
-
 	cstr = i18n(_T("TrayMenu"), _T("SHOW_MAIN_WINDOW"));
 	menuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	menuInfo.wID = MY_SHOW_MAIN_DIALOG;
@@ -522,6 +543,7 @@ BOOL CDiskInfoDlg::AddTemperatureIcon(DWORD i)
 	if(AddTaskTray(TRAY_TEMPERATURE_ICON_BASE + i, m_TempIconIndex[i], m_hTempIcon[m_FlagFahrenheit][m_Ata.vars[i].Temperature], cstr))
 	{
 		m_FlagTrayTemperatureIcon[i] = TRUE;
+
 		return TRUE;
 	}
 	return FALSE;
@@ -700,13 +722,27 @@ void CDiskInfoDlg::CheckResident()
 	else
 	{
 		m_FlagResident = TRUE;
-		if(AddTaskTray(gRegIconId, gRegMessageId, m_hIcon, m_StatusTip))
+		CheckTrayTemperatureIcon();
+
+		if(! m_FlagShowTemperatureIconOnly || ! IsTemperatureIconExist())
 		{
-			CMenu *menu = GetMenu();
-			menu->CheckMenuItem(ID_RESIDENT, MF_CHECKED);
-			SetMenu(menu);
-			DrawMenuBar();
+			AddTrayMainIcon();
 		}
+		else
+		{
+			for(int i = 0; i < m_Ata.vars.GetCount(); i++)
+			{
+				if(m_FlagTrayTemperatureIcon[i])
+				{
+					m_MainIconId = TRAY_TEMPERATURE_ICON_BASE + i;
+				}
+			}
+		}
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_RESIDENT, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
 	}
 }
 
@@ -720,10 +756,10 @@ void CDiskInfoDlg::OnResident()
 		SetMenu(menu);
 		DrawMenuBar();
 
-		RemoveTaskTray(gRegIconId);
+		RemoveTrayMainIcon();
 		for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 		{
-			if(m_FlagTrayTemperatureIcon)
+			if(m_FlagTrayTemperatureIcon[i])
 			{
 				RemoveTemperatureIcon(i);
 			}
@@ -734,14 +770,87 @@ void CDiskInfoDlg::OnResident()
 	else
 	{
 		m_FlagResident = TRUE;
-		if(AddTaskTray(gRegIconId, gRegMessageId, m_hIcon, m_StatusTip))
+
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_RESIDENT, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+		WritePrivateProfileString(_T("Setting"), _T("Resident"), _T("1"), m_Ini);
+		CheckTrayTemperatureIcon();
+
+		if(! m_FlagShowTemperatureIconOnly || ! IsTemperatureIconExist())
 		{
-			CMenu *menu = GetMenu();
-			menu->CheckMenuItem(ID_RESIDENT, MF_CHECKED);
-			SetMenu(menu);
-			DrawMenuBar();
-			WritePrivateProfileString(_T("Setting"), _T("Resident"), _T("1"), m_Ini);
-			CheckTrayTemperatureIcon();
+			AddTrayMainIcon();
 		}
 	}
+}
+
+void CDiskInfoDlg::ShowTemperatureIconOnly()
+{
+	if(m_FlagShowTemperatureIconOnly)
+	{
+		m_FlagShowTemperatureIconOnly = FALSE;
+		WritePrivateProfileString(_T("Setting"), _T("ShowTemperatureIconOnly"), _T("0"), m_Ini);
+
+		AddTrayMainIcon();
+	}
+	else
+	{
+		m_FlagShowTemperatureIconOnly = TRUE;
+		WritePrivateProfileString(_T("Setting"), _T("ShowTemperatureIconOnly"), _T("1"), m_Ini);
+
+		if(IsTemperatureIconExist())
+		{
+			if(RemoveTrayMainIcon())
+			{
+				for(int i = 0; i < m_Ata.vars.GetCount(); i++)
+				{
+					if(m_FlagTrayTemperatureIcon[i])
+					{
+						m_MainIconId = TRAY_TEMPERATURE_ICON_BASE + i;
+					}
+				}
+			}
+		}
+	}
+}
+
+BOOL CDiskInfoDlg::AddTrayMainIcon()
+{
+	if(m_FlagTrayMainIcon)
+	{
+		return TRUE;
+	}
+	else if(AddTaskTray(gRegIconId, gRegMessageId, m_hIconMini, m_StatusTip))
+	{
+		m_FlagTrayMainIcon = TRUE;
+		m_MainIconId = gRegIconId;
+	}
+	return FALSE;
+}
+
+BOOL CDiskInfoDlg::RemoveTrayMainIcon()
+{
+	if(! m_FlagTrayMainIcon)
+	{
+		return TRUE;
+	}
+	else if(RemoveTaskTray(gRegIconId))
+	{
+		m_FlagTrayMainIcon = FALSE;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+BOOL CDiskInfoDlg::IsTemperatureIconExist()
+{
+	for(int j = 0; j < m_Ata.vars.GetCount(); j++)
+	{
+		if(m_FlagTrayTemperatureIcon[j])
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
 }

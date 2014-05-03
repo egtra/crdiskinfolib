@@ -18,6 +18,7 @@ CAboutDlg::CAboutDlg(CWnd* pParent /*=NULL*/)
 {
 	m_CurrentLangPath = ((CDHtmlMainDialog*)pParent)->m_CurrentLangPath;
 	m_DefaultLangPath = ((CDHtmlMainDialog*)pParent)->m_DefaultLangPath;
+	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
 }
 
 CAboutDlg::~CAboutDlg()
@@ -40,6 +41,7 @@ BOOL CAboutDlg::OnInitDialog()
 
 	SetWindowText(i18n(_T("WindowTitle"), _T("ABOUT")));
 
+	EnableDpiAware();
 	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_AboutDlgPath);
 
 	return TRUE;
@@ -57,12 +59,17 @@ void CAboutDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		m_Release = PRODUCT_RELEASE;
 		m_Copyright = PRODUCT_COPYRIGHT;
 
+		ChangeZoomType(m_ZoomType);
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+
 		UpdateData(FALSE);
+		CenterWindow();
 		ShowWindow(SW_SHOW);
 	}
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDHtmlDialogEx)
+	ON_COMMAND(ID_ZOOM_200, &CAboutDlg::OnZoom200)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CAboutDlg)
@@ -81,4 +88,8 @@ HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
 	}
 
 	return S_FALSE;
+}
+void CAboutDlg::OnZoom200()
+{
+	// TODO: ここにコマンド ハンドラ コードを追加します。
 }

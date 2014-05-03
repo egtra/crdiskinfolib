@@ -25,9 +25,7 @@ CSettingDlg::CSettingDlg(CWnd* pParent /*=NULL*/)
 
 	m_CurrentLangPath = ((CDHtmlMainDialog*)p)->m_CurrentLangPath;
 	m_DefaultLangPath = ((CDHtmlMainDialog*)p)->m_DefaultLangPath;
-
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
+	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
 }
 
 CSettingDlg::~CSettingDlg()
@@ -71,18 +69,11 @@ BOOL CSettingDlg::OnInitDialog()
 
 	SetWindowText(i18n(_T("WindowTitle"), _T("AAM_APM_CONTROL")));
 
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
-
+	EnableDpiAware();
 	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_SettingDlgPath);
 
 	m_AamScrollbar.SetScrollRange(0x80, 0xFE);
 	m_ApmScrollbar.SetScrollRange(0x01, 0xFE);
-
-	m_AamScrollbar.MoveWindow(22, 100, 360, 20);
-	m_ApmScrollbar.MoveWindow(22, 243, 360, 20);
 
 	return TRUE;
 }
@@ -108,6 +99,11 @@ void CSettingDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		m_FlagShowWindow = TRUE;
 		InitLang();
 		InitSelectDisk();
+		ChangeZoomType(m_ZoomType);
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+		m_AamScrollbar.MoveWindow((DWORD)(22 * m_ZoomRatio), (DWORD)(100 * m_ZoomRatio), (DWORD)(360 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_ApmScrollbar.MoveWindow((DWORD)(22 * m_ZoomRatio), (DWORD)(243 * m_ZoomRatio), (DWORD)(360 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		CenterWindow();
 		ShowWindow(SW_SHOW);
 	}
 }
@@ -203,7 +199,7 @@ HRESULT CSettingDlg::OnEnableAam(IHTMLElement* /*pElement*/)
 
 	if(p->m_Ata.vars.GetAt(m_DiskIndex).IsAamEnabled)
 	{
-		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 		m_AamStatus = _T("ON");
 	}
 	m_AamScrollbar.SetScrollPos(p->m_Ata.GetAamValue(m_DiskIndex));
@@ -232,7 +228,7 @@ HRESULT CSettingDlg::OnDisableAam(IHTMLElement* /*pElement*/)
 
 	if(! p->m_Ata.vars.GetAt(m_DiskIndex).IsAamEnabled)
 	{
-		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		m_AamStatus = _T("OFF");
 	}
 	m_AamScrollbar.SetScrollPos(p->m_Ata.GetAamValue(m_DiskIndex));
@@ -261,7 +257,7 @@ HRESULT CSettingDlg::OnEnableApm(IHTMLElement* /*pElement*/)
 
 	if(p->m_Ata.vars.GetAt(m_DiskIndex).IsApmEnabled)
 	{
-		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 		m_ApmStatus = _T("ON");
 	}
 	m_ApmScrollbar.SetScrollPos(p->m_Ata.GetApmValue(m_DiskIndex));
@@ -289,7 +285,7 @@ HRESULT CSettingDlg::OnDisableApm(IHTMLElement* /*pElement*/)
 
 	if(! p->m_Ata.vars.GetAt(m_DiskIndex).IsApmEnabled)
 	{
-		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		m_ApmStatus = _T("OFF");
 	}
 	m_ApmScrollbar.SetScrollPos(p->m_Ata.GetApmValue(m_DiskIndex));
@@ -320,24 +316,24 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 		m_AamScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsAamEnabled)
 		{
-			SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+			SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 			m_AamStatus = _T("ON");
 		}
 		else
 		{
-			SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 			m_AamStatus = _T("OFF");
 		}
-		SetElementPropertyEx(_T("EnableAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonEnable"));
-		SetElementPropertyEx(_T("DisableAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonEnable"));
+		SetElementPropertyEx(_T("EnableAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
+		SetElementPropertyEx(_T("DisableAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
 	}
 	else
 	{
 		m_AamScrollbar.EnableWindow(FALSE);
 		m_AamStatus = _T("");
-		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelUnsupported"));
-		SetElementPropertyEx(_T("EnableAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonDisable"));
-		SetElementPropertyEx(_T("DisableAam"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonDisable"));
+		SetElementPropertyEx(_T("LabelAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelUnsupported"));
+		SetElementPropertyEx(_T("EnableAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
+		SetElementPropertyEx(_T("DisableAam"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
 	}
 
 	if(p->m_Ata.vars.GetAt(index).IsApmSupported && p->m_Ata.vars.GetAt(index).CommandType != p->m_Ata.CMD_TYPE_SCSI_MINIPORT)
@@ -345,24 +341,24 @@ void CSettingDlg::UpdateSelectDisk(DWORD index)
 		m_ApmScrollbar.EnableWindow(TRUE);
 		if(p->m_Ata.vars.GetAt(index).IsApmEnabled)
 		{
-			SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+			SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 			m_ApmStatus = _T("ON");
 		}
 		else
 		{
-			SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 			m_ApmStatus = _T("OFF");
 		}
-		SetElementPropertyEx(_T("EnableApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonEnable"));
-		SetElementPropertyEx(_T("DisableApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonEnable"));
+		SetElementPropertyEx(_T("EnableApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
+		SetElementPropertyEx(_T("DisableApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonEnable"));
 	}
 	else
 	{
 		m_ApmScrollbar.EnableWindow(FALSE);
 		m_ApmStatus = _T("");
-		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelUnsupported"));
-		SetElementPropertyEx(_T("EnableApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonDisable"));
-		SetElementPropertyEx(_T("DisableApm"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("buttonDisable"));
+		SetElementPropertyEx(_T("LabelApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelUnsupported"));
+		SetElementPropertyEx(_T("EnableApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
+		SetElementPropertyEx(_T("DisableApm"), DISPID_IHTMLELEMENT_CLASSNAME, _T("buttonDisable"));
 	}
 
 	UpdateData(FALSE);

@@ -26,9 +26,7 @@ CHealthDlg::CHealthDlg(CWnd* pParent /*=NULL*/)
 
 	m_CurrentLangPath = ((CDHtmlMainDialog*)pParent)->m_CurrentLangPath;
 	m_DefaultLangPath = ((CDHtmlMainDialog*)pParent)->m_DefaultLangPath;
-
-	VariantInit(&dummy);
-	dummy.vt = VT_BSTR;
+	m_ZoomType = ((CDHtmlMainDialog*)pParent)->GetZoomType();
 }
 
 CHealthDlg::~CHealthDlg()
@@ -67,24 +65,16 @@ BOOL CHealthDlg::OnInitDialog()
 		+ _T(" - ") + i18n(_T("HealthStatus"), _T("THRESHOLD_OF_CAUTION"))
 		+ _T(" (") + i18n(_T("Dialog"), _T("LIST_RAW_VALUES")) + _T(")"));
 
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
-
-	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_HealthDlgPath);
-
 	m_Scrollbar05.SetScrollRange(0x00, 0xFF);
 	m_ScrollbarC5.SetScrollRange(0x00, 0xFF);
 	m_ScrollbarC6.SetScrollRange(0x00, 0xFF);
 
-	m_Scrollbar05.MoveWindow(17, 43, 328, 20);
-	m_ScrollbarC5.MoveWindow(17, 106, 328, 20);
-	m_ScrollbarC6.MoveWindow(17, 169, 328, 20);
-
 	m_Scrollbar05.SetScrollPos(GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCaution05"), 1, m_Ini));
 	m_ScrollbarC5.SetScrollPos(GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCautionC5"), 1, m_Ini));
 	m_ScrollbarC6.SetScrollPos(GetPrivateProfileInt(_T("HealthStatus"), _T("ThreasholdOfCautionC6"), 1, m_Ini));
+
+	EnableDpiAware();
+	InitDHtmlDialog(SIZE_X, SIZE_Y, ((CDiskInfoApp*)AfxGetApp())->m_HealthDlgPath);
 
 	return TRUE;
 }
@@ -115,17 +105,26 @@ void CHealthDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 		if(m_Scrollbar05.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		if(m_ScrollbarC5.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		if(m_ScrollbarC6.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		InitLang();
+
+		ChangeZoomType(m_ZoomType);
+		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
+
+		m_Scrollbar05.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(43 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_ScrollbarC5.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(106 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_ScrollbarC6.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(169 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+
+	//	CenterWindow();
 		ShowWindow(SW_SHOW);
 	}
 }
@@ -176,11 +175,11 @@ void CHealthDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_Value05.Format(_T("%d"), m_Scrollbar05.GetScrollPos());
 		if(m_Scrollbar05.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		else
 		{
-			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+			SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 		}
 	}
 	else if(*pScrollBar == m_ScrollbarC5)
@@ -189,11 +188,11 @@ void CHealthDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_ValueC5.Format(_T("%d"), m_ScrollbarC5.GetScrollPos());
 		if(m_ScrollbarC5.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		else
 		{
-			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+			SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 		}
 	}
 	else if(*pScrollBar == m_ScrollbarC6)
@@ -202,18 +201,16 @@ void CHealthDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 		m_ValueC6.Format(_T("%d"), m_ScrollbarC6.GetScrollPos());
 		if(m_ScrollbarC6.GetScrollPos() == 0)
 		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelDisable"));
+			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelDisable"));
 		}
 		else
 		{
-			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+			SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 		}
 	}
 
 	UpdateData(FALSE);
 
-
-	
 	CDHtmlDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
@@ -223,9 +220,9 @@ HRESULT CHealthDlg::OnDefault(IHTMLElement* /*pElement*/)
 	m_ScrollbarC5.SetScrollPos(1);
 	m_ScrollbarC6.SetScrollPos(1);
 
-	SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
-	SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
-	SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("labelEnable"));
+	SetElementPropertyEx(_T("Label05"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
+	SetElementPropertyEx(_T("LabelC5"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
+	SetElementPropertyEx(_T("LabelC6"), DISPID_IHTMLELEMENT_CLASSNAME, _T("labelEnable"));
 
 	return FALSE;
 }
