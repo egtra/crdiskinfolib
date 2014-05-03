@@ -49,6 +49,7 @@ static const TCHAR *ssdVendorString[] =
 	_T("st"), // SEAGATE
 	_T("wd"), // WDC
 	_T("px"), // PLEXTOR
+	_T("sd"), // SanDisk
 };
 
 static const TCHAR *deviceFormFactorString[] = 
@@ -543,6 +544,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	m_SiliconImageController.RemoveAll();
 	m_UASPController.RemoveAll();
 	m_SiliconImageControllerType.RemoveAll();
+
+	BOOL detectUASPdisks = FALSE;
 
 	m_BlackPhysicalDrive.RemoveAll();
 	DWORD driveLetterMap[256] = {0};
@@ -1147,7 +1150,12 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						mediaType.MakeLower();
 						VariantClear(&pVal);
 
-						if(mediaType.Find(_T("removable")) >= 0 || mediaType.IsEmpty())
+						// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=994;id=diskinfo#994
+						if(model.Find(_T("SanDisk Extreme USB Device")) == 0)
+						{
+							flagTarget = TRUE;
+						}
+						else if(mediaType.Find(_T("removable")) >= 0 || mediaType.IsEmpty())
 						{
 							flagTarget = FALSE;
 						}
@@ -1308,8 +1316,9 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 								cstr.Format(_T("UASP (%s)"), vars[index].Interface);
 								vars[index].Interface = cstr;
 								vars[index].InterfaceType = INTERFACE_TYPE_UASP;
+								
+								detectUASPdisks = TRUE;
 							}
-
 							else if(model.Replace(_T(" USB Device"), _T("")) > 0 || interfaceTypeWmi.Find(_T("USB")) >= 0)
 							{
 								flagSkipModelCheck = TRUE;
@@ -1347,15 +1356,15 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							CString cmp, cmp1, cmp2, cmp3;
 							cmp = model;
 							cmp.Replace(_T(" "), _T(""));
-							cmp1 = cmp.Left(16);
+							cmp1 = cmp.Left(8);
 
 							cmp = vars[index].Model;
 							cmp.Replace(_T(" "), _T(""));
-							cmp2 = cmp.Left(16);
+							cmp2 = cmp.Left(8);
 
 							cmp = vars[index].ModelReverse;
 							cmp.Replace(_T(" "), _T(""));
-							cmp3 = cmp.Left(16);
+							cmp3 = cmp.Left(8);
 							
 							if(vars[index].Model.IsEmpty())
 							{
@@ -1379,13 +1388,17 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 								vars[index].Model = vars[index].ModelReverse;
 								vars[index].ModelSerial = GetModelSerial(vars[index].Model, vars[index].SerialNumber);
 							}
+							else if(vars[index].InterfaceType == INTERFACE_TYPE_USB || vars[index].InterfaceType == INTERFACE_TYPE_UASP)
+							{
+								// None
+							}
 							else
 							{
 								DebugPrint(_T("WmiModel: ") + model);
 								DebugPrint(_T("Model: ") + vars[index].Model);
 								DebugPrint(_T("SerialNumber: ") + vars[index].SerialNumber);
 								DebugPrint(_T("vars.RemoveAt(index) - 2"));
-							//	vars.RemoveAt(index);
+								vars.RemoveAt(index);
 							}
 
 							// DEBUG
@@ -1736,7 +1749,15 @@ safeRelease:
 		cstr = szPath;
 		DebugPrint(cstr);
 
-		if(GetDriveType(cstr) != DRIVE_FIXED)
+		if(GetDriveType(cstr) == DRIVE_FIXED)
+		{
+			// None
+		}
+		else if(detectUASPdisks && GetDriveType(cstr) == DRIVE_REMOVABLE && c >= 'C')
+		{
+			// None
+		}
+		else
 		{
 			DebugPrint(_T("Drive Letter Mapping - != DRIVE_FIXED"));
 			continue;
@@ -2053,7 +2074,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 
 	if(asi.Model.IsEmpty() || asi.FirmwareRev.IsEmpty())
 	{
-	//	DebugPrint(_T("asi.Model.IsEmpty() || asi.FirmwareRev.IsEmpty()"));
+		DebugPrint(_T("asi.Model.IsEmpty() || asi.FirmwareRev.IsEmpty()"));
 		asi.IsIdInfoIncorrect = TRUE;
 		return FALSE;
 	}
@@ -2552,10 +2573,9 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	{
 		asi.IsThresholdBug = TRUE;
 	}
-
 	// SSD G2 Serieas Firmware Bug
 	// http://hardforum.com/showthread.php?t=1732629
-	if((asi.Model.Find(_T("SSD G2 Series")) == 0 && asi.FirmwareRev.Find(_T("3.6.5")) == 0))
+	else if(asi.Model.Find(_T("SSD G2 Series")) == 0 && asi.FirmwareRev.Find(_T("3.6.5")) == 0)
 	{
 		asi.IsThresholdBug = TRUE;
 	}
@@ -2582,12 +2602,22 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	}
 
 	// for CSMI devices
-	if(asi.IsSmartCorrect && duplicatedId != -1)
+	if(duplicatedId != -1)
 	{
-		vars.RemoveAt(duplicatedId);
+		if(asi.IsSmartCorrect)
+		{
+			// Replace Disk
+			vars.RemoveAt(duplicatedId);
+		}
+		else
+		{
+			// None (Not Add Disk)
+			return FALSE;
+		}
 	}
 
 	vars.Add(asi);
+	
 
 	return TRUE;
 }
@@ -2695,6 +2725,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 
 		asi.PlextorNandWritesUnit = CheckPlextorNandWritesUnit(asi);
 	}
+	else if(IsSsdSanDisk(asi))
+	{
+		asi.SmartKeyName = _T("SmartSanDisk");
+		asi.DiskVendorId = SSD_VENDOR_SANDISK;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
@@ -2730,7 +2767,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			}
 			break;
 		case 0xE8:
-			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_PLEXTOR)
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_PLEXTOR || asi.DiskVendorId == SSD_VENDOR_SANDISK)
 			{
 				if(asi.Attribute[j].CurrentValue <= 100)
 				{
@@ -2814,6 +2851,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					)) * 32 / 1024;
 			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDISK)
+			{
+				asi.HostWrites  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
+			}
 			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 			{
@@ -2874,6 +2923,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					)) * 32 / 1024;
+			}
+			else if(asi.DiskVendorId == SSD_VENDOR_SANDISK)
+			{
+				asi.HostReads  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 512 / 1024 / 1024 / 1024);
 			}
 			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
@@ -3285,6 +3346,23 @@ BOOL CAtaSmart::IsSsdPlextor(ATA_SMART_INFO &asi)
 	// Added CFD's SSD
 	return 	asi.Model.Find(_T("CSSD-S6T128NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0 || asi.Model.Find(_T("CSSD-S6T256NM3PQ")) == 0
 		|| flagSmartType;
+}
+
+BOOL CAtaSmart::IsSsdSanDisk(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+
+	if(asi.Attribute[ 0].Id == 0x05
+	&& asi.Attribute[ 1].Id == 0x09
+	&& asi.Attribute[ 2].Id == 0x0C
+	&& asi.Attribute[ 3].Id == 0xAB
+	&& asi.Attribute[ 4].Id == 0xAC
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
+	return (asi.Model.Find(_T("SanDisk SSD")) >= 0 || flagSmartType == TRUE);
 }
 
 BOOL CAtaSmart::CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2)
@@ -5546,7 +5624,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				}
 				break;
 			case 0xE8:
-				if(asi->DiskVendorId == SSD_VENDOR_INTEL || asi->DiskVendorId == SSD_VENDOR_PLEXTOR)
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL || asi->DiskVendorId == SSD_VENDOR_PLEXTOR || asi->DiskVendorId == SSD_VENDOR_SANDISK)
 				{
 					if(asi->Attribute[j].CurrentValue <= 100)
 					{
@@ -5630,6 +5708,18 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						)) * 32 / 1024;
 				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDISK)
+				{
+					asi->HostWrites  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
+				}
 				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 				{
@@ -5690,6 +5780,18 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						)) * 32 / 1024;
+				}
+				else if(asi->DiskVendorId == SSD_VENDOR_SANDISK)
+				{
+					asi->HostReads  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 512 / 1024 / 1024 / 1024);
 				}
 				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
@@ -5946,7 +6048,7 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			}
 		}
 		else 
-		if((vars[i].Attribute[j].Id == 0xE8 && (vars[i].DiskVendorId == SSD_VENDOR_INTEL || vars[i].DiskVendorId == SSD_VENDOR_PLEXTOR))
+		if((vars[i].Attribute[j].Id == 0xE8 && (vars[i].DiskVendorId == SSD_VENDOR_INTEL || vars[i].DiskVendorId == SSD_VENDOR_PLEXTOR || vars[i].DiskVendorId == SSD_VENDOR_SANDISK))
 		|| (vars[i].Attribute[j].Id == 0xBB && vars[i].DiskVendorId == SSD_VENDOR_MTRON)
 		||((vars[i].Attribute[j].Id == 0xB4 || vars[i].Attribute[j].Id == 0xB3) && vars[i].DiskVendorId == SSD_VENDOR_SAMSUNG)
 		|| (vars[i].Attribute[j].Id == 0xD1 && vars[i].DiskVendorId == SSD_VENDOR_INDILINX)

@@ -103,6 +103,7 @@ BEGIN_DHTML_EVENT_MAP(CDiskInfoDlg)
 	DHTML_EVENT_ONCLICK(_T("DiskStatus"), OnDiskStatus)
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	DHTML_EVENT_ONCLICK(_T("Shizuku"), OnChangeShizuku)
+	DHTML_EVENT_ONCLICK(_T("ShizukuCopyright"), OnShizukuCopyright)
 #endif
 #ifdef BENCHMARK
 	DHTML_EVENT_ONCLICK(_T("Benchmark"), OnBenchmark)
@@ -270,7 +271,16 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	ALARM_TEMPERATURE_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("ALARM_TEMPERATURE_PERIOD"), 60 * 60, m_Ini);
 
 	#ifdef SUISHO_SHIZUKU_SUPPORT
-	m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
+	
+	if(GetUserDefaultLCID() == 0x0411)// Japanese
+	{
+		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), INDEX_SHIZUKU_KARUTA, m_Ini);
+	}
+	else
+	{
+		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
+	}
+
 	if(m_ShizukuImageType == 0 || MAX_SHIZUKU_IMAGE < m_ShizukuImageType)
 	{
 		srand(GetTickCount());

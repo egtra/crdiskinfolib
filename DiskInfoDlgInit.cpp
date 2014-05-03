@@ -171,8 +171,17 @@ void CDiskInfoDlg::ChangeShizukuImage(DWORD index)
 
 	arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_0 + index);
 	CallScript(_T("setShizuku"), arg);
-	arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_COPYRIGHT);
-	CallScript(_T("setShizukuCopyright"), arg);
+	if(index == INDEX_SHIZUKU_KARUTA)
+	{
+		arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_3_COPYRIGHT);
+		CallScript(_T("setShizuku3Copyright"), arg);
+	}
+	else
+	{
+		arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_COPYRIGHT);
+		CallScript(_T("setShizukuCopyright"), arg);
+	}
+
 
 	cstr.Format(_T("%d"), index);
 	WritePrivateProfileString(_T("Setting"), _T("ShizukuImageType"), cstr, m_Ini);
@@ -463,7 +472,7 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 				}
 			}
 			else
-			if((m_Ata.vars[index].Attribute[j].Id == 0xE8 && (m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_PLEXTOR))
+			if((m_Ata.vars[index].Attribute[j].Id == 0xE8 && (m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_PLEXTOR || m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SANDISK))
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xBB && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
 			||((m_Ata.vars[index].Attribute[j].Id == 0xB4 || m_Ata.vars[index].Attribute[j].Id == 0xB3) && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)

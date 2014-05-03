@@ -56,7 +56,8 @@ public:
 protected:
 	DWORD m_ShizukuImageType;
 
-	static const int MAX_SHIZUKU_IMAGE = 2;
+	static const int MAX_SHIZUKU_IMAGE = 3;
+	static const int INDEX_SHIZUKU_KARUTA = 3;
 #else
 	static const int SIZE_X = 640;
 	static const int SIZE_SMART_X = 640;
@@ -309,6 +310,7 @@ protected:
 	HRESULT OnDiskStatus(IHTMLElement *pElement);
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	HRESULT OnChangeShizuku(IHTMLElement *pElement);
+	HRESULT OnShizukuCopyright(IHTMLElement *pElement);
 	void ChangeShizukuImage(DWORD index);
 #endif
 #ifdef BENCHMARK
