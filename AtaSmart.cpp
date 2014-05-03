@@ -554,6 +554,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 		IEnumWbemClassObject*	pEnumCOMDevs = NULL;
 		IEnumWbemClassObject*	pEnumCOMDevs2 = NULL;
 		IWbemClassObject*		pCOMDev = NULL;
+
 		
 		DebugPrint(_T("CAtaSmart::Init WMI on - Start"));
 
@@ -1367,9 +1368,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 				DebugPrint(_T("EX:SELECT * FROM Win32_DiskDrive"));
 			}
 
-
+			// Drive Letter Mapping Start
 			/*
-			// Drive Letter Mapping
 			try
 			{
 				DebugPrint(_T("DO:SELECT * FROM Win32_DiskPartition"));
@@ -1427,7 +1427,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						SysFreeString(bstr);
 						if(pCOMDev)
 						{
-						//	driveLetterMap[physicalDriveId] |= 1 << (drive.GetAt(0) - 'A');
+							driveLetterMap[physicalDriveId] |= 1 << (drive.GetAt(0) - 'A');
 						}
 						SAFE_RELEASE(pCOMDev);
 					}
@@ -1442,8 +1442,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			{
 				DebugPrint(_T("EX:Drive Letter Mapping"));
 			}
-			*/
-
+		*/
 safeRelease:
 
 			SAFE_RELEASE(pCOMDev);
@@ -1453,6 +1452,31 @@ safeRelease:
 		//	CoUninitialize();
 		//  DebugPrint(_T("OK:CoUninitialize()"));
 		}
+		/*
+		for(int i = 0; i < vars.GetCount(); i++)
+		{
+			if(vars[i].PhysicalDriveId < 0)
+			{
+				continue;
+			}
+
+			CString driveLetter = _T("");
+			for(int j = 0; j < 26; j++)
+			{
+				if(driveLetterMap[vars[i].PhysicalDriveId] & (1 << j))
+				{
+					CString cstr;
+					cstr.Format(_T("%C"), j + 'A'); 
+					driveLetter += cstr + _T(": ");
+					vars[i].DriveLetterMap += (1 << j);
+					DebugPrint(cstr);
+				}
+			}
+			vars[i].DriveMap.Append(driveLetter);
+			vars[i].DriveMap.TrimRight();
+		}
+		*/
+		// Drive Letter Mapping End
 	}
 	else
 	{
@@ -1661,36 +1685,49 @@ safeRelease:
 		DebugPrint(_T("OK:GetDiskInfo - Scsi"));
 	}
 
-	DebugPrint(_T("Drive Letter Mapping"));
+	DebugPrint(_T("Drive Letter Mapping - Start"));
 
 	// Drive Letter Mapping http://www.cplusplus.com/forum/windows/12196/
-	for(TCHAR c = 'A'; c < 'Z'; c++)
+	for(TCHAR c = 'A'; c <= 'Z'; c++)
 	{
+		CString cstr;
 		TCHAR szPath[MAX_PATH] = {0};
 		wsprintf(szPath, _T("\\\\.\\%c:"), c);
+		cstr = szPath;
+		DebugPrint(cstr);
 		HANDLE hHandle = CreateFile(szPath, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ,
 			NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if(hHandle == INVALID_HANDLE_VALUE)
 		{
+			DebugPrint(_T("Drive Letter Mapping - INVALID_HANDLE_VALUE"));
 			continue;
 		}
-		VOLUME_DISK_EXTENTS volumeDiskExtents;
+		VOLUME_DISK_EXTENTS_LX volumeDiskExtents;
 		DWORD dwBytesReturned = 0;
 		BOOL bResult = DeviceIoControl(hHandle, IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS, NULL, 0,
 			&volumeDiskExtents, sizeof(volumeDiskExtents), &dwBytesReturned, NULL);
 		CloseHandle(hHandle);
 		if(!bResult)
 		{
+			DebugPrint(_T("Drive Letter Mapping - bResult == FALSE"));
 			continue;
 		}
-			
-		for (DWORD n = 0; n < volumeDiskExtents.NumberOfDiskExtents; ++n)
+
+		cstr.Format(_T("volumeDiskExtents.NumberOfDiskExtents = %d"), volumeDiskExtents.NumberOfDiskExtents);
+		DebugPrint(cstr);
+
+		for (DWORD n = 0; n < volumeDiskExtents.NumberOfDiskExtents && volumeDiskExtents.NumberOfDiskExtents < 4; ++n)
 		{
 			PDISK_EXTENT pDiskExtent = &volumeDiskExtents.Extents[n];
-			driveLetterMap[pDiskExtent->DiskNumber] |= 1 << (c - 'A');
+			if(0 <= pDiskExtent->DiskNumber && pDiskExtent->DiskNumber < 256)
+			{
+				driveLetterMap[pDiskExtent->DiskNumber] |= 1 << (c - 'A');
+			}
+			cstr.Format(_T("n = %d, pDiskExtent->DiskNumber = %d"), n, pDiskExtent->DiskNumber);
+			DebugPrint(cstr);
 		}
 	}
-		
+	DebugPrint(_T("Drive Letter Mapping - End"));
 
 	for(int i = 0; i < vars.GetCount(); i++)
 	{
@@ -1714,8 +1751,7 @@ safeRelease:
 		vars[i].DriveMap.Append(driveLetter);
 		vars[i].DriveMap.TrimRight();
 	}
-
-
+	// Drive Letter Mapping2
 
 	MeasuredGetTickCount = GetTickCount();
 	DebugPrint(_T("CAtaSmart::Init - Complete"));
@@ -2643,7 +2679,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-/*
+			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 			{
 				asi.HostWrites  = (INT)(
@@ -2656,7 +2692,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-*/
+			*/
 			break;
 		case 0xF2:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -2685,7 +2721,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-/*
+			/*
 			else if(asi.DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 			{
 				asi.HostReads  = (INT)(
@@ -2698,7 +2734,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					+ (UINT64)asi.Attribute[j].RawValue[0])
 					* 512 / 1024 / 1024 / 1024);
 			}
-*/
+			*/
 			break;
 		case 0xF9:
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
@@ -3100,7 +3136,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			DebugPrint(_T("GetDiskInfo - FALSE1"));
 			return FALSE;
 		}
-/*
+		/*
 		else if(scsiPort >= 0 && scsiTargetId >= 0
 			&& vars[i].ScsiPort == scsiPort && vars[i].ScsiTargetId == scsiTargetId
 			&& vars[i].ScsiBus == scsiBus
@@ -3109,7 +3145,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 			DebugPrint(_T("GetDiskInfo - FALSE2"));
 			return FALSE;
 		}
-*/
+		*/
 	}
 
 	IDENTIFY_DEVICE identify = {0};
@@ -5361,7 +5397,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-/*
+				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 				{
 					asi->HostWrites  = (INT)(
@@ -5374,7 +5410,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-*/
+				*/
 				break;
 			case 0xF2:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
@@ -5403,7 +5439,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-/*
+				/*
 				else if(asi->DiskVendorId == HDD_SSD_VENDOR_SEAGATE)
 				{
 					asi->HostReads  = (INT)(
@@ -5416,7 +5452,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						+ (UINT64)asi->Attribute[j].RawValue[0])
 						* 512 / 1024 / 1024 / 1024);
 				}
-*/
+				*/
 				break;
 			case 0xF9:
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)

@@ -13,6 +13,11 @@
 #include "winioctl.h"
 #include "SPTIUtil.h"
 
+typedef struct _VOLUME_DISK_EXTENTS_LX {
+    DWORD       NumberOfDiskExtents;
+    DISK_EXTENT Extents[4];
+} VOLUME_DISK_EXTENTS_LX, *PVOLUME_DISK_EXTENTS_LX;
+
 class CAtaSmart
 {
 
