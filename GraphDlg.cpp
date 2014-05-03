@@ -98,6 +98,22 @@ void CGraphDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk29"), m_LiDisk[29]);
 	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk30"), m_LiDisk[30]);
 	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk31"), m_LiDisk[31]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk32"), m_LiDisk[32]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk33"), m_LiDisk[33]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk34"), m_LiDisk[34]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk35"), m_LiDisk[35]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk36"), m_LiDisk[36]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk37"), m_LiDisk[37]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk38"), m_LiDisk[38]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk39"), m_LiDisk[39]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk40"), m_LiDisk[40]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk41"), m_LiDisk[41]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk42"), m_LiDisk[42]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk43"), m_LiDisk[43]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk44"), m_LiDisk[44]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk45"), m_LiDisk[45]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk46"), m_LiDisk[46]);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Disk47"), m_LiDisk[47]);
 
 	DDX_DHtml_SelectValue(pDX, _T("SelectAttributeId"), m_SelectAttributeId);
 	DDX_DHtml_SelectIndex(pDX, _T("SelectAttributeId"), m_SelectAttributeIdCtrl);
@@ -206,6 +222,22 @@ BEGIN_DHTML_EVENT_MAP(CGraphDlg)
 	DHTML_EVENT_ONCLICK(_T("Disk29"), OnDisk29)
 	DHTML_EVENT_ONCLICK(_T("Disk30"), OnDisk30)
 	DHTML_EVENT_ONCLICK(_T("Disk31"), OnDisk31)
+	DHTML_EVENT_ONCLICK(_T("Disk32"), OnDisk32)
+	DHTML_EVENT_ONCLICK(_T("Disk33"), OnDisk33)
+	DHTML_EVENT_ONCLICK(_T("Disk34"), OnDisk34)
+	DHTML_EVENT_ONCLICK(_T("Disk35"), OnDisk35)
+	DHTML_EVENT_ONCLICK(_T("Disk36"), OnDisk36)
+	DHTML_EVENT_ONCLICK(_T("Disk37"), OnDisk37)
+	DHTML_EVENT_ONCLICK(_T("Disk38"), OnDisk38)
+	DHTML_EVENT_ONCLICK(_T("Disk39"), OnDisk39)
+	DHTML_EVENT_ONCLICK(_T("Disk40"), OnDisk40)
+	DHTML_EVENT_ONCLICK(_T("Disk41"), OnDisk41)
+	DHTML_EVENT_ONCLICK(_T("Disk42"), OnDisk42)
+	DHTML_EVENT_ONCLICK(_T("Disk43"), OnDisk43)
+	DHTML_EVENT_ONCLICK(_T("Disk44"), OnDisk44)
+	DHTML_EVENT_ONCLICK(_T("Disk45"), OnDisk45)
+	DHTML_EVENT_ONCLICK(_T("Disk46"), OnDisk46)
+	DHTML_EVENT_ONCLICK(_T("Disk47"), OnDisk47)
 END_DHTML_EVENT_MAP()
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -422,6 +454,23 @@ void CGraphDlg::InitVars(int defaultDisk)
 	m_DefaultLineColor[29] = 0x101010;
 	m_DefaultLineColor[30] = 0x080808;
 	m_DefaultLineColor[31] = 0x000000;
+	m_DefaultLineColor[32] = 0x000000;
+	m_DefaultLineColor[33] = 0x000000;
+	m_DefaultLineColor[34] = 0x000000;
+	m_DefaultLineColor[35] = 0x000000;
+	m_DefaultLineColor[36] = 0x000000;
+	m_DefaultLineColor[37] = 0x000000;
+	m_DefaultLineColor[38] = 0x000000;
+	m_DefaultLineColor[39] = 0x000000;
+	m_DefaultLineColor[40] = 0x000000;
+	m_DefaultLineColor[41] = 0x000000;
+	m_DefaultLineColor[42] = 0x000000;
+	m_DefaultLineColor[43] = 0x000000;
+	m_DefaultLineColor[44] = 0x000000;
+	m_DefaultLineColor[45] = 0x000000;
+	m_DefaultLineColor[46] = 0x000000;
+	m_DefaultLineColor[47] = 0x000000;
+
 	m_DefaultLineColor[CAtaSmart::MAX_DISK] = 0x4a24ff;	// Threshold
 
 	switch(GetPrivateProfileInt(_T("Setting"), _T("Temperature"), 0, m_Ini))
@@ -522,6 +571,24 @@ HRESULT CGraphDlg::OnDisk28(IHTMLElement* /*pElement*/){CheckDisk(28);UpdateGrap
 HRESULT CGraphDlg::OnDisk29(IHTMLElement* /*pElement*/){CheckDisk(29);UpdateGraph();return S_FALSE;}
 HRESULT CGraphDlg::OnDisk30(IHTMLElement* /*pElement*/){CheckDisk(30);UpdateGraph();return S_FALSE;}
 HRESULT CGraphDlg::OnDisk31(IHTMLElement* /*pElement*/){CheckDisk(31);UpdateGraph();return S_FALSE;}
+
+HRESULT CGraphDlg::OnDisk32(IHTMLElement* /*pElement*/){CheckDisk(32);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk33(IHTMLElement* /*pElement*/){CheckDisk(33);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk34(IHTMLElement* /*pElement*/){CheckDisk(34);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk35(IHTMLElement* /*pElement*/){CheckDisk(35);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk36(IHTMLElement* /*pElement*/){CheckDisk(36);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk37(IHTMLElement* /*pElement*/){CheckDisk(37);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk38(IHTMLElement* /*pElement*/){CheckDisk(38);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk39(IHTMLElement* /*pElement*/){CheckDisk(39);UpdateGraph();return S_FALSE;}
+
+HRESULT CGraphDlg::OnDisk40(IHTMLElement* /*pElement*/){CheckDisk(40);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk41(IHTMLElement* /*pElement*/){CheckDisk(41);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk42(IHTMLElement* /*pElement*/){CheckDisk(42);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk43(IHTMLElement* /*pElement*/){CheckDisk(43);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk44(IHTMLElement* /*pElement*/){CheckDisk(44);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk45(IHTMLElement* /*pElement*/){CheckDisk(45);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk46(IHTMLElement* /*pElement*/){CheckDisk(46);UpdateGraph();return S_FALSE;}
+HRESULT CGraphDlg::OnDisk47(IHTMLElement* /*pElement*/){CheckDisk(47);UpdateGraph();return S_FALSE;}
 
 HRESULT CGraphDlg::OnAllOn(IHTMLElement* /*pElement*/)
 {
@@ -766,6 +833,30 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
+	// HostWrites
+	if(flagAttribute[0xF1])
+	{
+		cstr.Format(_T("<option value=\"497\">%s[F1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("F1"), m_FlagSmartEnglish));
+		select += cstr;
+		if(SelectedAttributeId == 497)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
+	// HostReads
+	if(flagAttribute[0xF2])
+	{
+		cstr.Format(_T("<option value=\"498\">%s[F2] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("F2"), m_FlagSmartEnglish));
+		select += cstr;
+		if(SelectedAttributeId == 498)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
 	// GBytes Erased
 	if(flagAttribute[0x64])
 	{
@@ -859,6 +950,8 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1C5:fileName = _T("CurrentPendingSectorCount");	min = 0; break;
 		case 0x1C6:fileName = _T("UncorrectableSectorCount");	min = 0; break;
 		case 0x1E1:fileName = _T("HostWrites");					min = 0; break;
+		case 0x1F1:fileName = _T("HostWrites");					min = 0; break;
+		case 0x1F2:fileName = _T("HostReads");					min = 0; break;
 		case 0x164:fileName = _T("GBytesErased");				min = 0; break;
 		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:

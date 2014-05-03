@@ -91,15 +91,15 @@ void CDiskInfoDlg::OnEditCopy()
 		temp.Format(_T(" (%d) %s : %.1f GB (%.1f MB/s)"), i + 1,
 			m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, m_Ata.vars[i].Speed);
 #else
-		if(m_Ata.vars[i].TotalDiskSize < 1000)
+		if(m_Ata.vars[i].TotalDiskSize >= 1000)
 		{
-			temp.Format(_T(" (%d) %s : %.2f GB"), i + 1,
+			temp.Format(_T(" (%d) %s : %.1f GB"), i + 1,
 				m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
 		}
 		else
 		{
-			temp.Format(_T(" (%d) %s : %.1f GB"), i + 1,
-				m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
+			temp.Format(_T(" (%d) %s : %d MB"), i + 1,
+				m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize);
 		}
 #endif
 		cstr += temp;
@@ -159,6 +159,7 @@ void CDiskInfoDlg::OnEditCopy()
    Transfer Mode : %TRANSFER_MODE%\r\n\
   Power On Hours : %POWER_ON_HOURS%\r\n\
   Power On Count : %POWER_ON_COUNT%\r\n\
+%HOST_READS%\
 %HOST_WRITES%\
 %GBYTES_ERASED%\
      Temparature : %TEMPERATURE%\r\n\
@@ -300,6 +301,17 @@ void CDiskInfoDlg::OnEditCopy()
 				(double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
 			drive.Replace(_T("%HOST_WRITES%"), cstr);
 		}
+
+		if(m_Ata.vars[i].HostReads == 0)
+		{
+			drive.Replace(_T("%HOST_READS%"), _T(""));
+		}
+		else
+		{
+			cstr.Format(_T("      Host Reads : %.2f GB\r\n"),
+				(double)(m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024);		
+			drive.Replace(_T("%HOST_READS%"), cstr);
+		}
 		
 		if(m_Ata.vars[i].GBytesErased == 0)
 		{
@@ -323,8 +335,8 @@ void CDiskInfoDlg::OnEditCopy()
 
 		if(m_Ata.vars[i].TotalDiskSize < 1000)
 		{
-			cstr.Format(_T("%.2f GB (%.2f/----/----)"),
-				m_Ata.vars[i].TotalDiskSize / 1000.0,
+			cstr.Format(_T("%d MB (%.2f/----/----)"),
+				m_Ata.vars[i].TotalDiskSize,
 				m_Ata.vars[i].DiskSizeChs / 1000.0);
 		}
 		else if(m_Ata.vars[i].IsLba48Supported)

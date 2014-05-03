@@ -3,7 +3,6 @@
 // Used by DiskInfo.rc
 //
 
-//#define ALERT_VOICE_SUPPORT
 
 #define IDD_DISKINFO_DIALOG             102
 #define IDR_HTML_DUMMY                  103

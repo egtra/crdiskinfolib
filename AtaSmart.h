@@ -4,7 +4,7 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2008-2010 hiyohiyo. All rights reserved.
+//                           Copyright 2008-2011 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 // Reference : http://www.usefullcode.net/2007/02/hddsmart.html (ja)
 
@@ -16,9 +16,9 @@
 class CAtaSmart
 {
 public:
-	static const int MAX_DISK = 32;// FIX
+	static const int MAX_DISK = 48;// FIX
 	static const int MAX_ATTRIBUTE = 30; // FIX
-	static const int MAX_SEARCH_PHYSICAL_DRIVE = 32;
+	static const int MAX_SEARCH_PHYSICAL_DRIVE = 56;
 	static const int MAX_SEARCH_SCSI_PORT = 16;
 	static const int MAX_SEARCH_SCSI_TARGET_ID = 8;
 
@@ -414,6 +414,7 @@ public:
 		DWORD				NominalMediaRotationRate;
 //		double				Speed;
 		ULONGLONG			HostWrites;
+		ULONGLONG			HostReads;
 		ULONG				GBytesErased;
 
 		INT					Life;

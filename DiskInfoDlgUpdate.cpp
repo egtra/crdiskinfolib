@@ -1119,24 +1119,53 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		}
 	}
 	
-	if(m_Ata.vars[i].IsSsd && m_Ata.vars[i].BufferSize == 0xFFFF * 512)
+		// Temp
+	if((m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL && m_Ata.vars[i].HostReads > 0) || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+	{
+		double hostReads = (double)(m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024;
+		if(hostReads > 1000000.0)
+		{
+			m_BufferSize.Format(_T("%.2f PB"), hostReads / 1024 / 1024);
+		}
+		else if(hostReads > 1000.0)
+		{
+			m_BufferSize.Format(_T("%.2f TB"), hostReads / 1024);
+		}
+		else
+		{
+			m_BufferSize.Format(_T("%.2f GB"), hostReads);
+		}
+		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+		{
+			m_LabelBufferSize = i18n(_T("SmartIntel"), _T("F2"));
+		}
+		else
+		{
+			m_LabelBufferSize = i18n(_T("SmartSandForce"), _T("F2"));
+		}
+		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
+	}
+	else if(m_Ata.vars[i].IsSsd && m_Ata.vars[i].BufferSize == 0xFFFF * 512)
 	{
 		m_BufferSize.Format(_T(">= %d KB"), m_Ata.vars[i].BufferSize / 1024);
+		m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
 	else if(m_Ata.vars[i].BufferSize > 0)
 	{
 		m_BufferSize.Format(_T("%d KB"), m_Ata.vars[i].BufferSize / 1024);
+		m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
 	else
 	{
 		m_BufferSize = i18n(_T("Dialog"), _T("UNKNOWN"));
+		m_LabelBufferSize = i18n(_T("Dialog"), _T("BUFFER_SIZE"));
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("unsupported"));
 	}
 
 	// Temp
-	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 	{
 		double hostWrites = (double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024;
 		if(hostWrites > 1000000.0)
@@ -1151,16 +1180,20 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		{
 			m_NvCacheSize.Format(_T("%.2f GB"), hostWrites);
 		}
-		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
-	}
-	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE && m_Ata.vars[i].GBytesErased > 0)
-	{
-		m_NvCacheSize.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);		
-		m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("64"));
+
+		if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+		{
+			m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("F1"));
+		}
+		else
+		{
+			m_LabelNvCacheSize = i18n(_T("SmartSandForce"), _T("F1"));
+		}		
 	}
 	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{
 		m_NvCacheSize.Format(_T("%d MB"), (DWORD)(m_Ata.vars[i].NvCacheSize / 1024 / 1024));
+		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	}
 	else
 	{
@@ -1168,7 +1201,13 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
 	}
 
-	if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
+	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE && m_Ata.vars[i].GBytesErased > 0)
+	{
+		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].GBytesErased);		
+		m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
+		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
+	}
+	else if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
 		m_RotationRate = _T("---- (SSD)");
 		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
@@ -2069,6 +2108,11 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	if(m_Ata.vars[i].HostWrites > 0)
 	{
 		AppendLog(dir, disk, _T("HostWrites"), time, (int)((m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
+	}
+
+	if(m_Ata.vars[i].HostReads > 0)
+	{
+		AppendLog(dir, disk, _T("HostReads"), time, (int)((m_Ata.vars[i].HostReads * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
 	}
 
 	if(m_Ata.vars[i].GBytesErased > 0)

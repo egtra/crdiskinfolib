@@ -16,7 +16,7 @@ class COptionDlg : public CDHtmlDialogEx
 	DECLARE_DYNCREATE(COptionDlg)
 
 	static const int SIZE_X = 480;
-	static const int SIZE_Y = 360;
+	static const int SIZE_Y = 480;
 
 public:
 	COptionDlg(CWnd* pParent = NULL);
@@ -71,6 +71,22 @@ protected:
 	HRESULT OnSelect30(IHTMLElement *pElement);
 	HRESULT OnSelect31(IHTMLElement *pElement);
 	HRESULT OnSelect32(IHTMLElement *pElement);
+	HRESULT OnSelect33(IHTMLElement *pElement);
+	HRESULT OnSelect34(IHTMLElement *pElement);
+	HRESULT OnSelect35(IHTMLElement *pElement);
+	HRESULT OnSelect36(IHTMLElement *pElement);
+	HRESULT OnSelect37(IHTMLElement *pElement);
+	HRESULT OnSelect38(IHTMLElement *pElement);
+	HRESULT OnSelect39(IHTMLElement *pElement);
+	HRESULT OnSelect40(IHTMLElement *pElement);
+	HRESULT OnSelect41(IHTMLElement *pElement);
+	HRESULT OnSelect42(IHTMLElement *pElement);
+	HRESULT OnSelect43(IHTMLElement *pElement);
+	HRESULT OnSelect44(IHTMLElement *pElement);
+	HRESULT OnSelect45(IHTMLElement *pElement);
+	HRESULT OnSelect46(IHTMLElement *pElement);
+	HRESULT OnSelect47(IHTMLElement *pElement);
+	HRESULT OnSelect48(IHTMLElement *pElement);
 
 	HRESULT OnSelectBgImage(IHTMLElement *pElement);
 	HRESULT OnNoBgImage(IHTMLElement *pElement);

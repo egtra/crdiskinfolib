@@ -161,6 +161,9 @@
     <ClInclude Include="FontSelection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CompileOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\bad.ico">
@@ -787,15 +790,24 @@
     <None Include="res\F99.ico">
       <Filter>Resource Files\Temperature Icons</Filter>
     </None>
-    <None Include="res\CrystalDiskinfo.wav">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\mp31.bin">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\mp32.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\CrystalDiskInfo.mp3" />
+    <None Include="res\601.mp3" />
+    <None Include="res\602.mp3" />
+    <None Include="res\603.mp3" />
+    <None Include="res\604.mp3" />
+    <None Include="res\605.mp3" />
+    <None Include="res\606.mp3" />
+    <None Include="res\701.mp3" />
+    <None Include="res\702.mp3" />
+    <None Include="res\703.mp3" />
+    <None Include="res\704.mp3" />
+    <None Include="res\705.mp3" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">

@@ -54,18 +54,13 @@
 #include "DebugPrint.h"
 #include <afxcontrolbars.h>
 
-// New Feature
-// #define BENCHMARK
-//#define GADGET_SUPPORT
-
-// ALERT_VOICE_SUPPORT is defined at resource.h
-//#define ALERT_VOICE_SUPPORT
+#include "CompileOptions.h"
 
 // Version Information
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("4.0.3")
-#define PRODUCT_RELEASE			_T("2011/9/25")
+#define PRODUCT_VERSION			_T("4.1.0")
+#define PRODUCT_RELEASE			_T("2011/10/10")
 #define PRODUCT_COPY_YEAR		_T("2008-2011")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2011 hiyohiyo.")
 

@@ -111,6 +111,23 @@ protected:
 	HRESULT OnDisk29(IHTMLElement *pElement);
 	HRESULT OnDisk30(IHTMLElement *pElement);
 	HRESULT OnDisk31(IHTMLElement *pElement);
+	HRESULT OnDisk32(IHTMLElement *pElement);
+	HRESULT OnDisk33(IHTMLElement *pElement);
+	HRESULT OnDisk34(IHTMLElement *pElement);
+	HRESULT OnDisk35(IHTMLElement *pElement);
+	HRESULT OnDisk36(IHTMLElement *pElement);
+	HRESULT OnDisk37(IHTMLElement *pElement);
+	HRESULT OnDisk38(IHTMLElement *pElement);
+	HRESULT OnDisk39(IHTMLElement *pElement);
+	HRESULT OnDisk40(IHTMLElement *pElement);
+	HRESULT OnDisk41(IHTMLElement *pElement);
+	HRESULT OnDisk42(IHTMLElement *pElement);
+	HRESULT OnDisk43(IHTMLElement *pElement);
+	HRESULT OnDisk44(IHTMLElement *pElement);
+	HRESULT OnDisk45(IHTMLElement *pElement);
+	HRESULT OnDisk46(IHTMLElement *pElement);
+	HRESULT OnDisk47(IHTMLElement *pElement);
+
 	HRESULT OnSelectAttributeId(IHTMLElement *pElement);
 
 	void InitMenu();

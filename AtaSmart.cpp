@@ -1666,6 +1666,11 @@ int CAtaSmart::Compare(const void *p1, const void *p2)
 
 BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType)
 {
+	if(vars.GetCount() >= MAX_DISK)
+	{
+		return FALSE;
+	}
+
 	ATA_SMART_INFO asi = {0};
 	ATA_SMART_INFO asiCheck = {0};
 
@@ -1757,6 +1762,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 //	asi.Speed = 0.0;
 	asi.Life = -1;
 	asi.HostWrites = 0;
+	asi.HostReads = 0;
 	asi.GBytesErased = 0;
 
 	asi.Major = 0;
@@ -2239,7 +2245,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		return FALSE;
 	}
 
-	vars.Add(asi);
+	if(vars.GetCount() < MAX_DISK){vars.Add(asi);}
+
 	return TRUE;
 }
 
@@ -2359,6 +2366,24 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			if(asi.DiskVendorId == SSD_VENDOR_INTEL)
 			{
 				asi.HostWrites  = MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
+			}
+			break;
+		case 0xF1:
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.HostWrites  = MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
+			}
+			break;
+		case 0xF2:
+			if(asi.DiskVendorId == SSD_VENDOR_INTEL || asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
+			{
+				asi.HostReads  = MAKELONG(
 					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					);
@@ -4523,6 +4548,15 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
 				{
 					asi->HostWrites  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
+			case 0xF2:
+				if(asi->DiskVendorId == SSD_VENDOR_INTEL)
+				{
+					asi->HostReads  = MAKELONG(
 						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						);

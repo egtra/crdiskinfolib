@@ -268,6 +268,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
+    <ClInclude Include="CompileOptions.h" />
     <ClInclude Include="DiskInfo.h" />
     <ClInclude Include="DiskInfoDlg.h" />
     <ClInclude Include="FontComboBox.h" />
@@ -291,9 +292,20 @@
     <ClInclude Include="SPTIUtil.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\601.mp3" />
+    <None Include="res\602.mp3" />
+    <None Include="res\603.mp3" />
+    <None Include="res\604.mp3" />
+    <None Include="res\605.mp3" />
+    <None Include="res\606.mp3" />
+    <None Include="res\701.mp3" />
+    <None Include="res\702.mp3" />
+    <None Include="res\703.mp3" />
+    <None Include="res\704.mp3" />
+    <None Include="res\705.mp3" />
     <None Include="res\bad.ico" />
     <None Include="res\caution.ico" />
-    <None Include="res\CrystalDiskinfo.wav" />
+    <None Include="res\CrystalDiskInfo.mp3" />
     <None Include="res\DiskInfo.ico" />
     <None Include="res\DiskInfo.rc2" />
     <None Include="res\DiskInfo16.ico" />
