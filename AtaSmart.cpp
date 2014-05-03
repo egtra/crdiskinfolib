@@ -4255,6 +4255,15 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			&& vars[i].Attribute[j].CurrentValue == 0 && vars[i].Attribute[j].RawValue[0] == 0 && vars[i].Attribute[j].RawValue[1] == 0)
 		{
 		}
+		else if(vars[i].IsSsd && vars[i].IsRawValues8)
+		{
+		}
+		else if(vars[i].IsSsd && ! vars[i].IsRawValues8
+		&&	vars[i].Threshold[j].ThresholdValue != 0
+		&& 	vars[i].Attribute[j].CurrentValue < vars[i].Threshold[j].ThresholdValue)
+		{
+			error++;
+		}
 		else if(((0x01 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0x0D)
 		||	(0xBF <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xD1)
 		||	(0xDC <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xE4)
