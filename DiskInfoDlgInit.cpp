@@ -206,14 +206,11 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 	if(errorCount)
 	{
 		SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);
-		SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
+	//	SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
 		m_PowerOnHoursClass = _T("valueR gray");
 		m_NowDetectingUnitPowerOnHours = TRUE;
 	}
-	else
-	{
-		SetWindowTitle(_T(""));
-	}
+	SetWindowTitle(_T(""));
 
 	AutoAamApmAdaption();
 
@@ -389,10 +386,10 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 	return result;
 }
 
-CString CDiskInfoDlg::GetLogicalDriveInfo(DWORD index)
+CString CDiskInfoDlg::GetLogicalDriveInfo(DWORD index, INT maxLength)
 {
 	DWORD map = m_Ata.vars[index].DriveLetterMap;
-	CString result;
+	CString resultS, resultM, resultL;
 	ULARGE_INTEGER freeBytesAvailableToCaller;
 	ULARGE_INTEGER totalNumberOfBytes;
 	ULARGE_INTEGER totalNumberOfFreeBytes;
@@ -402,20 +399,50 @@ CString CDiskInfoDlg::GetLogicalDriveInfo(DWORD index)
 		if(map & (1 << j))
 		{
 			CString cstr;
-			cstr.Format(_T("%C: "), j + 'A'); 
-			GetDiskFreeSpaceEx(cstr, &freeBytesAvailableToCaller,
-				&totalNumberOfBytes, &totalNumberOfFreeBytes);
+			CString letter;
+			TCHAR volumeNameBuffer[256];
 
-			cstr.Format(_T("%C: %.1f/%.1f GB (%.1f %%)\r\n"), 
-				j + 'A',
+			letter.Format(_T("%C:\\"), j + 'A');
+			GetDiskFreeSpaceEx(letter, &freeBytesAvailableToCaller,
+				&totalNumberOfBytes, &totalNumberOfFreeBytes);
+			GetVolumeInformation(letter,  volumeNameBuffer, 256, NULL, NULL, NULL, NULL, 0);
+
+			cstr.Format(_T("%C: %s [%.1f/%.1f GB (%.1f %%)]\r\n"), 
+				j + 'A', volumeNameBuffer,
 				totalNumberOfFreeBytes.QuadPart / 1024 / 1024 / 1024.0,
 				totalNumberOfBytes.QuadPart  / 1024 / 1024 / 1024.0,
 				(double)totalNumberOfFreeBytes.QuadPart / (double)totalNumberOfBytes.QuadPart * 100);
-			result += cstr;
+		
+			resultL += cstr;
+
+			cstr.Format(_T("%C: %s [%.1f GB]\r\n"), 
+				j + 'A', volumeNameBuffer,
+				totalNumberOfBytes.QuadPart  / 1024 / 1024 / 1024.0);
+
+			resultM += cstr;
+
+			cstr.Format(_T("%C: %s\r\n"), 
+				j + 'A', volumeNameBuffer);
+
+			resultS += cstr;
 		}
 	}
-	result.TrimRight();
-	return result;
+	resultL.TrimRight();
+	resultM.TrimRight();
+	resultS.TrimRight();
+
+	if(resultL.GetLength() < maxLength)
+	{
+		return resultL;
+	}
+	else if(resultM.GetLength() < maxLength)
+	{
+		return resultM;
+	}
+	else
+	{
+		return resultS;
+	}
 }
 
 void CDiskInfoDlg::InitDriveList()
@@ -508,14 +535,8 @@ void CDiskInfoDlg::InitDriveList()
 			}
 			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_CLASSNAME, className);
 
-			if(m_Ata.vars[i].DriveMap.GetLength() > 15)
-			{
-				cstr.Format(_T("Disk %d : %s %.1f GB\n%s"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, m_Ata.vars[i].DriveMap);
-			}
-			else
-			{
-				cstr.Format(_T("Disk %d : %s %.1f GB"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
-			}
+			cstr.Format(_T("Disk %d : %s %.1f GB\n%s"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, GetLogicalDriveInfo(i));
+
 			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, cstr);
 		}
 	}

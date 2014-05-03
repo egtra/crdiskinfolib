@@ -990,10 +990,21 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 				IsMinutes = _T(" ");
 				IsMinutesT = _T("");
 			}
-			title.Format(_T("%d %s %d %s%s"),
-				m_Ata.vars[i].MeasuredPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
-				m_Ata.vars[i].MeasuredPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
-				IsMinutesT);
+
+			if(m_NowDetectingUnitPowerOnHours)
+			{
+				title.Format(_T("%d %s %d %s%s\r\n%s"),
+					m_Ata.vars[i].MeasuredPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
+					m_Ata.vars[i].MeasuredPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
+					IsMinutesT, i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
+			}
+			else
+			{
+				title.Format(_T("%d %s %d %s%s"),
+					m_Ata.vars[i].MeasuredPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
+					m_Ata.vars[i].MeasuredPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
+					IsMinutesT);
+			}
 
 			m_PowerOnHours.Format(_T("%d%s%s"),
 				m_Ata.vars[i].MeasuredPowerOnHours, IsMinutes, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")));
@@ -1036,10 +1047,21 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 				IsMinutes = _T(" ");
 				IsMinutesT = _T("");
 			}
-			title.Format(_T("%d %s %d %s%s"),
-				m_Ata.vars[i].DetectedPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
-				m_Ata.vars[i].DetectedPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
-				IsMinutesT);
+			
+			if(m_NowDetectingUnitPowerOnHours)
+			{
+				title.Format(_T("%d %s %d %s%s\r\n%s"),
+					m_Ata.vars[i].DetectedPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
+					m_Ata.vars[i].DetectedPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
+					IsMinutesT, i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
+			}
+			else
+			{
+				title.Format(_T("%d %s %d %s%s"),
+					m_Ata.vars[i].DetectedPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
+					m_Ata.vars[i].DetectedPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
+					IsMinutesT);
+			}
 
 			m_PowerOnHours.Format(_T("%d%s%s"),
 				m_Ata.vars[i].DetectedPowerOnHours, IsMinutes, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")));
@@ -1318,6 +1340,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->EnableMenuItem(ID_CUSTOMIZE, menuState);
 
 	cstr = i18n(_T("Menu"), _T("EXIT"));
+	cstr += _T("\tESC");
 	menu->ModifyMenu(ID_FILE_EXIT, MF_STRING, ID_FILE_EXIT, cstr);
 	cstr = i18n(_T("Menu"), _T("COPY"));
 	cstr += _T("\tCtrl + C");
@@ -1480,7 +1503,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		OnResidentHide();
 	}
 
-	cstr = i18n(_T("Menu"), _T("HELP"));
+	cstr = i18n(_T("Menu"), _T("HELP")) + _T("\tF1");
 	menu->ModifyMenu(ID_HELP, MF_STRING, ID_HELP, cstr);
 	cstr = i18n(_T("Menu"), _T("HELP_ABOUT"));
 	menuState = menu->GetMenuState(ID_HELP_ABOUT, MF_BYCOMMAND);
@@ -1751,10 +1774,10 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 
 	UpdateData(FALSE);
 
-	if(m_NowDetectingUnitPowerOnHours)
-	{
-		SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
-	}
+	//if(m_NowDetectingUnitPowerOnHours)
+	//{
+	//	SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
+	//}
 
 	RebuildListHeader(m_SelectDisk, TRUE);
 	ChangeDisk(m_SelectDisk);

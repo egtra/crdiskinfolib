@@ -623,26 +623,26 @@ void CDiskInfoDlg::OnEditCopy()
 			{
 				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
-								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
-								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
-								LOBYTE(data[8 * k + 2]), HIBYTE(data[8 * k + 2]),
-								LOBYTE(data[8 * k + 3]), HIBYTE(data[8 * k + 3]),
-								LOBYTE(data[8 * k + 4]), HIBYTE(data[8 * k + 4]),
-								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
-								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
-								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+								HIBYTE(data[8 * k + 0]), LOBYTE(data[8 * k + 0]),
+								HIBYTE(data[8 * k + 1]), LOBYTE(data[8 * k + 1]),
+								HIBYTE(data[8 * k + 2]), LOBYTE(data[8 * k + 2]),
+								HIBYTE(data[8 * k + 3]), LOBYTE(data[8 * k + 3]),
+								HIBYTE(data[8 * k + 4]), LOBYTE(data[8 * k + 4]),
+								HIBYTE(data[8 * k + 5]), LOBYTE(data[8 * k + 5]),
+								HIBYTE(data[8 * k + 6]), LOBYTE(data[8 * k + 6]),
+								HIBYTE(data[8 * k + 7]), LOBYTE(data[8 * k + 7]));
 				line += cstr;
 				if(m_FlagAsciiView)
 				{
 					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
-									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
-									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
-									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
-									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
-									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
-									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
-									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
-									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+									AsciiFilter(HIBYTE(data[8 * k + 0])), AsciiFilter(LOBYTE(data[8 * k + 0])),
+									AsciiFilter(HIBYTE(data[8 * k + 1])), AsciiFilter(LOBYTE(data[8 * k + 1])),
+									AsciiFilter(HIBYTE(data[8 * k + 2])), AsciiFilter(LOBYTE(data[8 * k + 2])),
+									AsciiFilter(HIBYTE(data[8 * k + 3])), AsciiFilter(LOBYTE(data[8 * k + 3])),
+									AsciiFilter(HIBYTE(data[8 * k + 4])), AsciiFilter(LOBYTE(data[8 * k + 4])),
+									AsciiFilter(HIBYTE(data[8 * k + 5])), AsciiFilter(LOBYTE(data[8 * k + 5])),
+									AsciiFilter(HIBYTE(data[8 * k + 6])), AsciiFilter(LOBYTE(data[8 * k + 6])),
+									AsciiFilter(HIBYTE(data[8 * k + 7])), AsciiFilter(LOBYTE(data[8 * k + 7])));
 				}
 				else
 				{
@@ -664,26 +664,26 @@ void CDiskInfoDlg::OnEditCopy()
 			{
 				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
-								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
-								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
-								LOBYTE(data[8 * k + 2]), HIBYTE(data[8 * k + 2]),
-								LOBYTE(data[8 * k + 3]), HIBYTE(data[8 * k + 3]),
-								LOBYTE(data[8 * k + 4]), HIBYTE(data[8 * k + 4]),
-								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
-								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
-								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+								HIBYTE(data[8 * k + 0]), LOBYTE(data[8 * k + 0]),
+								HIBYTE(data[8 * k + 1]), LOBYTE(data[8 * k + 1]),
+								HIBYTE(data[8 * k + 2]), LOBYTE(data[8 * k + 2]),
+								HIBYTE(data[8 * k + 3]), LOBYTE(data[8 * k + 3]),
+								HIBYTE(data[8 * k + 4]), LOBYTE(data[8 * k + 4]),
+								HIBYTE(data[8 * k + 5]), LOBYTE(data[8 * k + 5]),
+								HIBYTE(data[8 * k + 6]), LOBYTE(data[8 * k + 6]),
+								HIBYTE(data[8 * k + 7]), LOBYTE(data[8 * k + 7]));
 				line += cstr;
 				if(m_FlagAsciiView)
 				{
 					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
-									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
-									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
-									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
-									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
-									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
-									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
-									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
-									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+									AsciiFilter(HIBYTE(data[8 * k + 0])), AsciiFilter(LOBYTE(data[8 * k + 0])),
+									AsciiFilter(HIBYTE(data[8 * k + 1])), AsciiFilter(LOBYTE(data[8 * k + 1])),
+									AsciiFilter(HIBYTE(data[8 * k + 2])), AsciiFilter(LOBYTE(data[8 * k + 2])),
+									AsciiFilter(HIBYTE(data[8 * k + 3])), AsciiFilter(LOBYTE(data[8 * k + 3])),
+									AsciiFilter(HIBYTE(data[8 * k + 4])), AsciiFilter(LOBYTE(data[8 * k + 4])),
+									AsciiFilter(HIBYTE(data[8 * k + 5])), AsciiFilter(LOBYTE(data[8 * k + 5])),
+									AsciiFilter(HIBYTE(data[8 * k + 6])), AsciiFilter(LOBYTE(data[8 * k + 6])),
+									AsciiFilter(HIBYTE(data[8 * k + 7])), AsciiFilter(LOBYTE(data[8 * k + 7])));
 				}
 				else
 				{
@@ -705,26 +705,26 @@ void CDiskInfoDlg::OnEditCopy()
 			{
 				cstr.Format(_T("%03X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X"),
 								k * 16,
-								LOBYTE(data[8 * k + 0]), HIBYTE(data[8 * k + 0]),
-								LOBYTE(data[8 * k + 1]), HIBYTE(data[8 * k + 1]),
-								LOBYTE(data[8 * k + 2]), HIBYTE(data[8 * k + 2]),
-								LOBYTE(data[8 * k + 3]), HIBYTE(data[8 * k + 3]),
-								LOBYTE(data[8 * k + 4]), HIBYTE(data[8 * k + 4]),
-								LOBYTE(data[8 * k + 5]), HIBYTE(data[8 * k + 5]),
-								LOBYTE(data[8 * k + 6]), HIBYTE(data[8 * k + 6]),
-								LOBYTE(data[8 * k + 7]), HIBYTE(data[8 * k + 7]));
+								HIBYTE(data[8 * k + 0]), LOBYTE(data[8 * k + 0]),
+								HIBYTE(data[8 * k + 1]), LOBYTE(data[8 * k + 1]),
+								HIBYTE(data[8 * k + 2]), LOBYTE(data[8 * k + 2]),
+								HIBYTE(data[8 * k + 3]), LOBYTE(data[8 * k + 3]),
+								HIBYTE(data[8 * k + 4]), LOBYTE(data[8 * k + 4]),
+								HIBYTE(data[8 * k + 5]), LOBYTE(data[8 * k + 5]),
+								HIBYTE(data[8 * k + 6]), LOBYTE(data[8 * k + 6]),
+								HIBYTE(data[8 * k + 7]), LOBYTE(data[8 * k + 7]));
 				line += cstr;
 				if(m_FlagAsciiView)
 				{
 					cstr.Format(_T("  %c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\r\n"),
-									AsciiFilter(LOBYTE(data[8 * k + 0])), AsciiFilter(HIBYTE(data[8 * k + 0])),
-									AsciiFilter(LOBYTE(data[8 * k + 1])), AsciiFilter(HIBYTE(data[8 * k + 1])),
-									AsciiFilter(LOBYTE(data[8 * k + 2])), AsciiFilter(HIBYTE(data[8 * k + 2])),
-									AsciiFilter(LOBYTE(data[8 * k + 3])), AsciiFilter(HIBYTE(data[8 * k + 3])),
-									AsciiFilter(LOBYTE(data[8 * k + 4])), AsciiFilter(HIBYTE(data[8 * k + 4])),
-									AsciiFilter(LOBYTE(data[8 * k + 5])), AsciiFilter(HIBYTE(data[8 * k + 5])),
-									AsciiFilter(LOBYTE(data[8 * k + 6])), AsciiFilter(HIBYTE(data[8 * k + 6])),
-									AsciiFilter(LOBYTE(data[8 * k + 7])), AsciiFilter(HIBYTE(data[8 * k + 7])));
+									AsciiFilter(HIBYTE(data[8 * k + 0])), AsciiFilter(LOBYTE(data[8 * k + 0])),
+									AsciiFilter(HIBYTE(data[8 * k + 1])), AsciiFilter(LOBYTE(data[8 * k + 1])),
+									AsciiFilter(HIBYTE(data[8 * k + 2])), AsciiFilter(LOBYTE(data[8 * k + 2])),
+									AsciiFilter(HIBYTE(data[8 * k + 3])), AsciiFilter(LOBYTE(data[8 * k + 3])),
+									AsciiFilter(HIBYTE(data[8 * k + 4])), AsciiFilter(LOBYTE(data[8 * k + 4])),
+									AsciiFilter(HIBYTE(data[8 * k + 5])), AsciiFilter(LOBYTE(data[8 * k + 5])),
+									AsciiFilter(HIBYTE(data[8 * k + 6])), AsciiFilter(LOBYTE(data[8 * k + 6])),
+									AsciiFilter(HIBYTE(data[8 * k + 7])), AsciiFilter(LOBYTE(data[8 * k + 7])));
 				}
 				else
 				{

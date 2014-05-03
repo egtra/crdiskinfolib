@@ -1076,11 +1076,6 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		m_NowDetectingUnitPowerOnHours = FALSE;
 		if(m_Ata.MeasuredTimeUnit())
 		{
-			if(m_SelectDisk < (DWORD)m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].IsSmartCorrect)
-			{
-				m_PowerOnHoursClass = _T("valueR");
-				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
-			}
 			for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 			{
 				m_Ata.vars[i].MeasuredPowerOnHours = m_Ata.GetPowerOnHoursEx(i, m_Ata.vars[i].MeasuredTimeUnitType);
@@ -1090,6 +1085,37 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 				WritePrivateProfileString(_T("PowerOnUnit"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
 				SaveSmartInfo(i);
 			}
+			
+			m_PowerOnHoursClass = _T("valueR");
+			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
+
+			if(m_SelectDisk < (DWORD)m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].IsSmartCorrect && m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours > 0)
+			{
+				CString IsMinutesT, title;
+				if(m_Ata.vars[m_SelectDisk].MeasuredTimeUnitType == CAtaSmart::POWER_ON_MINUTES)
+				{
+					if(m_Ata.vars[m_SelectDisk].IsMaxtorMinute)
+					{
+						
+						IsMinutesT = _T(" (?)");
+					}
+					else
+					{
+						IsMinutesT = _T("");
+					}
+				}
+
+				title.Format(_T("%d %s %d %s%s"),
+					m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours / 24, i18n(_T("Dialog"), _T("POWER_ON_DAYS_UNIT")),
+					m_Ata.vars[m_SelectDisk].MeasuredPowerOnHours % 24, i18n(_T("Dialog"), _T("POWER_ON_HOURS_UNIT")), 
+					IsMinutesT);
+				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_TITLE, title);
+			}
+			else
+			{
+				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_TITLE, _T(""));
+			}
+
 		}
 	}
 	else if(nIDEvent == TIMER_AUTO_REFRESH)
