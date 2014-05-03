@@ -68,7 +68,7 @@ void CDiskInfoDlg::Refresh(DWORD flagForceUpdate)
 
 void CDiskInfoDlg::RebuildListHeader(DWORD i)
 {
-	static DWORD preVendorId = m_Ata.HDD_GENERAL;
+	static DWORD preVendorId = -1;
 	DWORD width = 0;
 	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
 
