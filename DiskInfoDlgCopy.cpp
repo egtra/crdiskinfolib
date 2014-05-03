@@ -300,8 +300,7 @@ void CDiskInfoDlg::OnEditCopy()
 				(double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
 			drive.Replace(_T("%HOST_WRITES%"), cstr);
 		}
-
-
+		
 		if(m_Ata.vars[i].GBytesErased == 0)
 		{
 			drive.Replace(_T("%GBYTES_ERASED%"), _T(""));
@@ -483,6 +482,10 @@ void CDiskInfoDlg::OnEditCopy()
 			{
 				line += _T("ID Raw Values (8)   Attribute Name\r\n");
 			}
+			else if(m_Ata.vars[i].IsRawValues7)
+			{
+				line += _T("ID Cur Wor Thr Raw Values (7) Attribute Name\r\n");
+			}			
 			else
 			{
 				line += _T("ID Cur Wor Thr RawValues(6) Attribute Name\r\n");
@@ -499,8 +502,12 @@ void CDiskInfoDlg::OnEditCopy()
 
 				BYTE id = m_Ata.vars[i].Attribute[j].Id;
 
-				if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
-				|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFF))
+				if(id == 0xFF)
+				{
+					wsprintf(str, unknown);
+				}
+				else if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
+				|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFE))
 				{
 					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_CurrentLangPath);
 				}
@@ -509,7 +516,24 @@ void CDiskInfoDlg::OnEditCopy()
 					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
 				}
 
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
+				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+				{
+					cstr.Format(_T("%02X %s %s %s %02X%02X%02X%02X%02X%02X%02X %s\r\n"),
+						m_Ata.vars[i].Attribute[j].Id,
+						__Number(m_Ata.vars[i].Attribute[j].CurrentValue),
+						__Number(m_Ata.vars[i].Attribute[j].WorstValue),
+						__Number(m_Ata.vars[i].Threshold[j].ThresholdValue),
+						m_Ata.vars[i].Attribute[j].Reserved,
+						m_Ata.vars[i].Attribute[j].RawValue[5],
+						m_Ata.vars[i].Attribute[j].RawValue[4],
+						m_Ata.vars[i].Attribute[j].RawValue[3],
+						m_Ata.vars[i].Attribute[j].RawValue[2],
+						m_Ata.vars[i].Attribute[j].RawValue[1],
+						m_Ata.vars[i].Attribute[j].RawValue[0],
+						str
+						);
+				}
+				else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
 				{
 					cstr.Format(_T("%02X %s %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,

@@ -363,6 +363,7 @@ public:
 		BOOL				IsWord88;
 		BOOL				IsWord64_76;
 		BOOL				IsRawValues8;
+		BOOL				IsRawValues7;
 		BOOL				Is9126MB;
 
 		BOOL				IsSmartSupported;
@@ -540,7 +541,7 @@ protected:
 
 	BOOL FillSmartInfo(ATA_SMART_INFO* asi);
 
-	void CheckSsdSupport(ATA_SMART_INFO &asi);
+	VOID CheckSsdSupport(ATA_SMART_INFO &asi);
 	BOOL IsSsdOld(ATA_SMART_INFO &asi);
 	BOOL IsSsdMtron(ATA_SMART_INFO &asi);
 	BOOL IsSsdIndlinx(ATA_SMART_INFO &asi);

@@ -1060,8 +1060,11 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 		m_NowDetectingUnitPowerOnHours = FALSE;
 		if(m_Ata.MeasuredTimeUnit())
 		{
-			m_PowerOnHoursClass = _T("valueR");
-			SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
+			if(m_SelectDisk < (DWORD)m_Ata.vars.GetCount() && m_Ata.vars[m_SelectDisk].IsSmartCorrect)
+			{
+				m_PowerOnHoursClass = _T("valueR");
+				SetElementPropertyEx(_T("PowerOnHours"), DISPID_IHTMLELEMENT_CLASSNAME, m_PowerOnHoursClass);
+			}
 			for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 			{
 				m_Ata.vars[i].MeasuredPowerOnHours = m_Ata.GetPowerOnHoursEx(i, m_Ata.vars[i].MeasuredTimeUnitType);

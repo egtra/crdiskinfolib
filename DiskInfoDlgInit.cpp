@@ -503,7 +503,7 @@ void CDiskInfoDlg::InitDriveList()
 			//	fahrenheit.Format(_T("%d ÅãF"), m_Ata.vars[i].Temperature * 9 / 5 + 32);
 			//	SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, fahrenheit);
 			}
-			else if(m_Ata.vars[i].IsSmartEnabled && m_Ata.vars[i].DiskStatus != CAtaSmart::DISK_STATUS_UNKNOWN)
+			else if(m_Ata.vars[i].IsSmartEnabled)
 			{
 				if(m_FlagFahrenheit)
 				{
