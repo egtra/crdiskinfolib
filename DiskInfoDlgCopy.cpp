@@ -332,6 +332,10 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		{
 			feature += _T("NCQ, ");
 		}
+		if(m_Ata.vars[i].IsTrimSupported)
+		{
+			feature += _T("TRIM, ");
+		}
 
 		/*
 		if(m_Ata.vars[i].IsNvCacheSupported)
