@@ -162,7 +162,6 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 		default:
 			return SMART_STATUS_NO_CHANGE;
 		}
-		
 		return CheckSmartAttributeUpdate(i, attribute[i], vars[i].Attribute);
 	}
 
@@ -1023,22 +1022,9 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			// Intel RAID support
 			///////////////////////////////
 
-
 			for(int i = 0; i < MAX_SEARCH_SCSI_PORT; i++)
 			{
-				IDENTIFY_DEVICE identify = {0};
-				CSMI_SAS_PHY_INFO phyInfo = {0};
-			
-				if(GetPhyInfo(i, phyInfo) && phyInfo.bNumberOfPhys <= sizeof(phyInfo.Phy)/sizeof(phyInfo.Phy[0]))
-				{
-					for(int j = 0; j < phyInfo.bNumberOfPhys; j++)
-					{
-						if(DoIdentifyDeviceCsmi(i, &(phyInfo.Phy[j]), &identify))
-						{
-							AddDisk(-1, i, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[j]));
-						}
-					}
-				}
+				AddDiskCsmi(i);
 			}
 
 			try
@@ -1726,6 +1712,7 @@ int CAtaSmart::Compare(const void *p1, const void *p2)
 	{
 		return ((ATA_SMART_INFO*)p1)->sasPhyEntity.bPortIdentifier - ((ATA_SMART_INFO*)p2)->sasPhyEntity.bPortIdentifier;
 	}
+	/*
 	else if(((ATA_SMART_INFO*)p1)->PhysicalDriveId == -1)
 	{
 		return 1;
@@ -1734,6 +1721,7 @@ int CAtaSmart::Compare(const void *p1, const void *p2)
 	{
 		return -1;
 	}
+	*/
 	else
 	{
 		return ((ATA_SMART_INFO*)p1)->PhysicalDriveId - ((ATA_SMART_INFO*)p2)->PhysicalDriveId;
@@ -4762,7 +4750,7 @@ HANDLE CAtaSmart::GetIoCtrlHandleCsmi(INT scsiPort)
 	return hScsiDriveIOCTL;
 }
 
-BOOL CAtaSmart::GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo)
+BOOL CAtaSmart::AddDiskCsmi(INT scsiPort)
 {
 	HANDLE hHandle = GetIoCtrlHandleCsmi(scsiPort);
 	if(hHandle == INVALID_HANDLE_VALUE)
@@ -4770,26 +4758,83 @@ BOOL CAtaSmart::GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo)
 		return FALSE;
 	}
 
-	CSMI_SAS_DRIVER_INFO_BUFFER driverInfoBuf;
-	memset(&driverInfoBuf, 0, sizeof(driverInfoBuf));
-
+	CSMI_SAS_DRIVER_INFO_BUFFER driverInfoBuf = {0};
 	if(! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_DRIVER_INFO, &driverInfoBuf.IoctlHeader, sizeof(driverInfoBuf)))
 	{
 		CloseHandle(hHandle);
 		DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_DRIVER_INFO"));
 		return FALSE;
 	}
-	
-	CSMI_SAS_PHY_INFO_BUFFER phyInfoBuf;
-	memset(&phyInfoBuf, 0, sizeof(phyInfoBuf));
+
+
+	CSMI_SAS_RAID_INFO_BUFFER raidInfoBuf = {0};
+	if(! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_RAID_INFO, &raidInfoBuf.IoctlHeader, sizeof(raidInfoBuf)))
+	{
+		CloseHandle(hHandle);
+		DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_RAID_INFO"));
+		return FALSE;
+	}
+
+//	CArray<CSMI_SAS_RAID_DRIVES, CSMI_SAS_RAID_DRIVES> raidDrives;
+	CArray<UCHAR, UCHAR> raidDrives;
+
+	DWORD size = sizeof(CSMI_SAS_RAID_CONFIG_BUFFER) + sizeof(CSMI_SAS_RAID_DRIVES) * raidInfoBuf.Information.uNumRaidSets * raidInfoBuf.Information.uMaxDrivesPerSet;
+	PCSMI_SAS_RAID_CONFIG_BUFFER buf = (PCSMI_SAS_RAID_CONFIG_BUFFER)VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
+	for(UINT i = 0; i < raidInfoBuf.Information.uNumRaidSets; i++)
+	{
+		buf->Configuration.uRaidSetIndex = i;
+		if(! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_RAID_CONFIG, &(buf->IoctlHeader), size))
+		{
+			CloseHandle(hHandle);
+			DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_RAID_CONFIG"));
+			return FALSE;
+		}
+		else
+		{
+			for(UINT j = 0; j < raidInfoBuf.Information.uMaxDrivesPerSet; j++)
+			{
+				if(buf->Configuration.Drives[j].bModel[0] != '\0')
+				{
+				//	raidDrives.Add(buf->Configuration.Drives[j]);
+					raidDrives.Add(buf->Configuration.Drives[j].bSASAddress[2]);
+				}
+			}
+		}
+	}
+	VirtualFree(buf, 0, MEM_RELEASE);
+
+	CSMI_SAS_PHY_INFO phyInfo = {0};
+	CSMI_SAS_PHY_INFO_BUFFER phyInfoBuf = {0};
 	if (! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_PHY_INFO, &phyInfoBuf.IoctlHeader, sizeof(phyInfoBuf)))
 	{
 		CloseHandle(hHandle);
 		DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_PHY_INFO"));
 		return FALSE;
 	}
-
 	memcpy(&phyInfo, &(phyInfoBuf.Information), sizeof(phyInfoBuf.Information));
+	
+	IDENTIFY_DEVICE identify = {0};	
+	if(phyInfo.bNumberOfPhys <= sizeof(phyInfo.Phy)/sizeof(phyInfo.Phy[0]))
+	{
+		for(int i = 0; i < phyInfo.bNumberOfPhys; i++)
+		{
+			for(int j = 0; j < raidDrives.GetCount(); j++)
+			{
+			//	PCSMI_SAS_RAID_DRIVES test;
+			//	test = &(raidDrives.GetAt(j));
+			//	if(memcmp(raidDrives.GetAt(j).bSASAddress, phyInfo.Phy[i].Attached.bSASAddress, 8) == 0)
+			//	if(raidDrives.GetAt(j).bSASAddress[2] == phyInfo.Phy[i].Attached.bSASAddress[2])
+				if(raidDrives.GetAt(j) == phyInfo.Phy[i].Attached.bSASAddress[2])
+				{
+					if(DoIdentifyDeviceCsmi(scsiPort, &(phyInfo.Phy[i]), &identify))
+					{
+						AddDisk(-1, scsiPort, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[i]));
+					}
+					break;
+				}
+			}
+		}
+	}	
 
 	CloseHandle(hHandle);
 	return TRUE;
@@ -4801,12 +4846,16 @@ BOOL CAtaSmart::CsmiIoctl(HANDLE hHandle, UINT code, SRB_IO_CONTROL *csmiBuf, UI
 	const CHAR *sig;
 	switch (code)
 	{
-	    case CC_CSMI_SAS_GET_DRIVER_INFO:
+		case CC_CSMI_SAS_GET_DRIVER_INFO:
 			sig = CSMI_ALL_SIGNATURE;
 			break;
 		case CC_CSMI_SAS_GET_PHY_INFO:
 		case CC_CSMI_SAS_STP_PASSTHRU:
 			sig = CSMI_SAS_SIGNATURE;
+			break;
+		case CC_CSMI_SAS_GET_RAID_INFO:
+		case CC_CSMI_SAS_GET_RAID_CONFIG:
+			sig = CSMI_RAID_SIGNATURE;
 			break;
 		default:
 			return FALSE;
@@ -4861,7 +4910,24 @@ BOOL CAtaSmart::GetSmartAttributeCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyE
 BOOL CAtaSmart::GetSmartThresholdCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, ATA_SMART_INFO* asi)
 {
 	DebugPrint(_T("GetSmartThresholdCsmi"));
-	return SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_THRESHOLDS, 0x00, (PBYTE)asi->SmartReadThreshold, sizeof(asi->SmartReadThreshold));
+	if(SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_THRESHOLDS, 0x00, (PBYTE)asi->SmartReadThreshold, sizeof(asi->SmartReadThreshold)))
+	{
+		int j = 0;
+		for(int i = 0; i < MAX_ATTRIBUTE; i++)
+		{
+			memcpy(	&(asi->Threshold[i]), &(asi->SmartReadThreshold[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
+
+			if(asi->Threshold[j].Id != 0)
+			{
+				j++;
+			}
+		}
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 BOOL CAtaSmart::ControlSmartStatusCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE command)
@@ -4897,7 +4963,7 @@ BOOL CAtaSmart::SendAtaCommandCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEnti
 	buf->Parameters.uDataLength = dataSize;
 
 	buf->Parameters.bCommandFIS[ 0] = 0x27; // Type: host-to-device FIS
-    buf->Parameters.bCommandFIS[ 1] = 0x80; // Bit7: Update command register
+	buf->Parameters.bCommandFIS[ 1] = 0x80; // Bit7: Update command register
 
 	if(main == SMART_CMD)
 	{
@@ -5628,7 +5694,7 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 	{
 		return POWER_ON_10_MINUTES;
 	}
-	else if(model.Find(_T("INTEL SSDSC2CW")) == 0 || model.Find(_T("INTEL SSDSC2CT")) == 0) // Intel SSD 520 Series
+	else if(model.Find(_T("INTEL SSDSC2CW")) == 0 || model.Find(_T("INTEL SSDSC2CT")) == 0) // Intel SSD 520 & 330 Series
 	{
 		return POWER_ON_MILLI_SECONDS;
 	}

@@ -61,7 +61,9 @@ DWORD GetIeVersion();
 #define PRODUCT_ULTIMATE_N                       0x0000001C // Ultimate Edition
 #define PRODUCT_WEB_SERVER                       0x00000011 // Web Server Edition (full installation)
 #define PRODUCT_WEB_SERVER_CORE                  0x0000001D // Web Server Edition (core installation)
-
+#define PRODUCT_PROFESSIONAL					 0x00000030 // Professional
+#define PRODUCT_PROFESSIONAL_N					 0x00000031 // Professional N
+ 
 #define SM_TABLETPC             86
 #define SM_MEDIACENTER          87
 #define SM_STARTER              88

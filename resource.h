@@ -16,6 +16,7 @@
 #define IDI_CAUTION                     134
 #define IDI_BAD                         135
 #define IDI_UNKNOWN                     136
+#define IDI_GOOD_GREEN                  137
 #define IDD_GRAPH                       141
 #define IDD_OPTION                      143
 #define IDD_SETTING                     144

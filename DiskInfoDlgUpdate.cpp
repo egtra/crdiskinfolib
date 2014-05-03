@@ -338,33 +338,33 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_BAD, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+						m_List.InsertItem(k, _T(""), ICON_BAD);
 					}
 				}
 				else if(caution > 0)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_CAUTION, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
+						m_List.InsertItem(k, _T(""), ICON_CAUTION);
 					}
 				}
 				else
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 				}
 			}
@@ -383,33 +383,33 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_BAD, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+						m_List.InsertItem(k, _T(""), ICON_BAD);
 					}
 				}
 				else if(m_Ata.vars[i].Attribute[j].CurrentValue <= 10)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_CAUTION, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
+						m_List.InsertItem(k, _T(""), ICON_CAUTION);
 					}
 				}
 				else
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 				}
 			}
@@ -422,11 +422,11 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 				}
 				else if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0
@@ -434,22 +434,22 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_BAD, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+						m_List.InsertItem(k, _T(""), ICON_BAD);
 					}
 				}
 				else
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 				}
 			}
@@ -467,22 +467,22 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_BAD, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+						m_List.InsertItem(k, _T(""), ICON_BAD);
 					}
 				}
 				else
 				{
 					if(flag)
 					{
-						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+						m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 					}
 					else
 					{
-						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+						m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 					}
 				}
 			}
@@ -490,11 +490,11 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			{
 				if(flag)
 				{
-					m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+					m_List.SetItem(k, 0, mask, _T(""), ICON_GOOD + m_FlagGoodGreen, 0, 0, 0, 0);
 				}
 				else
 				{
-					m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+					m_List.InsertItem(k, _T(""), ICON_GOOD + m_FlagGoodGreen);
 				}
 			}
 		}
@@ -502,11 +502,11 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 		{
 			if(flag)
 			{
-				m_List.SetItem(k, 0, mask, _T(""), 3 /*IDI_UNKNOWN*/, 0, 0, 0, 0);
+				m_List.SetItem(k, 0, mask, _T(""), ICON_UNKNOWN, 0, 0, 0, 0);
 			}
 			else
 			{
-				m_List.InsertItem(k, _T(""), 3 /*IDI_UNKNOWN*/);
+				m_List.InsertItem(k, _T(""), ICON_UNKNOWN);
 			}
 		}
 
@@ -1207,6 +1207,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		SetLabel(m_LabelRotationRate, _T("RotationRate"), i18n(_T("SmartSandForce"), _T("64")));
 	//	SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
+	/*
 	else if(m_Ata.vars[i].WearLevelingCount >= 0)
 	{
 		m_RotationRate.Format(_T("%d %s"), m_Ata.vars[i].WearLevelingCount, i18n(_T("Dialog"), _T("POWER_ON_COUNT_UNIT")));		
@@ -1214,6 +1215,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		SetLabel(m_LabelRotationRate, _T("RotationRate"),i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT")));
 	//	SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));
 	}
+	*/
 	else if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
 		m_RotationRate = _T("---- (SSD)");
@@ -1934,11 +1936,13 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		//	m_LabelRotationRate = i18n(_T("SmartSandForce"), _T("64"));
 			SetLabel(m_LabelRotationRate, _T("LabelRotationRate"), i18n(_T("SmartSandForce"), _T("64")));
 		}
+		/*
 		else if(m_Ata.vars[m_SelectDisk].WearLevelingCount >= 0)
 		{
 		//	m_LabelRotationRate = i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"));
 			SetLabel(m_LabelRotationRate, _T("LabelRotationRate"), i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT")));
 		}
+		*/
 	}
 
 	UpdateData(FALSE);

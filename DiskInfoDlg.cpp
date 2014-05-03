@@ -66,6 +66,22 @@
 	UINT gTempIcon29 = ::RegisterWindowMessage(_T("TempIcon29"));
 	UINT gTempIcon30 = ::RegisterWindowMessage(_T("TempIcon30"));
 	UINT gTempIcon31 = ::RegisterWindowMessage(_T("TempIcon31"));
+	UINT gTempIcon32 = ::RegisterWindowMessage(_T("TempIcon32"));
+	UINT gTempIcon33 = ::RegisterWindowMessage(_T("TempIcon33"));
+	UINT gTempIcon34 = ::RegisterWindowMessage(_T("TempIcon34"));
+	UINT gTempIcon35 = ::RegisterWindowMessage(_T("TempIcon35"));
+	UINT gTempIcon36 = ::RegisterWindowMessage(_T("TempIcon36"));
+	UINT gTempIcon37 = ::RegisterWindowMessage(_T("TempIcon37"));
+	UINT gTempIcon38 = ::RegisterWindowMessage(_T("TempIcon38"));
+	UINT gTempIcon39 = ::RegisterWindowMessage(_T("TempIcon39"));
+	UINT gTempIcon40 = ::RegisterWindowMessage(_T("TempIcon40"));
+	UINT gTempIcon41 = ::RegisterWindowMessage(_T("TempIcon41"));
+	UINT gTempIcon42 = ::RegisterWindowMessage(_T("TempIcon42"));
+	UINT gTempIcon43 = ::RegisterWindowMessage(_T("TempIcon43"));
+	UINT gTempIcon44 = ::RegisterWindowMessage(_T("TempIcon44"));
+	UINT gTempIcon45 = ::RegisterWindowMessage(_T("TempIcon45"));
+	UINT gTempIcon46 = ::RegisterWindowMessage(_T("TempIcon46"));
+	UINT gTempIcon47 = ::RegisterWindowMessage(_T("TempIcon47"));
 
 	extern const GUID StrageGUID = { 0x53F56307, 0xB6BF, 0x11D0, 
                       0x94,0xF2,0x00,0xA0,0xC9,0x1E,0xFB,0x8B };
@@ -153,6 +169,22 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_TempIconIndex[29] = gTempIcon29;
 	m_TempIconIndex[30] = gTempIcon30;
 	m_TempIconIndex[31] = gTempIcon31;
+	m_TempIconIndex[32] = gTempIcon32;
+	m_TempIconIndex[33] = gTempIcon33;
+	m_TempIconIndex[34] = gTempIcon34;
+	m_TempIconIndex[35] = gTempIcon35;
+	m_TempIconIndex[36] = gTempIcon36;
+	m_TempIconIndex[37] = gTempIcon37;
+	m_TempIconIndex[38] = gTempIcon38;
+	m_TempIconIndex[39] = gTempIcon39;
+	m_TempIconIndex[40] = gTempIcon40;
+	m_TempIconIndex[41] = gTempIcon41;
+	m_TempIconIndex[42] = gTempIcon42;
+	m_TempIconIndex[43] = gTempIcon43;
+	m_TempIconIndex[44] = gTempIcon44;
+	m_TempIconIndex[45] = gTempIcon45;
+	m_TempIconIndex[46] = gTempIcon46;
+	m_TempIconIndex[47] = gTempIcon47;
 
 	m_FlagTrayMainIcon = FALSE;
 	for(int i = 0; i < CAtaSmart::MAX_DISK; i++)
@@ -173,6 +205,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 
 	m_ImageList.Create(16, 16, ILC_COLOR32|ILC_MASK, 3, 1);
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_GOOD));
+	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_GOOD_GREEN));
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_CAUTION));
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_BAD));
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_UNKNOWN));
@@ -467,6 +500,22 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_REGISTERED_MESSAGE(gTempIcon29, OnTempIcon29)
 	ON_REGISTERED_MESSAGE(gTempIcon30, OnTempIcon30)
 	ON_REGISTERED_MESSAGE(gTempIcon31, OnTempIcon31)
+	ON_REGISTERED_MESSAGE(gTempIcon32, OnTempIcon32)
+	ON_REGISTERED_MESSAGE(gTempIcon33, OnTempIcon33)
+	ON_REGISTERED_MESSAGE(gTempIcon34, OnTempIcon34)
+	ON_REGISTERED_MESSAGE(gTempIcon35, OnTempIcon35)
+	ON_REGISTERED_MESSAGE(gTempIcon36, OnTempIcon36)
+	ON_REGISTERED_MESSAGE(gTempIcon37, OnTempIcon37)
+	ON_REGISTERED_MESSAGE(gTempIcon38, OnTempIcon38)
+	ON_REGISTERED_MESSAGE(gTempIcon39, OnTempIcon39)
+	ON_REGISTERED_MESSAGE(gTempIcon40, OnTempIcon40)
+	ON_REGISTERED_MESSAGE(gTempIcon41, OnTempIcon41)
+	ON_REGISTERED_MESSAGE(gTempIcon42, OnTempIcon42)
+	ON_REGISTERED_MESSAGE(gTempIcon43, OnTempIcon43)
+	ON_REGISTERED_MESSAGE(gTempIcon44, OnTempIcon44)
+	ON_REGISTERED_MESSAGE(gTempIcon45, OnTempIcon45)
+	ON_REGISTERED_MESSAGE(gTempIcon46, OnTempIcon46)
+	ON_REGISTERED_MESSAGE(gTempIcon47, OnTempIcon47)
 
 	ON_COMMAND(ID_GRAPH, &CDiskInfoDlg::OnGraph)
 	ON_COMMAND(ID_HELP, &CDiskInfoDlg::OnHelp)
@@ -841,8 +890,29 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 		SetMenu(menu);
 		DrawMenuBar();
 	}
+	else if(WM_THEME_ID <= wParam && wParam < WM_THEME_ID + (UINT)m_MenuArrayTheme.GetSize())
+	{
+		CDHtmlMainDialog::OnCommand(wParam, lParam);
+		if(m_CurrentTheme.Compare(_T("Simplicity")) == 0)
+		{
+			if(! m_FlagGoodGreen)
+			{
+				m_FlagGoodGreen = TRUE;
+				UpdateListCtrl(m_SelectDisk);
+			}
+		}
+		else
+		{
+			if(m_FlagGoodGreen)
+			{
+				m_FlagGoodGreen = FALSE;
+				UpdateListCtrl(m_SelectDisk);
+			}
+		}
+		return TRUE;
+	}
 
-	return CDHtmlMainDialog::OnCommand(wParam, lParam);
+	return CDHtmlDialogEx::OnCommand(wParam, lParam);
 }
 
 void CDiskInfoDlg::UpdateDialogSize()

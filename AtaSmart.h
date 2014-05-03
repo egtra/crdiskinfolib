@@ -1083,6 +1083,121 @@ protected:
 		UCHAR bDataBuffer[1];
 	} CSMI_SAS_STP_PASSTHRU_BUFFER, *PCSMI_SAS_STP_PASSTHRU_BUFFER;
 
+// CC_CSMI_SAS_RAID_INFO
+
+	typedef struct _CSMI_SAS_RAID_INFO
+	{
+		UINT uNumRaidSets;
+		UINT uMaxDrivesPerSet;
+		UINT uMaxRaidSets;
+		UCHAR  bMaxRaidTypes;
+		UCHAR  bReservedByteFields[7];
+		struct
+		{
+			UINT uLowPart;
+			UINT uHighPart;
+		} ulMinRaidSetBlocks;
+		struct
+		{
+			UINT uLowPart;
+			UINT uHighPart;
+		} ulMaxRaidSetBlocks;
+		UINT uMaxPhysicalDrives;
+		UINT uMaxExtents;
+		UINT uMaxModules;
+		UINT uMaxTransformationMemory;
+		UINT uChangeCount;
+		UCHAR  bReserved[44];
+	} CSMI_SAS_RAID_INFO, *PCSMI_SAS_RAID_INFO;
+
+	typedef struct _CSMI_SAS_RAID_INFO_BUFFER
+	{
+		IOCTL_HEADER IoctlHeader;
+		CSMI_SAS_RAID_INFO Information;
+	} CSMI_SAS_RAID_INFO_BUFFER, *PCSMI_SAS_RAID_INFO_BUFFER;
+
+// CC_CSMI_SAS_GET_RAID_CONFIG
+
+	typedef struct _CSMI_SAS_RAID_DRIVES
+	{
+		UCHAR  bModel[40];
+		UCHAR  bFirmware[8];
+		UCHAR  bSerialNumber[40];
+		UCHAR  bSASAddress[8];
+		UCHAR  bSASLun[8];
+		UCHAR  bDriveStatus;
+		UCHAR  bDriveUsage;
+		USHORT usBlockSize;
+		UCHAR  bDriveType;
+		UCHAR  bReserved[15];
+		UINT uDriveIndex;
+	   struct
+	   {
+		  UINT uLowPart;
+		  UINT uHighPart;
+	   } ulTotalUserBlocks;
+	} CSMI_SAS_RAID_DRIVES,
+	  *PCSMI_SAS_RAID_DRIVES;
+
+typedef struct _CSMI_SAS_RAID_DEVICE_ID {
+   UCHAR  bDeviceIdentificationVPDPage[1];
+} CSMI_SAS_RAID_DEVICE_ID,
+  *PCSMI_SAS_RAID_DEVICE_ID;
+
+typedef struct _CSMI_SAS_RAID_SET_ADDITIONAL_DATA {
+   UCHAR  bLabel[16];
+   UCHAR  bRaidSetLun[8];
+   UCHAR  bWriteProtection;
+   UCHAR  bCacheSetting;
+   UCHAR  bCacheRatio;
+   USHORT usBlockSize;
+   UCHAR  bReservedBytes[11];
+   struct
+   {
+	  UINT uLowPart;
+	  UINT uHighPart;
+   } ulRaidSetExtentOffset;
+   struct
+   {
+	  UINT uLowPart;
+	  UINT uHighPart;
+   } ulRaidSetBlocks;
+   UINT uStripeSizeInBlocks;
+   UINT uSectorsPerTrack;
+   UCHAR  bApplicationScratchPad[16];
+   UINT uNumberOfHeads;
+   UINT uNumberOfTracks;
+   UCHAR  bReserved[24];
+} CSMI_SAS_RAID_SET_ADDITIONAL_DATA,
+  *PCSMI_SAS_RAID_SET_ADDITIONAL_DATA;
+
+typedef struct _CSMI_SAS_RAID_CONFIG {
+   UINT uRaidSetIndex;
+   UINT uCapacity;
+   UINT uStripeSize;
+   UCHAR  bRaidType;
+   UCHAR  bStatus;
+   UCHAR  bInformation;
+   UCHAR  bDriveCount;
+   UCHAR  bDataType;
+   UCHAR  bReserved[11];
+   UINT uFailureCode;
+   UINT uChangeCount;
+   union {
+	  CSMI_SAS_RAID_DRIVES Drives[1];
+	  CSMI_SAS_RAID_DEVICE_ID DeviceId[1];
+	  CSMI_SAS_RAID_SET_ADDITIONAL_DATA Data[1];
+   };
+} CSMI_SAS_RAID_CONFIG,
+   *PCSMI_SAS_RAID_CONFIG;
+
+typedef struct _CSMI_SAS_RAID_CONFIG_BUFFER {
+   IOCTL_HEADER IoctlHeader;
+   CSMI_SAS_RAID_CONFIG Configuration;
+} CSMI_SAS_RAID_CONFIG_BUFFER,
+  *PCSMI_SAS_RAID_CONFIG_BUFFER;
+
+
 #pragma pack()
 #endif
 
@@ -1311,7 +1426,8 @@ protected:
 	BOOL GetSmartAttributeSi(INT physicalDriveId, ATA_SMART_INFO* asi);
 	BOOL GetSmartThresholdSi(INT physicalDriveId, ATA_SMART_INFO* asi);
 
-	BOOL GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo);
+	BOOL AddDiskCsmi(INT scsiPort);
+//	BOOL GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo);
 	BOOL CsmiIoctl(HANDLE hHandle, UINT code, SRB_IO_CONTROL *csmiBuf, UINT csmiBufSize);
 	BOOL DoIdentifyDeviceCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, IDENTIFY_DEVICE* identify);
 	BOOL GetSmartAttributeCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, ATA_SMART_INFO* asi);

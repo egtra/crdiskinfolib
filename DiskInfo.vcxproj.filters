@@ -119,9 +119,6 @@
     <ClInclude Include="SettingDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AtaSmart.h">
       <Filter>Library Files</Filter>
     </ClInclude>
@@ -163,6 +160,9 @@
     </ClInclude>
     <ClInclude Include="CompileOptions.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Library Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -808,6 +808,9 @@
     <None Include="res\703.mp3" />
     <None Include="res\704.mp3" />
     <None Include="res\705.mp3" />
+    <None Include="res\goodGreen.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DiskInfo.rc">

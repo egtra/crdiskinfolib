@@ -64,6 +64,7 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\DiskInfo.ico"
 IDI_GOOD                ICON                    "res\\good.ico"
+IDI_GOOD_GREEN          ICON                    "res\\goodGreen.ico"
 IDI_CAUTION             ICON                    "res\\caution.ico"
 IDI_BAD                 ICON                    "res\\bad.ico"
 IDI_UNKNOWN             ICON                    "res\\unknown.ico"
@@ -342,8 +343,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 4,6,0,2012
- PRODUCTVERSION 4,6,0,2012
+ FILEVERSION 4,6,1,2012
+ PRODUCTVERSION 4,6,1,2012
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -361,12 +362,12 @@ BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
             VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "4.6.0.2012"
+            VALUE "FileVersion", "4.6.1.2012"
             VALUE "InternalName", "DiskInfo.exe"
             VALUE "LegalCopyright", "Copyright (C) 2008-2012 hiyohiyo. All rights reserved."
             VALUE "OriginalFilename", "DiskInfo.exe"
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "4.6.0.2012"
+            VALUE "ProductVersion", "4.6.1.2012"
         END
     END
     BLOCK "VarFileInfo"

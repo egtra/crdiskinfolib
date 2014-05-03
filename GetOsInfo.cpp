@@ -214,7 +214,7 @@ void GetOsName(CString& OsFullName)
 		{
 			if(osvi.wProductType != VER_NT_WORKSTATION)
 			{
-				osName = _T("Windows Server 8");
+				osName = _T("Windows Server 2012");
 			}
 			else
 			{
@@ -241,89 +241,95 @@ void GetOsName(CString& OsFullName)
 					osType = (_T("Unlicensed"));
 					break;
 				case PRODUCT_BUSINESS:
-					   osType = (_T("Business Edition"));
-					   break;
+					osType = (_T("Business Edition"));
+					break;
 				case PRODUCT_BUSINESS_N:
-					   osType = (_T("Business Edition N"));
-					   break;
+					osType = (_T("Business Edition N"));
+					break;
 				case PRODUCT_CLUSTER_SERVER:
-					   osType = (_T("Cluster Server Edition"));
-					   break;
+					osType = (_T("Cluster Server Edition"));
+					break;
 				case PRODUCT_DATACENTER_SERVER:
-					   osType = (_T("Datacenter Edition (Full installation)"));
-					   break;
+					osType = (_T("Datacenter Edition (Full installation)"));
+					break;
 				case PRODUCT_DATACENTER_SERVER_CORE:
-					   osType = (_T("Datacenter Edition (Server Core installation)"));
-					   break;
+					osType = (_T("Datacenter Edition (Server Core installation)"));
+					break;
 				case PRODUCT_ENTERPRISE:
-					   osType = (_T("Enterprise Edition"));
-					   break;
+					osType = (_T("Enterprise Edition"));
+					break;
 				case PRODUCT_ENTERPRISE_N:
-					   osType = (_T("Enterprise Edition N"));
-					   break;
+					osType = (_T("Enterprise Edition N"));
+					break;
 				case PRODUCT_ENTERPRISE_SERVER:
-					   osType = (_T("Enterprise Edition (Full installation)"));
-					   break;
+					osType = (_T("Enterprise Edition (Full installation)"));
+					break;
 				case PRODUCT_ENTERPRISE_SERVER_CORE:
-					   osType = (_T("Enterprise Edition (Server Core installation)"));
-					   break;
+					osType = (_T("Enterprise Edition (Server Core installation)"));
+					break;
 				case PRODUCT_ENTERPRISE_SERVER_IA64:
-					   osType = (_T("Datacenter Enterprise Edition for Itanium-based Systems"));
-					   break;
+					osType = (_T("Datacenter Enterprise Edition for Itanium-based Systems"));
+					break;
 				case PRODUCT_HOME_BASIC:
-					   osType = (_T("Home Basic Edition"));
-					   break;
+					osType = (_T("Home Basic Edition"));
+					break;
 				case PRODUCT_HOME_BASIC_N:
-					   osType = (_T("Home Basic Edition N"));
-					   break;
+					osType = (_T("Home Basic Edition N"));
+					break;
 				case PRODUCT_HOME_PREMIUM:
-					   osType = (_T("Home Premium Edition"));
-					   break;
+					osType = (_T("Home Premium Edition"));
+					break;
 				case PRODUCT_HOME_PREMIUM_N:
-					   osType = (_T("Home Premium Edition N"));
-					   break;
+					osType = (_T("Home Premium Edition N"));
+					break;
 				case PRODUCT_HOME_SERVER:
-					   osType = (_T("Home Server Edition"));
-					   break;
+					osType = (_T("Home Server Edition"));
+					break;
 				case PRODUCT_SERVER_FOR_SMALLBUSINESS:
-					   osType = (_T("Server for Small Business Edition"));
-					   break;
+					osType = (_T("Server for Small Business Edition"));
+					break;
 				case PRODUCT_SMALLBUSINESS_SERVER:
-					   osType = (_T("Small Business Server"));
-					   break;
+					osType = (_T("Small Business Server"));
+					break;
 				case PRODUCT_SMALLBUSINESS_SERVER_PREMIUM:
-					   osType = (_T("Small Business Server Premium Edition"));
-					   break;
+					osType = (_T("Small Business Server Premium Edition"));
+					break;
 				case PRODUCT_STANDARD_SERVER:
-					   osType = (_T("Server Standard Edition (full installation)"));
-					   break;
+					osType = (_T("Server Standard Edition (full installation)"));
+					break;
 				case PRODUCT_STANDARD_SERVER_CORE:
-					   osType = (_T("Server Standard Edition (core installation)"));
-					   break;
+					osType = (_T("Server Standard Edition (core installation)"));
+					break;
 				case PRODUCT_STARTER:
-					   osType = (_T("Starter Edition"));
-					   break;
+					osType = (_T("Starter Edition"));
+					break;
 				case PRODUCT_STORAGE_ENTERPRISE_SERVER:
-					   osType = (_T("Storage Server Enterprise Edition"));
-					   break;
+					osType = (_T("Storage Server Enterprise Edition"));
+					break;
 				case PRODUCT_STORAGE_EXPRESS_SERVER:
-					   osType = (_T("Storage Server Express Edition"));
-					   break;
+					osType = (_T("Storage Server Express Edition"));
+					break;
 				case PRODUCT_STORAGE_STANDARD_SERVER:
-					   osType = (_T("Storage Server Standard Edition"));
-					   break;
+					osType = (_T("Storage Server Standard Edition"));
+					break;
 				case PRODUCT_STORAGE_WORKGROUP_SERVER:
-					   osType = (_T("Storage Server Workgroup Edition"));
-					   break;
+					osType = (_T("Storage Server Workgroup Edition"));
+					break;
 				case PRODUCT_ULTIMATE:
-					   osType = (_T("Ultimate Edition"));
-					   break;
+					osType = (_T("Ultimate Edition"));
+					break;
 				case PRODUCT_ULTIMATE_N:
-					   osType = (_T("Ultimate Edition N"));
-					   break;
+					osType = (_T("Ultimate Edition N"));
+					break;
 				case PRODUCT_WEB_SERVER:
-					   osType = (_T("Web Server Edition"));
-					   break;
+					osType = (_T("Web Server Edition"));
+					break;
+				case PRODUCT_PROFESSIONAL:
+					osType = (_T("Professional"));
+					break;
+				case PRODUCT_PROFESSIONAL_N:
+					osType = (_T("Professional N"));
+					break;
 				}
 			}
 		}

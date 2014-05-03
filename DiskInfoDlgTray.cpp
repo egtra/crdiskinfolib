@@ -73,6 +73,22 @@ LRESULT CDiskInfoDlg::OnTempIcon28(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){S
 LRESULT CDiskInfoDlg::OnTempIcon29(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(29);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(29);}return 0;}
 LRESULT CDiskInfoDlg::OnTempIcon30(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(30);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(30);}return 0;}
 LRESULT CDiskInfoDlg::OnTempIcon31(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(31);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(31);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon32(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(32);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(32);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon33(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(33);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(33);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon34(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(34);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(34);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon35(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(35);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(35);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon36(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(36);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(36);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon37(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(37);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(37);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon38(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(38);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(38);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon39(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(39);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(39);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon40(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(40);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(40);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon41(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(41);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(41);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon42(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(42);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(42);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon43(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(43);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(43);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon44(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(44);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(44);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon45(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(45);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(45);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon46(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(46);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(46);}return 0;}
+LRESULT CDiskInfoDlg::OnTempIcon47(WPARAM w, LPARAM l){if(l == WM_LBUTTONDOWN){SelectDrive(47);ShowWindowEx(SW_RESTORE);}else if(l == WM_RBUTTONDOWN){TaskTrayRightMenu(47);}return 0;}
 
 LRESULT CDiskInfoDlg::OnRegMessage(WPARAM wParam, LPARAM lParam)
 {

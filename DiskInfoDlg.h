@@ -67,6 +67,16 @@ public:
 		MY_SHOW_TEMPERATURE_ICON_ONLY,
 	};
 
+	// Icon
+	enum
+	{
+		ICON_GOOD = 0,
+		ICON_GOOD_GREEN,
+		ICON_CAUTION,
+		ICON_BAD,
+		ICON_UNKNOWN
+	};
+
 	HMENU m_hMenu;
 	void CreateMainMenu(DWORD index);
 
@@ -137,6 +147,7 @@ protected:
 #ifdef GADGET_SUPPORT
 	BOOL m_FlagSidebar;
 #endif
+	BOOL m_FlagGoodGreen;
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -355,6 +366,23 @@ public:
 	afx_msg LRESULT OnTempIcon29(WPARAM wParam,LPARAM lParam);
 	afx_msg LRESULT OnTempIcon30(WPARAM wParam,LPARAM lParam);
 	afx_msg LRESULT OnTempIcon31(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon32(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon33(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon34(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon35(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon36(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon37(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon38(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon39(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon40(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon41(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon42(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon43(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon44(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon45(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon46(WPARAM wParam,LPARAM lParam);
+	afx_msg LRESULT OnTempIcon47(WPARAM wParam,LPARAM lParam);
+
 	afx_msg void OnGraph();
 	afx_msg void OnHelp();
 	afx_msg void OnCustomize();

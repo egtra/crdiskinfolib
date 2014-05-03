@@ -135,6 +135,14 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			// CheckResident();
 			CheckHideSerialNumber();
 			ChangeTheme(m_CurrentTheme);
+			if(m_CurrentTheme.Compare(_T("Simplicity")) == 0)
+			{
+				m_FlagGoodGreen = TRUE;
+			}
+			else
+			{
+				m_FlagGoodGreen = FALSE;
+			}
 			ChangeZoomType(m_ZoomType);
 			UpdateDialogSize();
 			ChangeLang(m_CurrentLang);
