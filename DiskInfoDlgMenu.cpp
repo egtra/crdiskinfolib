@@ -459,7 +459,7 @@ void CDiskInfoDlg::CheckRadioRawValues(int id, int value)
 
 	CString cstr;
 	cstr.Format(_T("%d"), value);
-	WritePrivateProfileString(_T("Setting"), _T("RawVlues"), cstr, m_Ini);
+	WritePrivateProfileString(_T("Setting"), _T("RawValues"), cstr, m_Ini);
 
 	Refresh(TRUE);
 }

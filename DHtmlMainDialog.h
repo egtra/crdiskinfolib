@@ -36,7 +36,7 @@ public:
 	void InitMenu();
 	void InitThemeLang();
 	void ChangeTheme(CString ThemeName);
-	void SetWindowTitle(CString message);
+	void SetWindowTitle(CString message, CString mode = _T(""));
 
 	BOOL m_FlagStartup;
 	BOOL m_FlagInitializing;

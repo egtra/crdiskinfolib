@@ -186,6 +186,12 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 		m_AutoDetectionStatus = 0;
 	}
 
+	m_RawValues = GetPrivateProfileInt(_T("Setting"), _T("RawValues"), 0, m_Ini);
+	if(m_RawValues < 0 || m_RawValues > 3)
+	{
+		m_RawValues = 0;
+	}
+
 	m_ZoomType = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ZoomType"), ZOOM_TYPE_AUTO, m_Ini);
 
 	// Setting

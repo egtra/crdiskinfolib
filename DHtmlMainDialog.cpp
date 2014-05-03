@@ -27,13 +27,10 @@ CDHtmlMainDialog::CDHtmlMainDialog(UINT dlgResouce, UINT dlgHtml,
 	m_FlagInitializing = TRUE;
 	m_FlagWindoowMinimizeOnce = TRUE;
 	m_FlagResidentMinimize = FALSE;
-
-//	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 }
 
 CDHtmlMainDialog::~CDHtmlMainDialog()
 {
-//	CoUninitialize();
 }
 
 BEGIN_MESSAGE_MAP(CDHtmlMainDialog, CDHtmlDialogEx)
@@ -44,18 +41,21 @@ BEGIN_DHTML_EVENT_MAP(CDHtmlMainDialog)
 END_DHTML_EVENT_MAP()
 
 
-void CDHtmlMainDialog::SetWindowTitle(CString message)
+void CDHtmlMainDialog::SetWindowTitle(CString message, CString mode)
 {
 	CString title;
 
 	if(! message.IsEmpty())
 	{
-		title.Format(_T("%s %s - %s"), PRODUCT_SHORT_NAME, PRODUCT_VERSION, message);
+		title.Format(_T("%s - %s"), PRODUCT_SHORT_NAME, message);
+	}
+	else if(! mode.IsEmpty())
+	{
+		title.Format(_T("%s %s %s"), PRODUCT_NAME, PRODUCT_VERSION, mode);
 	}
 	else
 	{
 		title.Format(_T("%s %s"), PRODUCT_NAME, PRODUCT_VERSION);
-
 	}
 	SetWindowText(title);
 }

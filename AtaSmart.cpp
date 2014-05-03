@@ -2633,8 +2633,7 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 		return	FALSE;
 	}
 
-	memcpy_s(&(asi->SmartReadData), 512, &(sendCmdOutParam.Data), 512);
-
+	memcpy_s(&(asi->SmartReadData), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
 	CString str;
 	asi->AttributeCount = 0;
 	int j = 0;
@@ -2794,7 +2793,7 @@ BOOL CAtaSmart::GetSmartThresholdPd(INT physicalDriveId, BYTE target, ATA_SMART_
 		return	FALSE;
 	}
 
-	memcpy_s(&(asi->SmartReadThreshold), 512, &(sendCmdOutParam.Data), 512);
+	memcpy_s(&(asi->SmartReadThreshold), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
 
 	CString str;
 	int j = 0;
