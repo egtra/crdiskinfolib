@@ -49,6 +49,7 @@ public:
 
 	CString m_Model[CAtaSmart::MAX_DISK];
 	CString m_Serial[CAtaSmart::MAX_DISK];
+	CString m_Drive[CAtaSmart::MAX_DISK];
 
 	COptionDlg* m_OptionDlg;
 	CString m_Title;

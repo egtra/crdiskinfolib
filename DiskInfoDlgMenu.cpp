@@ -170,6 +170,7 @@ void CDiskInfoDlg::CreateExchangeInfo()
 		cstr.Format(_T("%d"), i);
 		WritePrivateProfileString(_T("MODEL"), cstr, m_Ata.vars[i].Model, m_SmartDir + _T("\\") + EXCHANGE_INI);
 		WritePrivateProfileString(_T("SERIAL"), cstr, m_Ata.vars[i].SerialNumber, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		WritePrivateProfileString(_T("DRIVE"), cstr, m_Ata.vars[i].DriveMap, m_SmartDir + _T("\\") + EXCHANGE_INI);
 	}
 }
 

@@ -318,9 +318,10 @@ void CGraphDlg::InitVars(int defaultDisk)
 		cstr.Format(_T("%d"), i);
 		GetPrivateProfileString(_T("MODEL"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
 		m_Model[i] = str;
-		cstr.Format(_T("%d"), i);
 		GetPrivateProfileString(_T("SERIAL"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
 		m_Serial[i] = str;
+		GetPrivateProfileString(_T("DRIVE"), cstr, _T(""), str, 256, m_SmartDir + _T("\\") + EXCHANGE_INI);
+		m_Drive[i] = str;
 	}
 
 	// LegendPosition
@@ -594,7 +595,11 @@ void CGraphDlg::InitMenuBar()
 		cstr.Format(_T("Disk%d"), i);
 		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_CLASSNAME, _T("visible"));
 		
-		temp.Format(_T("%s"), m_Model[i]);
+		temp.Format(_T("%s\r\n%s"), m_Model[i], m_Serial[i]);
+		if(! m_Drive[i].IsEmpty())
+		{
+			temp += (_T("\r\n") + m_Drive[i]);
+		}
 		SetElementPropertyEx(cstr, DISPID_IHTMLELEMENT_TITLE, temp);
 	}
 
