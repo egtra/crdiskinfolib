@@ -6,6 +6,3 @@
 
 // CSMI Support
 #define CSMI_SUPPORT
-
-// Suisyo Shizuku Support
-// #define SUISYO_SHIZUKU_SUPPORT

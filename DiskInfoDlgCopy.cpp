@@ -72,7 +72,7 @@ void CDiskInfoDlg::OnEditCopy()
 	clip.Replace(_T("%PRODUCT%"), PRODUCT_NAME);
 	CString version;
 	version = PRODUCT_VERSION; 
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	version +=  _T(" ") PRODUCT_EDITION;
 #endif
 	clip.Replace(_T("%VERSION%"), version);

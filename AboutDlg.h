@@ -17,7 +17,7 @@ class CAboutDlg : public CDHtmlDialogEx
 
 
 
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	static const int SIZE_X = 640;
 	static const int SIZE_Y = 660;
 #else
@@ -39,10 +39,12 @@ protected:
 	CString m_Version;
 	CString m_Edition;
 	CString m_Release;
-	CString m_Copyright;;
+	CString m_Copyright;
 
 	HRESULT OnCrystalDewWorld(IHTMLElement *pElement);
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	HRESULT OnProjectShizuku(IHTMLElement *pElement);
+#endif
 
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()

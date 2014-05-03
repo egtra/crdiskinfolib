@@ -47,6 +47,7 @@ BOOL CFontSelection::OnInitDialog()
     LOGFONT logfont; 
     ZeroMemory(&logfont, sizeof(LOGFONT)); 
     logfont.lfCharSet = ANSI_CHARSET;
+
     ::EnumFontFamiliesEx(dc.m_hDC, &logfont, (FONTENUMPROC)EnumFontFamExProc, (long)&m_FontComboBox, 0);
 
 	int no = m_FontComboBox.FindStringExact(0, m_FontFace);
@@ -56,14 +57,22 @@ BOOL CFontSelection::OnInitDialog()
 	}
 	else
 	{
-		no = m_FontComboBox.FindStringExact(0, _T("Tahoma"));
+		no = m_FontComboBox.FindStringExact(0, _T("ƒƒCƒŠƒI"));
 		if(no >= 0)
 		{
 			m_FontComboBox.SetCurSel(no);
 		}
 		else
 		{
-			m_FontComboBox.SetCurSel(0);
+			no = m_FontComboBox.FindStringExact(0, _T("Tahoma"));
+			if(no >= 0)
+			{
+				m_FontComboBox.SetCurSel(no);
+			}
+			else
+			{
+				m_FontComboBox.SetCurSel(0);
+			}
 		}
 	}
 

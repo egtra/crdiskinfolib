@@ -33,9 +33,13 @@ void DebugPrint(CString cstr)
 {
 	static int flag = TRUE;
 	static TCHAR file[MAX_PATH];
+	static DWORD first = GetTickCount();
+	CString output;
 
-	cstr.Append(_T("\n"));
-	cstr.Replace(_T("\r"), _T(""));
+	output.Format(_T("%08d "), GetTickCount() - first);
+	output += cstr;
+	output.Append(_T("\n"));
+	output.Replace(_T("\r"), _T(""));
 
 	if(flag)
 	{
@@ -57,12 +61,12 @@ void DebugPrint(CString cstr)
 
 	FILE *fp;
 	_tfopen_s(&fp, file, _T("ac"));
-	_ftprintf(fp, _T("%s"), cstr);
+	_ftprintf(fp, _T("%s"), output);
 	fflush(fp);
 	fclose(fp);
 
 	if(debugMode == DEBUG_MODE_MESSAGE)
 	{
-		AfxMessageBox(cstr);
+		AfxMessageBox(output);
 	}
 }

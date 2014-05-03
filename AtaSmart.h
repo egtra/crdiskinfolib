@@ -122,6 +122,7 @@ public:
 		SSD_VENDOR_OCZ        = 9,
 		HDD_SSD_VENDOR_SEAGATE= 10,
 		HDD_VENDOR_WESTERN_DIGITAL=11,
+		SSD_VENDOR_PLEXTOR    = 12, 
 		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
@@ -1319,6 +1320,8 @@ public:
 		INT					NandWrites;
 		INT					WearLevelingCount;
 
+		INT					PlextorNandWritesUnit;
+
 		INT					Life;
 
 		DWORD				Major;
@@ -1485,6 +1488,9 @@ protected:
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
 	BOOL IsSsdMicron(ATA_SMART_INFO &asi);
 	BOOL IsSsdOcz(ATA_SMART_INFO &asi);
+	BOOL IsSsdPlextor(ATA_SMART_INFO &asi);
+
+	INT CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
 

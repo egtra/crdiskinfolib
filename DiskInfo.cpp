@@ -86,7 +86,7 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 	m_Ini = ini;
 
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	m_Ini.Replace(_T("DiskInfoS.ini"), _T("DiskInfo.ini"));
 #endif
 

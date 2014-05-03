@@ -20,6 +20,16 @@
 
 extern const GUID StrageGUID;
 
+int CALLBACK EnumFontFamExProcMeiryo(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType, LPARAM lParam)
+{
+	if(_tcscmp(lpelfe->elfLogFont.lfFaceName, _T("メイリオ")) == 0)
+	{
+		BOOL *flag = (BOOL*)lParam;
+		*flag = TRUE;
+	}
+    return TRUE;
+}
+
 BOOL CDiskInfoDlg::OnInitDialog()
 {
 	CDHtmlMainDialog::OnInitDialog();
@@ -31,8 +41,25 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	InitMenu();
 
 	TCHAR str[256];
+	
+	CClientDC dc(this);
+    LOGFONT logfont;
+	CString defaultFontFace;
+	BOOL hasMeiryo = FALSE;
+    ZeroMemory(&logfont, sizeof(LOGFONT)); 
+    logfont.lfCharSet = ANSI_CHARSET;
+    ::EnumFontFamiliesEx(dc.m_hDC, &logfont, (FONTENUMPROC)EnumFontFamExProcMeiryo, (long)&hasMeiryo, 0);
+	
+	if(hasMeiryo)
+	{
+		defaultFontFace = _T("メイリオ");
+	}
+	else
+	{
+		defaultFontFace = _T("Tahoma");
+	}
 
-	GetPrivateProfileString(_T("Setting"), _T("FontFace"), _T("Tahoma"), str, 256, m_Ini);
+	GetPrivateProfileString(_T("Setting"), _T("FontFace"), defaultFontFace, str, 256, m_Ini);
 	m_FontFace = str;
 
 	switch(GetPrivateProfileInt(_T("Setting"), _T("AutoRefresh"), 10, m_Ini))
@@ -126,6 +153,32 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	return TRUE; 
 }
 
+#ifdef SUISHO_SHIZUKU_SUPPORT
+void CDiskInfoDlg::ChangeShizukuImage(DWORD index)
+{
+	CString arg, cstr;
+	TCHAR path[MAX_PATH];
+	TCHAR exe[_MAX_FNAME];
+	
+	GetModuleFileName(NULL, path, sizeof(path));
+	_wsplitpath_s(path, NULL, 0, NULL, 0, exe, _MAX_FNAME, NULL, 0);
+
+	if(index == 0 || MAX_SHIZUKU_IMAGE < index)
+	{
+		srand(GetTickCount());
+		index = rand() % MAX_SHIZUKU_IMAGE + 1;
+	}
+
+	arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_0 + index);
+	CallScript(_T("setShizuku"), arg);
+	arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_COPYRIGHT);
+	CallScript(_T("setShizukuCopyright"), arg);
+
+	cstr.Format(_T("%d"), index);
+	WritePrivateProfileString(_T("Setting"), _T("ShizukuImageType"), cstr, m_Ini);
+}
+#endif
+
 void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 {
 	CString cstr;
@@ -155,17 +208,9 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			m_FlagShowWindow = TRUE;		
 			CenterWindow();
 
-#ifdef SUISYO_SHIZUKU_SUPPORT
-			CString arg;
-			TCHAR path[MAX_PATH];
-			TCHAR exe[_MAX_FNAME];
-
-			GetModuleFileName(NULL, path, sizeof(path));
-			_wsplitpath_s(path, NULL, 0, NULL, 0, exe, _MAX_FNAME, NULL, 0);
-			arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU);
-			CallScript(_T("setShizuku"), arg);
+#ifdef SUISHO_SHIZUKU_SUPPORT
+			ChangeShizukuImage(m_ShizukuImageType);
 #endif
-
 			if(m_FlagResident)
 			{
 				AlarmOverheat();
@@ -258,7 +303,8 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 	{
 		SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);
 	//	SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
-		m_PowerOnHoursClass = _T("valueR gray");
+	//	m_PowerOnHoursClass = _T("valueR gray");
+		m_PowerOnHoursClass = _T("valueR");
 		m_NowDetectingUnitPowerOnHours = TRUE;
 	}
 	SetWindowTitle(_T(""));
@@ -346,26 +392,50 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 	
 	if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
 	{
-		for(DWORD j = 0; j < m_Ata.vars[index].AttributeCount; j++)
+		if(m_Ata.vars[index].IsSsd && m_Ata.vars[index].IsRawValues8)
 		{
-
-			if(((0x01 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0x0D)
-			||	(0xBF <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xD1)
-			||	(0xDC <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xE4)
-			||	(0xE6 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xE7)
-			||	m_Ata.vars[index].Attribute[j].Id == 0xF0
-			||	m_Ata.vars[index].Attribute[j].Id == 0xFA
-			)
-			&&	m_Ata.vars[index].Threshold[j].ThresholdValue != 0
-			&& 	m_Ata.vars[index].Attribute[j].CurrentValue < m_Ata.vars[index].Threshold[j].ThresholdValue)
+		}
+		else if(m_Ata.vars[index].IsSsd)
+		{
+			for(DWORD j = 0; j < m_Ata.vars[index].AttributeCount; j++)
 			{
-				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
-				result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" (") + cstr + _T(") ")+ i18n(m_Ata.vars[index].SmartKeyName, cstr);
-				cstr.Format(_T("\n"));
-				result += cstr;
+				if( m_Ata.vars[index].Threshold[j].ThresholdValue != 0
+				&& 	m_Ata.vars[index].Attribute[j].CurrentValue < m_Ata.vars[index].Threshold[j].ThresholdValue)
+				{
+					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
+					result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" (") + cstr + _T(") ")+ i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					cstr.Format(_T("\n"));
+					result += cstr;
+				}
+			}
+		}
+		else
+		{
+			for(DWORD j = 0; j < m_Ata.vars[index].AttributeCount; j++)
+			{
+				if(((0x01 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0x0D)
+				||	m_Ata.vars[index].Attribute[j].Id == 0xB8
+				||	(0xBB <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xC1)
+				||	(0xC3 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xD1)
+				||	(0xD3 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xD4)
+				||	(0xDC <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xE4)
+				||	(0xE6 <= m_Ata.vars[index].Attribute[j].Id && m_Ata.vars[index].Attribute[j].Id <= 0xE7)
+				||	m_Ata.vars[index].Attribute[j].Id == 0xF0
+				||	m_Ata.vars[index].Attribute[j].Id == 0xFA
+				||	m_Ata.vars[index].Attribute[j].Id == 0xFE
+				)
+				&&	m_Ata.vars[index].Threshold[j].ThresholdValue != 0
+				&& 	m_Ata.vars[index].Attribute[j].CurrentValue < m_Ata.vars[index].Threshold[j].ThresholdValue)
+				{
+					cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);
+					result += i18n(_T("DiskStatus"), _T("BAD")) + _T(" (") + cstr + _T(") ")+ i18n(m_Ata.vars[index].SmartKeyName, cstr);
+					cstr.Format(_T("\n"));
+					result += cstr;
+				}
 			}
 		}
 	}
+
 	if(m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_CAUTION
 	|| m_Ata.vars[index].DiskStatus == CAtaSmart::DISK_STATUS_BAD)
 	{
@@ -393,13 +463,15 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 				}
 			}
 			else
-			if((m_Ata.vars[index].Attribute[j].Id == 0xE8 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+			if((m_Ata.vars[index].Attribute[j].Id == 0xE8 && (m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INTEL || m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_PLEXTOR))
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xBB && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
 			||((m_Ata.vars[index].Attribute[j].Id == 0xB4 || m_Ata.vars[index].Attribute[j].Id == 0xB3) && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xE7 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xAA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[index].IsRawValues8
-			|| (m_Ata.vars[index].Attribute[j].Id == 0xCA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MICRON))
+			|| (m_Ata.vars[index].Attribute[j].Id == 0xCA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MICRON)
+			|| (m_Ata.vars[index].Attribute[j].Id == 0xE9 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_OCZ)
+			)
 			)
 			{
 				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);

@@ -62,7 +62,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 IDR_MAINFRAME           ICON                    "resS\\DiskInfo.ico"
 IDI_MINI_ICON           ICON                    "resS\\DiskInfo16.ico"
 #else
@@ -363,8 +363,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,0,4,2012
- PRODUCTVERSION 5,0,4,2012
+ FILEVERSION 5,1,0,2012
+ PRODUCTVERSION 5,1,0,2012
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,13 +381,20 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, The modified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileDescription", "CrystalDiskInfo"
-            VALUE "FileVersion", "5.0.4.2012"
-            VALUE "InternalName", "DiskInfo.exe"
+            VALUE "FileVersion", "5.1.0.2012"
             VALUE "LegalCopyright", "Copyright (C) 2008-2012 hiyohiyo. All rights reserved."
-            VALUE "OriginalFilename", "DiskInfo.exe"
+            VALUE "ProductVersion", "5.1.0.2012"
+#ifdef SUISHO_SHIZUKU_SUPPORT
+            VALUE "ProductName", "CrystalDiskInfo Shizuku Edition"
+            VALUE "FileDescription", "CrystalDiskInfo Shizuku Edition"
+            VALUE "OriginalFilename", "DiskInfoS.exe"
+            VALUE "InternalName", "DiskInfoS.exe"
+#else
             VALUE "ProductName", "CrystalDiskInfo"
-            VALUE "ProductVersion", "5.0.4.2012"
+            VALUE "FileDescription", "CrystalDiskInfo"
+            VALUE "OriginalFilename", "DiskInfo.exe"
+            VALUE "InternalName", "DiskInfo.exe"
+#endif
         END
     END
     BLOCK "VarFileInfo"
@@ -536,7 +543,6 @@ BEGIN
             MENUITEM "Auto AAM/APM Adaptation",     ID_AUTO_AAM_APM
             MENUITEM "Health Status Setting",       ID_HEALTH_STATUS
             MENUITEM SEPARATOR
-            MENUITEM "Hide S.M.A.R.T. Information", ID_HIDE_SMART_INFO
             POPUP "Temperature"
             BEGIN
                 MENUITEM "Celsius",                     ID_CELSIUS
@@ -588,7 +594,7 @@ BEGIN
                 MENUITEM "SCSI_ATA_TRANSLATION (SAT)",  ID_USB_SAT
                 MENUITEM "I-O DATA",                    ID_USB_IODATA
                 MENUITEM "Sunplus",                     ID_USB_SUNPLUS
-                MENUITEM "Unknown",                     ID_USB_LOGITEC
+                MENUITEM "Logitec",                     ID_USB_LOGITEC
                 MENUITEM "JMicron",                     ID_USB_JMICRON
                 MENUITEM "Cypress",                     ID_USB_CYPRESS
                 MENUITEM SEPARATOR
@@ -605,6 +611,8 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "Gadget Support",              ID_GADGET_SUPPORT
             MENUITEM "Install Gadget",              ID_INSTALL_GADGET
+            MENUITEM SEPARATOR
+            MENUITEM "Hide S.M.A.R.T. Information", ID_HIDE_SMART_INFO
         END
         POPUP "Workaround"
         BEGIN
@@ -633,11 +641,11 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "Help",                        ID_HELP
-        MENUITEM "About CrystalDiskInfo",       ID_HELP_ABOUT
-        MENUITEM SEPARATOR
-        MENUITEM "About S.M.A.R.T. (Wikipedia) [Web]", ID_HELP_ABOUT_SMART
+        MENUITEM "Help [Web]",                        ID_HELP
         MENUITEM "Crystal Dew World [Web]",     ID_HELP_CRYSTALDEWWORLD
+        MENUITEM "About S.M.A.R.T. (Wikipedia) [Web]", ID_HELP_ABOUT_SMART
+        MENUITEM SEPARATOR
+        MENUITEM "About CrystalDiskInfo",       ID_HELP_ABOUT
     END
     POPUP "&Language"
     BEGIN
@@ -739,10 +747,10 @@ IDR_HTML_DUMMY          HTML                    "res\\dummy.html"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// MP3
+// OPUS
 //
 
-IDR_MP3_001_SK          MP3                     "res\\001soundkenjin.mp3"
+IDR_SOUND_001_SK          OPUS                  "res\\001soundkenjin.opus"
 #endif    // “ú–{Œê (“ú–{) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -101,9 +101,9 @@ void CHealthDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		ChangeZoomType(m_ZoomType);
 		SetClientRect((DWORD)(SIZE_X * m_ZoomRatio), (DWORD)(SIZE_Y * m_ZoomRatio), 0);
 
-		m_Scrollbar05.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(77 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
-		m_ScrollbarC5.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(140 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
-		m_ScrollbarC6.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(203 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_Scrollbar05.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(81 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_ScrollbarC5.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(144 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
+		m_ScrollbarC6.MoveWindow((DWORD)(17 * m_ZoomRatio), (DWORD)(207 * m_ZoomRatio), (DWORD)(328 * m_ZoomRatio), (DWORD)(20 * m_ZoomRatio));
 
 	//	CenterWindow();
 		ShowWindow(SW_SHOW);

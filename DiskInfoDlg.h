@@ -48,16 +48,23 @@ public:
 // Dialog Data
 	enum { IDD = IDD_DISKINFO_DIALOG, IDH = IDR_HTML_DUMMY };
 
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	static const int SIZE_X = 1000;
-	static const int SIZE_SMART_X = 1000;
-	static const int SIZE_SMART_Y = 720;
+	static const int SIZE_SMART_X = 960;
+	static const int SIZE_SMART_Y = 640;
+	static const int SIZE_MIN_Y = 500;
+protected:
+	DWORD m_ShizukuImageType;
+
+	static const int MAX_SHIZUKU_IMAGE = 2;
 #else
 	static const int SIZE_X = 640;
 	static const int SIZE_SMART_X = 640;
 	static const int SIZE_SMART_Y = 480;
+	static const int SIZE_MIN_Y = 260;
 #endif
 
+public:
 #ifdef BENCHMARK
 	static const int SIZE_Y = 275;
 	static const int SIZE_SMART_Y = 520;
@@ -65,7 +72,6 @@ public:
 #else
 	static const int SIZE_Y = 260;
 	static const int SIZE_MAX_Y = 960;
-
 #endif
 
 	// Timer
@@ -301,6 +307,10 @@ protected:
 	HRESULT OnPreDisk(IHTMLElement *pElement);
 	HRESULT OnNextDisk(IHTMLElement *pElement);
 	HRESULT OnDiskStatus(IHTMLElement *pElement);
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	HRESULT OnChangeShizuku(IHTMLElement *pElement);
+	void ChangeShizukuImage(DWORD index);
+#endif
 #ifdef BENCHMARK
 	HRESULT OnBenchmark(IHTMLElement *pElement);
 	void SetMeter(double score);

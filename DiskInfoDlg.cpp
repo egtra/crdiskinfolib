@@ -101,6 +101,9 @@ BEGIN_DHTML_EVENT_MAP(CDiskInfoDlg)
 	DHTML_EVENT_ONCLICK(_T("PreDisk"), OnPreDisk)
 	DHTML_EVENT_ONCLICK(_T("NextDisk"), OnNextDisk)
 	DHTML_EVENT_ONCLICK(_T("DiskStatus"), OnDiskStatus)
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	DHTML_EVENT_ONCLICK(_T("Shizuku"), OnChangeShizuku)
+#endif
 #ifdef BENCHMARK
 	DHTML_EVENT_ONCLICK(_T("Benchmark"), OnBenchmark)
 #endif
@@ -123,6 +126,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_GadgetDir = ((CDiskInfoApp*)AfxGetApp())->m_GadgetDir;
 	m_ExeDir = ((CDiskInfoApp*)AfxGetApp())->m_ExeDir;
 	m_AlertMailPath = ((CDiskInfoApp*)AfxGetApp())->m_AlertMailPath;
+	m_OpusDecPath = ((CDiskInfoApp*)AfxGetApp())->m_OpusDecPath;
 
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini);
 
@@ -217,11 +221,11 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_ImageList.Add(AfxGetApp()->LoadIcon(IDI_UNKNOWN));
 
 	m_FlagAdvancedDiskSearch = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AdvancedDiskSearch"), 0, m_Ini);
-	m_FlagWorkaroundHD204UI =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("HD204UI"), 1, m_Ini);
+	m_FlagWorkaroundHD204UI =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("HD204UI"), 0, m_Ini);
 	m_FlagWorkaroundAdataSsd =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("AdataSsd"), 1, m_Ini);
 	m_FlagEventLog = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("EventLog"), 0, m_Ini);
 	m_FlagAlertMail = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertMail"), 0, m_Ini);
-	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 0, m_Ini);
+	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 1, m_Ini);
 	m_FlagAutoAamApm = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AutoAamApm"), 0, m_Ini);
 	m_FlagDumpIdentifyDevice = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpIdentifyDevice"), 1, m_Ini);			// Default = Enabled
 	m_FlagDumpSmartReadData = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadData"), 1, m_Ini);
@@ -231,7 +235,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
 	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
 	m_FlagAlertSound = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertSound"), 1, m_Ini);
-
+	
 	TCHAR str[256];
 	GetPrivateProfileString(_T("Setting"), _T("AlertSoundPath"), _T(""), str, 256, m_Ini);
 	m_AlertSoundPath = str;
@@ -264,6 +268,15 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	// Setting
 	SAVE_SMART_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("SAVE_SMART_PERIOD"), 150, m_Ini);
 	ALARM_TEMPERATURE_PERIOD = GetPrivateProfileInt(_T("Setting"), _T("ALARM_TEMPERATURE_PERIOD"), 60 * 60, m_Ini);
+
+	#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
+	if(m_ShizukuImageType == 0 || MAX_SHIZUKU_IMAGE < m_ShizukuImageType)
+	{
+		srand(GetTickCount());
+		m_ShizukuImageType = rand() % MAX_SHIZUKU_IMAGE + 1;
+	}
+	#endif
 
 
 	if(m_FlagEventLog)
@@ -950,7 +963,7 @@ void CDiskInfoDlg::UpdateDialogSize()
 	if(GetPrivateProfileInt(_T("Setting"), _T("HideSmartInfo"), 0, m_Ini))
 	{
 		m_SizeX = SIZE_X;
-		m_SizeY = SIZE_Y;
+		m_SizeY = SIZE_MIN_Y;
 		m_FlagHideSmartInfo = TRUE;
 		SetClientRect((DWORD)(m_SizeX * m_ZoomRatio), (DWORD)(m_SizeY * m_ZoomRatio), 0);
 		m_List.SetFontEx(m_FontFace, m_ZoomRatio);
@@ -979,6 +992,16 @@ void CDiskInfoDlg::UpdateDialogSize()
 		SetMenu(menu);
 		DrawMenuBar();
 	}
+
+	CRect rect;
+	GetClientRect(&rect);
+#ifdef SUISHO_SHIZUKU_SUPPORT
+	m_List.SetWindowPos(NULL, (int)((360 + 8) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
+			(int)((640 - 16) * m_ZoomRatio), (int)(rect.Height() - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+#else
+	m_List.SetWindowPos(NULL, (int)(8 * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
+		(int)((640 - 16) * m_ZoomRatio), (int)(rect.Height() - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+#endif
 }
 
 void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
@@ -989,12 +1012,12 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 
 	if(flag)
 	{
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 		m_List.SetWindowPos(NULL, (int)((360 + 8) * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
 		(int)((640 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
 #else
 		m_List.SetWindowPos(NULL, (int)(8 * m_ZoomRatio), (int)(SIZE_Y * m_ZoomRatio),
-		(int)(cx - 16 * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
+		(int)((640 - 16) * m_ZoomRatio), (int)(cy - SIZE_Y * m_ZoomRatio - 8 * m_ZoomRatio), SWP_SHOWWINDOW);
 #endif
 	}
 	flag = TRUE;
@@ -1016,8 +1039,9 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 void CDiskInfoDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
 	lpMMI->ptMinTrackSize.x = (LONG)(SIZE_X * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
-	lpMMI->ptMinTrackSize.y = (LONG)(SIZE_Y * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
+	lpMMI->ptMinTrackSize.y = (LONG)(SIZE_MIN_Y * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
 							+ GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION));
+
 	lpMMI->ptMaxTrackSize.x = (LONG)(SIZE_X * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
 	lpMMI->ptMaxTrackSize.y = (LONG)(SIZE_MAX_Y * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
 							+ GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION));
@@ -1235,6 +1259,47 @@ BOOL CDiskInfoDlg::AddAlarmHistory(DWORD eventId, CString disk, CString message)
 }
 
 #ifdef ALERT_VOICE_SUPPORT
+
+int ExecAndWait(TCHAR *pszCmd, BOOL bNoWindow)
+{
+	DWORD Code;
+	BOOL bSuccess;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	memset(&si, 0, sizeof(STARTUPINFO));
+	si.cb = sizeof(STARTUPINFO);
+
+	if (bNoWindow) {
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_HIDE;
+	}
+	bSuccess = CreateProcess(
+		NULL,	// lpApplicationName
+		pszCmd,	// lpCommandLine
+		NULL,	// lpProcessAttributes
+		NULL,	// lpThreadAttributes
+		FALSE,	// bInheritHandle
+		0,		// dwCreationFlag
+		NULL,	// lpEnvironment
+		NULL,	// lpCurrentDirectory
+		&si,	// lpStartupInfo
+		&pi		// lpProcessInformation
+	);
+	if (bSuccess != TRUE) return 0;
+
+	WaitForInputIdle(pi.hProcess, INFINITE);
+	WaitForSingleObject(pi.hProcess, INFINITE);
+
+	GetExitCodeProcess(pi.hProcess, &Code);
+
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+
+	return Code;
+}
+
+
 BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 {
 	if(mode != AS_SET_SOUND_ID && eventId != 1000 && ! m_FlagAlertSound)
@@ -1258,37 +1323,26 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		}
 		return TRUE;
 	}
-	else if(mode == AS_DEINIT)
-	{
-		error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, 0, (DWORD_PTR)&mop);
-		if(error)
-		{
-			return FALSE;
-		}
-		else
-		{
-			return TRUE;
-		}
-	}
 	else if(soundId == 0)
 	{
 		return TRUE;
 	}
-
-	if(mop.wDeviceID != 0)
-	{
-		error = mciSendCommandW(mop.wDeviceID, MCI_STOP, MCI_WAIT, (DWORD_PTR)&mop);
-		error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD_PTR)&mop);
-		mop.wDeviceID = 0;
-		ZeroMemory(&mop, sizeof(MCI_PLAY_PARMS));
-		if(error)
-		{
-			return FALSE;
-		}
-	}
-
+	
 	if(IsFileExist(m_AlertSoundPath))
 	{
+		if(mode == AS_DEINIT)
+		{
+			error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, 0, (DWORD_PTR)&mop);
+			if(error)
+			{
+				return FALSE;
+			}
+			else
+			{
+				return TRUE;
+			}
+		}
+
 		CString ext;
 		TCHAR temp[_MAX_EXT];
 		_wsplitpath_s(m_AlertSoundPath, NULL, 0, NULL, 0, NULL, 0, temp, _MAX_EXT);
@@ -1297,88 +1351,108 @@ BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 		ext.MakeUpper();
 		if(ext.Find(_T(".MP3")) == 0)
 		{
+			if(mop.wDeviceID != 0)
+			{
+				error = mciSendCommandW(mop.wDeviceID, MCI_STOP, MCI_WAIT, (DWORD_PTR)&mop);
+				error = mciSendCommandW(mop.wDeviceID, MCI_CLOSE, MCI_WAIT, (DWORD_PTR)&mop);
+				mop.wDeviceID = 0;
+				ZeroMemory(&mop, sizeof(MCI_PLAY_PARMS));
+				if(error)
+				{
+					return FALSE;
+				}
+			}
+
 			mop.lpstrDeviceType = _T("MPEGVideo");
+			mop.lpstrElementName =  m_AlertSoundPath;
+			error = mciSendCommandW(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&mop);
+			if(error)
+			{
+				return FALSE;
+			}
+			else
+			{
+				error = mciSendCommand(mop.wDeviceID, MCI_SEEK, MCI_SEEK_TO_START, (DWORD_PTR)&mgp);
+				if(error)
+				{
+					return FALSE;
+				}
+				else
+				{
+					error = mciSendCommandW(mop.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&mpp);
+					if(error)
+					{
+						return FALSE;
+					}
+				}
+			}
 		}
 		else if(ext.Find(_T(".WAV")) == 0)
 		{
-			mop.lpstrDeviceType = _T("WaveAudio");
+			PlaySound(m_AlertSoundPath, NULL, SND_NODEFAULT);
 		}
-		mop.lpstrElementName =  m_AlertSoundPath;
 	}
-
-	if(mop.lpstrDeviceType == NULL)
+	else if(mop.lpstrDeviceType == NULL)
 	{
+		CWaitCursor waitCursor;
+
 		// mode == AS_PLAY_SOUND
 		GetTempPath(MAX_PATH, tempPath);
-		CString tempFilePath = tempPath;
-		tempFilePath += _T("CrystalDiskInfo.mp3");
+		CString tempFilePathOpus = tempPath;
+		tempFilePathOpus += _T("CrystalDiskInfo.opus");
+		CString tempFilePathWave = tempPath;
+		tempFilePathWave += _T("CrystalDiskInfo.wav");
 
-		// Choose MP3 resource
+		PlaySound(NULL, NULL, SND_NODEFAULT);
+
+		// Choose OPUS resource
 		CString resource;
-	#ifdef SUISYO_SHIZUKU_SUPPORT
+	#ifdef SUISHO_SHIZUKU_SUPPORT
 		// For Japanese
 		if(m_CurrentLang.Find(_T("Japanese")) == 0 || GetUserDefaultLCID() == 0x0411)
 		{
 
-			resource.Format(_T("IDR_MP3_%03d_IY"), soundId);
+			resource.Format(_T("IDR_SOUND_%03d_IY"), soundId);
 		}
 		else
 		{
-			resource =  _T("IDR_MP3_001_SK");
+			resource =  _T("IDR_SOUND_001_SK");
 		}
 	#else
-		resource =  _T("IDR_MP3_001_SK");
+		resource =  _T("IDR_SOUND_001_SK");
 	#endif
 		// Resource to TempFile
 
-		HRSRC hrs = FindResource(NULL, resource, _T("MP3"));
+		HRSRC hrs = FindResource(NULL, resource, _T("OPUS"));
 		if(hrs == NULL)
 		{
 			return FALSE;
 		}
-		HGLOBAL hMp3 = LoadResource(NULL, hrs);
-		LPBYTE lpMp3 = (LPBYTE)LockResource(hMp3);
+		HGLOBAL hOpus = LoadResource(NULL, hrs);
+		LPBYTE lpOpus = (LPBYTE)LockResource(hOpus);
 		DWORD dwWrite = 0;
 
-		HANDLE hFile = CreateFile(tempFilePath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
-		WriteFile(hFile, lpMp3, SizeofResource(NULL, hrs), &dwWrite, NULL);
-		CloseHandle(hFile);
-
-		mop.lpstrDeviceType = _T("MPEGVideo");
-		mop.lpstrElementName =  tempFilePath;
-	}
-
-	error = mciSendCommandW(NULL, MCI_OPEN, MCI_OPEN_TYPE | MCI_OPEN_ELEMENT, (DWORD_PTR)&mop);
-	if(error)
-	{
-		return FALSE;
-	//	TCHAR str[512];
-	//	mciGetErrorString(error, str, 512);
-	//	AfxMessageBox(str);
-	}
-	else
-	{
-		error = mciSendCommand(mop.wDeviceID, MCI_SEEK, MCI_SEEK_TO_START, (DWORD_PTR)&mgp);
-		if(error)
+		HANDLE hFile = CreateFile(tempFilePathOpus, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+		if(hFile != INVALID_HANDLE_VALUE)
 		{
-			return FALSE;
-		//	TCHAR str[512];
-		//	mciGetErrorString(error, str, 512);
-		//	AfxMessageBox(str);
-		}
-		else
-		{
-			error = mciSendCommandW(mop.wDeviceID, MCI_PLAY, 0, (DWORD_PTR)&mpp);
-			if(error)
+			if(WriteFile(hFile, lpOpus, SizeofResource(NULL, hrs), &dwWrite, NULL) == 0)
 			{
+				CloseHandle(hFile);
 				return FALSE;
-			//	TCHAR str[512];
-			//	mciGetErrorString(error, str, 512);
-			//	AfxMessageBox(str);
-			}
+			}			
+			CloseHandle(hFile);
 		}
-	}
 
+		// Convert Opus to WAV
+		CString option;
+		option.Format(_T("\"%s\" \"%s\" \"%s\""), m_OpusDecPath, tempFilePathOpus, tempFilePathWave);
+
+		ExecAndWait((TCHAR*)(option.GetString()), TRUE);
+		PlaySound(tempFilePathWave, NULL, SND_SYNC|SND_FILENAME|SND_NODEFAULT);
+
+		DeleteFile(tempFilePathOpus);
+		DeleteFile(tempFilePathWave);
+	}
 	soundId = 0;
 
 	return TRUE;
@@ -1615,10 +1689,7 @@ LRESULT CDiskInfoDlg::OnDeviceChange(WPARAM wParam, LPARAM lParam)
 					//	AfxMessageBox(pdbd->dbcc_name);
 					// Disabled 2008/11/20 (This feature will be enabled on future release...)
 						KillTimer(TIMER_AUTO_DETECT);
-						if(m_AutoDetectionStatus > 0)
-						{
-							SetTimer(TIMER_AUTO_DETECT, m_AutoDetectionStatus * 1000, 0);
-						}
+						SetTimer(TIMER_AUTO_DETECT, m_AutoDetectionStatus * 1000, 0);
 					}
 				}
 				break;

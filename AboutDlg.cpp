@@ -32,7 +32,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_DHtml_ElementInnerText(pDX, _T("Version"), m_Version);
 	DDX_DHtml_ElementInnerText(pDX, _T("Edition"), m_Edition);
 	DDX_DHtml_ElementInnerText(pDX, _T("Release"), m_Release);
-	DDX_DHtml_ElementInnerText(pDX, _T("Copyright"), m_Copyright);
+	DDX_DHtml_ElementInnerHtml(pDX, _T("Copyright"), m_Copyright);
 }
 
 BOOL CAboutDlg::OnInitDialog()
@@ -68,7 +68,7 @@ void CAboutDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		GetModuleFileName(NULL, path, sizeof(path));
 		_wsplitpath_s(path, NULL, 0, NULL, 0, exe, _MAX_FNAME, NULL, 0);
 
-#ifdef SUISYO_SHIZUKU_SUPPORT
+#ifdef SUISHO_SHIZUKU_SUPPORT
 		arg.Format(_T("res://%s.exe/#2110/%d"), exe, IDR_SHIZUKU_ABOUT);
 		CallScript(_T("setShizuku"), arg);
 #endif
@@ -86,7 +86,9 @@ END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CAboutDlg)
 	DHTML_EVENT_ONCLICK(_T("CrystalDewWorld"), OnCrystalDewWorld)
+#ifdef SUISHO_SHIZUKU_SUPPORT
 	DHTML_EVENT_ONCLICK(_T("ProjectShizuku"), OnProjectShizuku)
+#endif
 END_DHTML_EVENT_MAP()
 
 HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
@@ -103,6 +105,7 @@ HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
 	return S_FALSE;
 }
 
+#ifdef SUISHO_SHIZUKU_SUPPORT
 HRESULT CAboutDlg::OnProjectShizuku(IHTMLElement* /*pElement*/)
 {
 	if(GetUserDefaultLCID() == 0x0411)// Japanese
@@ -116,3 +119,4 @@ HRESULT CAboutDlg::OnProjectShizuku(IHTMLElement* /*pElement*/)
 
 	return S_FALSE;
 }
+#endif

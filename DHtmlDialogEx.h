@@ -59,14 +59,15 @@ protected:
 	double GetZoomRatio();
 	CString i18n(CString section, CString key, BOOL inEnglish = FALSE);
 	void SetLabel(CString &label, CString element, CString title);
-
 	void OpenUrl(CString url);
+	BOOL ClickCheck();
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 	virtual void PostNcDestroy();
 	virtual BOOL OnAmbientProperty(COleControlSite* pSite, DISPID dispid, VARIANT* pvar);
 	virtual STDMETHODIMP GetOptionKeyPath(LPOLESTR *pchKey, DWORD dw);
+	virtual STDMETHODIMP Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, UINT *puArgErr);
 
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()

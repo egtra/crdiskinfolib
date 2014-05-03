@@ -327,10 +327,12 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 {
 	CComPtr<IHTMLDocument2> pDocument;
 	HRESULT hr = GetDHtmlDocument(&pDocument);
+	if(hr != S_OK){DebugPrint(_T("CallScript - GetDHtmlDocument"));}
 	ASSERT( hr == S_OK );
 
 	CComPtr<IDispatch> script;
 	hr = pDocument->get_Script(&script);
+	if(hr != S_OK){DebugPrint(_T("CallScript - pDocument->get_Script"));}
 	ASSERT( hr == S_OK );
 
 	CComBSTR name = CComBSTR(function);
@@ -343,6 +345,7 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 			LOCALE_SYSTEM_DEFAULT,
 			&dispid);
 	ASSERT( hr == S_OK );
+	if(hr != S_OK){DebugPrint(_T("CallScript - script->GetIDsOfNames"));}
 
 	CComVariant arg1 = CComVariant(argument);
 	DISPPARAMS params = {&arg1, NULL, 1, 0};
@@ -362,6 +365,7 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 			&exp,
 			NULL);
 	ASSERT( hr == S_OK );
+	if(hr != S_OK){DebugPrint(_T("CallScript - script->Invoke"));}
 
 	VariantClear(&ret);
 }
@@ -437,4 +441,32 @@ void CDHtmlDialogEx::OpenUrl(CString url)
 			ShellExecuteW(NULL, _T("open"), _T("rundll32.exe"), args, NULL, SW_SHOWNORMAL);
 		}
 	}
+}
+
+// 2012/10/12 Workaround for Duplicate Click Message
+
+BOOL CDHtmlDialogEx::ClickCheck()
+{
+	static DWORD preTime = 0;
+	DWORD currentTime = GetTickCount();
+
+	// CString cstr;
+	// cstr.Format(_T("Cur=%d Pre=%d Sabun=%d"), currentTime, preTime, currentTime - preTime);
+	// AfxMessageBox(cstr);
+
+	if(currentTime >= preTime + 100)
+	{
+		preTime = currentTime;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+STDMETHODIMP CDHtmlDialogEx::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *pVarResult, EXCEPINFO *pExcepInfo, UINT *puArgErr)
+{
+	if(dispIdMember == DISPID_HTMLELEMENTEVENTS_ONCLICK && ClickCheck())
+	{
+		return CDHtmlEventSink::Invoke(dispIdMember, riid, lcid, wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
+	}
+	return S_FALSE;
 }

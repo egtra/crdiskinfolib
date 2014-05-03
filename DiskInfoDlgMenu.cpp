@@ -1217,7 +1217,7 @@ void CDiskInfoDlg::OnSmartEnglish()
 
 void CDiskInfoDlg::OnFontSetting()
 {
-	CFontSelection fontSelection(this, m_FontFace, i18n(_T("Menu"), _T("FONT_SETTING")));
+	CFontSelection fontSelection(this, m_FontFace, i18n(_T("WindowTitle"), _T("FONT_SETTING")));
 	if(fontSelection.DoModal() == IDOK)
 	{
 		m_FontFace = fontSelection.GetFontFace();
