@@ -2178,31 +2178,21 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 					return FALSE;
 				}
 			}
-			else if (vars[i].CommandType == asi.CommandType)
+			else if (asi.ModelWmi.IsEmpty())
 			{
-				if (asi.ModelWmi.IsEmpty())
-				{
-					return FALSE;
-				}
-				else if (vars[i].ModelWmi.IsEmpty())
-				{
-					duplicatedId = i;
-				}
-				else
-				{
-					return FALSE;
-				}
+				return FALSE;
 			}
-			else
+			else if (vars[i].ModelWmi.IsEmpty())
 			{
-				if (vars[i].CommandType == CMD_TYPE_SCSI_MINIPORT)
-				{
-					duplicatedId = i;
-				}
-				else
-				{
-					return FALSE;
-				}
+				duplicatedId = i;
+			}
+			else if (asi.CommandType == CMD_TYPE_SCSI_MINIPORT)
+			{
+				return FALSE;
+			}
+			else if (vars[i].CommandType == CMD_TYPE_SCSI_MINIPORT)
+			{
+				duplicatedId = i;
 			}
 		}
 	}
