@@ -1406,14 +1406,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\DiskMark\GetOsInfo.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\DiskMark\GetOsInfo.h"
-				>
-			</File>
-			<File
 				RelativePath=".\GetOsInfo.h"
 				>
 			</File>

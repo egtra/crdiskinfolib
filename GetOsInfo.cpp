@@ -383,23 +383,26 @@ void GetOsName(CString& OsFullName)
 			HKEY hKey;
 			TCHAR productType[80];
 			DWORD bufLen;
-			RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-				_T("SYSTEM\\CurrentControlSet\\Control\\ProductOptions"),
-				0, KEY_QUERY_VALUE, &hKey);
-			RegQueryValueEx(hKey, _T("ProductType"), NULL, NULL,
-				(LPBYTE) productType, &bufLen);
-			RegCloseKey(hKey);
-			if(lstrcmpi(_T("WINNT"), productType) == 0)
+			
+			if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\ProductOptions"),
+				0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
 			{
-				osType = "Workstation";
-			}
-			else if(lstrcmpi(_T("LANMANNT"), productType) == 0)
-			{
-				osType = "Server";
-			}
-			else if(lstrcmpi(_T("SERVERNT"), productType) == 0)
-			{
-				osType = "Advanced Server";
+				if(RegQueryValueEx(hKey, _T("ProductType"), NULL, NULL, (LPBYTE)productType, &bufLen) == ERROR_SUCCESS)
+				{
+					if(lstrcmpi(_T("WINNT"), productType) == 0)
+					{
+						osType = "Workstation";
+					}
+					else if(lstrcmpi(_T("LANMANNT"), productType) == 0)
+					{
+						osType = "Server";
+					}
+					else if(lstrcmpi(_T("SERVERNT"), productType) == 0)
+					{
+						osType = "Advanced Server";
+					}
+				}
+				RegCloseKey(hKey);
 			}
 		}
 
@@ -485,12 +488,17 @@ DWORD GetIeVersion()
 	case 550: ieVersion = 550;	break;
 	case 600:
 	default:
-		::RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Internet Explorer"), 
-			0, KEY_READ, &hKey);
-		::RegQueryValueEx(hKey, _T("Version"), NULL, &type, buf, &size);
-		::RegCloseKey(hKey);
-		cstr = buf;
-		ieVersion = _tstoi(cstr) * 100;
+		ieVersion = 600;
+		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Internet Explorer"), 
+			0, KEY_READ, &hKey) == ERROR_SUCCESS)
+		{
+			if(RegQueryValueEx(hKey, _T("Version"), NULL, &type, buf, &size) == ERROR_SUCCESS)
+			{
+				cstr = buf;
+				ieVersion = _tstoi(cstr) * 100;
+			}
+		}
+		RegCloseKey(hKey);
 		break;
 	}
 

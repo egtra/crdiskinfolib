@@ -60,10 +60,6 @@ BOOL CDiskInfoApp::InitInstance()
 	InitCommonControlsEx(&InitCtrls);
 	CWinApp::InitInstance();
 
-	ZeroMemory(&m_OsVer, sizeof(OSVERSIONINFO));
-	m_OsVer.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&m_OsVer);
-
 	// IE Version Check.
 	if(GetFileVersion(_T("Shdocvw.dll")) < 471)
 	{
@@ -180,9 +176,20 @@ BOOL CDiskInfoApp::InitInstance()
 
 // for Windows NT family
 #ifdef _UNICODE
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
+
 	if(! IsCurrentUserLocalAdministrator())
 	{
-		if(m_OsVer.dwMajorVersion < 6)
+		if(osvi.dwMajorVersion < 6)
 		{
 			AfxMessageBox(_T("CrystalDiskInfo is required Administrator Privileges."));
 		}

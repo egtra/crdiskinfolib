@@ -43,9 +43,6 @@ class CDiskInfoApp : public CWinApp
 public:
 	CDiskInfoApp();
 
-	OSVERSIONINFO m_OsVer;
-	BOOL m_IsNT;
-
 	CString m_MainDlgPath;
 	CString m_AboutDlgPath;
 	CString m_SettingDlgPath;

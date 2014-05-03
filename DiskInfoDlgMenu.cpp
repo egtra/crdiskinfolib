@@ -553,9 +553,16 @@ void CDiskInfoDlg::OnStartup()
 
 BOOL CDiskInfoDlg::RegisterStartup()
 {
-	OSVERSIONINFOEX osvi = {0};
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	GetVersionEx((OSVERSIONINFO *)&osvi);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
 
 	TCHAR path[MAX_PATH];
 	GetModuleFileName(NULL, path, MAX_PATH);
@@ -597,9 +604,16 @@ BOOL CDiskInfoDlg::RegisterStartup()
 
 BOOL CDiskInfoDlg::UnregisterStartup()
 {
-	OSVERSIONINFOEX osvi = {0};
+	OSVERSIONINFOEX osvi;
+	BOOL bosVersionInfoEx;
+
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	GetVersionEx((OSVERSIONINFO *)&osvi);
+	if(!(bosVersionInfoEx = GetVersionEx((OSVERSIONINFO *)&osvi)))
+	{
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx((OSVERSIONINFO *)&osvi);
+	}
 
 	if(osvi.dwMajorVersion >= 6)
 	{
