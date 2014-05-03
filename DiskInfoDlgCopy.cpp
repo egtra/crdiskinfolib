@@ -134,7 +134,7 @@ void CDiskInfoDlg::OnEditCopy()
 ----------------------------------------------------------------------------\r\n\
  (%I%) %MODEL%\r\n\
 ----------------------------------------------------------------------------\r\n\
-%ENCLODURE%\
+%ENCLOSURE%\
             Model : %MODEL%\r\n\
          Firmware : %FIRMWARE%\r\n\
     Serial Number : %SERIAL_NUMBER%\r\n\
@@ -171,9 +171,9 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		}
 		else
 		{
-			cstr.Format(_T("        Enclodure : %s (VID=%04Xh, PID=%04Xh, %s)\r\n"),
+			cstr.Format(_T("        Enclosure : %s (VID=%04Xh, PID=%04Xh, %s)\r\n"),
 				m_Ata.vars[i].Enclosure, m_Ata.vars[i].VendorId, m_Ata.vars[i].ProductId, m_Ata.vars[i].CommandTypeString);		
-			drive.Replace(_T("%ENCLODURE%"), cstr);
+			drive.Replace(_T("%ENCLOSURE%"), cstr);
 		}
 		drive.Replace(_T("%MODEL%"), m_Ata.vars[i].Model);
 //		drive.Replace(_T("%MODEL_WMI%"), m_Ata.vars[i].ModelWmi);

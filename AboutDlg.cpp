@@ -69,7 +69,6 @@ void CAboutDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDHtmlDialogEx)
-	ON_COMMAND(ID_ZOOM_200, &CAboutDlg::OnZoom200)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CAboutDlg)
@@ -88,8 +87,4 @@ HRESULT CAboutDlg::OnCrystalDewWorld(IHTMLElement* /*pElement*/)
 	}
 
 	return S_FALSE;
-}
-void CAboutDlg::OnZoom200()
-{
-	// TODO: ここにコマンド ハンドラ コードを追加します。
 }
