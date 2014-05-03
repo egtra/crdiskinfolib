@@ -487,7 +487,7 @@ BOOL IsClassicSystem()
 
 DWORD GetIeVersion()
 {
-	static DWORD ieVersion = -1;
+	static INT ieVersion = -1;
 
 	if(ieVersion != -1)
 	{
@@ -510,7 +510,7 @@ DWORD GetIeVersion()
 	case 600:
 	default:
 		ieVersion = 600;
-		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Microsoft\\Internet Explorer"), 
+		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Internet Explorer"), 
 			0, KEY_READ, &hKey) == ERROR_SUCCESS)
 		{
 			if(RegQueryValueEx(hKey, _T("Version"), NULL, &type, buf, &size) == ERROR_SUCCESS)
@@ -538,4 +538,33 @@ BOOL IsIe556()
 		return FALSE;
 		break;
 	}
+}
+
+BOOL IsDotNet2()
+{
+	static INT dotNet2 = -1;
+
+	if(dotNet2 == -1)
+	{
+		dotNet2 = FALSE;
+		DWORD type = REG_DWORD;
+		ULONG size = sizeof(DWORD);
+		HKEY  hKey = NULL;
+		DWORD buf = 0;
+
+		if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\NET Framework Setup\\NDP\\v2.0.50727"), 0, KEY_READ, &hKey) == ERROR_SUCCESS
+		|| RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Wow6432Node\\Microsoft\\NET Framework Setup\\NDP\\v2.0.50727"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+		{
+			if(RegQueryValueEx(hKey, _T("Install"), NULL, &type, (LPBYTE)&buf, &size) == ERROR_SUCCESS)
+			{
+				if(buf == 1)
+				{
+					dotNet2 = TRUE;
+				}
+			}
+			RegCloseKey(hKey);			
+		}
+	}
+
+	return (BOOL)dotNet2;
 }

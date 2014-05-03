@@ -895,7 +895,7 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 void CDiskInfoDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
 	lpMMI->ptMinTrackSize.x = (LONG)(640 * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
-	lpMMI->ptMinTrackSize.y = (LONG)(SIZE_Y  * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
+	lpMMI->ptMinTrackSize.y = (LONG)(48  * m_ZoomRatio + GetSystemMetrics(SM_CYMENU)
 							+ GetSystemMetrics(SM_CYSIZEFRAME) * 2 + GetSystemMetrics(SM_CYCAPTION));
 	lpMMI->ptMaxTrackSize.x = (LONG)(640 * m_ZoomRatio + GetSystemMetrics(SM_CXFRAME) * 2);
 	lpMMI->ptMaxTrackSize.y = (LONG)(1200 * m_ZoomRatio);

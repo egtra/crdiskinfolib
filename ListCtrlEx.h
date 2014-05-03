@@ -29,7 +29,7 @@ public:
 	COLORREF GetBkColor2();
 	COLORREF GetLineColor();
 
-	void SetFontSize(double zoomRatio);
+	void SetFontEx(CString face, double zoomRatio);
 
 protected:
 	COLORREF m_TextColor1;

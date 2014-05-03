@@ -93,12 +93,14 @@ COLORREF CListCtrlEx::GetBkColor1()  {return m_BkColor1;}
 COLORREF CListCtrlEx::GetBkColor2()  {return m_BkColor2;}
 COLORREF CListCtrlEx::GetLineColor() {return m_LineColor;}
 
-void CListCtrlEx::SetFontSize(double zoomRatio)
+void CListCtrlEx::SetFontEx(CString face, double zoomRatio)
 {
 	LOGFONT logFont;
 
 	GetFont()->GetLogFont(&logFont);
 	logFont.lfHeight = (LONG)(-12 * zoomRatio);
+	logFont.lfQuality = 6;
+	wsprintf(logFont.lfFaceName, _T("%s"), face.GetString());
 
 	m_Font.DeleteObject();
 	m_Font.CreateFontIndirect(&logFont);

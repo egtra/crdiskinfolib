@@ -21,6 +21,7 @@
 #define SMART_DIR					_T("Smart\\")
 #define SMART_INI					_T("Smart.ini")
 #define EXCHANGE_INI				_T("Exchange.ini")
+#define ALERT_MAIL_PATH				_T("CdiResource\\AlertMail.exe")
 
 #define MENU_THEME_INDEX			3
 #define MENU_LANG_INDEX				6
@@ -51,6 +52,7 @@ public:
 	CString m_OptionDlgPath;
 	CString m_SmartDir;
 	CString m_ExeDir;
+	CString m_AlertMailPath;
 	CString m_Ini;
 
 	CString m_ThemeDir;

@@ -31,6 +31,7 @@ public:
 	virtual ~CGraphDlg();
 
 	CString	m_SmartDir;
+	BOOL m_FlagSmartEnglish;
 
 	int m_SizeX;
 	int m_SizeY;
@@ -180,4 +181,5 @@ public:
 	afx_msg void OnSsdIntel();
 	afx_msg void OnSsdSamsung();
 	afx_msg void OnSsdSandforce();
+	afx_msg void OnSsdMicron();
 };

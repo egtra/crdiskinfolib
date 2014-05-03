@@ -155,6 +155,7 @@ BOOL CDiskInfoApp::InitInstance()
 	m_ThemeDir.Format(_T("%s\\%s"), tmp, THEME_DIR);
 	m_LangDir.Format(_T("%s\\%s"), tmp, LANGUAGE_DIR);
 	m_SmartDir.Format(_T("%s\\%s"), tmp, SMART_DIR);
+	m_AlertMailPath.Format(_T("%s\\%s"), tmp, ALERT_MAIL_PATH);
 
 	m_ThemeIndex = MENU_THEME_INDEX;
 	m_LangIndex = MENU_LANG_INDEX;

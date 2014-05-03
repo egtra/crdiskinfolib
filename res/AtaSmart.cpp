@@ -3295,7 +3295,7 @@ BOOL CAtaSmart::DoIdentifyDeviceScsi(INT scsiPort, INT scsiTargetId, IDENTIFY_DE
 		p->Length = sizeof(SENDCMDOUTPARAMS) + IDENTIFY_BUFFER_SIZE;
 		p->ControlCode = IOCTL_SCSI_MINIPORT_IDENTIFY;
 		memcpy((char *)p->Signature, "SCSIDISK", 8);
-		pin->irDriveRegs.bCommandReg = ID_CMD;
+  		pin->irDriveRegs.bCommandReg = ID_CMD;
 		pin->bDriveNumber = scsiTargetId;
 		
 		if(DeviceIoControl(hScsiDriveIOCTL, IOCTL_SCSI_MINIPORT, 
@@ -3541,16 +3541,16 @@ BOOL CAtaSmart::DoIdentifyDeviceSat(INT physicalDriveId, BYTE target, IDENTIFY_D
 
 	::ZeroMemory(&sptwb,sizeof(SCSI_PASS_THROUGH_WITH_BUFFERS));
 
-	sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
-	sptwb.Spt.PathId = 0;
-	sptwb.Spt.TargetId = 0;
-	sptwb.Spt.Lun = 0;
-	sptwb.Spt.SenseInfoLength = 24;
-	sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
-	sptwb.Spt.DataTransferLength = IDENTIFY_BUFFER_SIZE;
-	sptwb.Spt.TimeOutValue = 2;
-	sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
-	sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
+    sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
+    sptwb.Spt.PathId = 0;
+    sptwb.Spt.TargetId = 0;
+    sptwb.Spt.Lun = 0;
+    sptwb.Spt.SenseInfoLength = 24;
+    sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
+    sptwb.Spt.DataTransferLength = IDENTIFY_BUFFER_SIZE;
+    sptwb.Spt.TimeOutValue = 2;
+    sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
+    sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
 
 // DEBUG
 //	CString cstr;
@@ -3730,16 +3730,16 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 
 	::ZeroMemory(&sptwb,sizeof(SCSI_PASS_THROUGH_WITH_BUFFERS));
 
-	sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
-	sptwb.Spt.PathId = 0;
-	sptwb.Spt.TargetId = 0;
-	sptwb.Spt.Lun = 0;
-	sptwb.Spt.SenseInfoLength = 24;
-	sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
-	sptwb.Spt.DataTransferLength = READ_ATTRIBUTE_BUFFER_SIZE;
-	sptwb.Spt.TimeOutValue = 2;
-	sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
-	sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
+    sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
+    sptwb.Spt.PathId = 0;
+    sptwb.Spt.TargetId = 0;
+    sptwb.Spt.Lun = 0;
+    sptwb.Spt.SenseInfoLength = 24;
+    sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
+    sptwb.Spt.DataTransferLength = READ_ATTRIBUTE_BUFFER_SIZE;
+    sptwb.Spt.TimeOutValue = 2;
+    sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
+    sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
 
 // DEBUG
 //	CString cstr;
@@ -3885,16 +3885,16 @@ BOOL CAtaSmart::GetSmartThresholdSat(INT physicalDriveId, BYTE target, ATA_SMART
 
 	::ZeroMemory(&sptwb,sizeof(SCSI_PASS_THROUGH_WITH_BUFFERS));
 
-	sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
-	sptwb.Spt.PathId = 0;
-	sptwb.Spt.TargetId = 0;
-	sptwb.Spt.Lun = 0;
-	sptwb.Spt.SenseInfoLength = 24;
-	sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
-	sptwb.Spt.DataTransferLength = READ_THRESHOLD_BUFFER_SIZE;
-	sptwb.Spt.TimeOutValue = 2;
-	sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
-	sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
+    sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
+    sptwb.Spt.PathId = 0;
+    sptwb.Spt.TargetId = 0;
+    sptwb.Spt.Lun = 0;
+    sptwb.Spt.SenseInfoLength = 24;
+    sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
+    sptwb.Spt.DataTransferLength = READ_THRESHOLD_BUFFER_SIZE;
+    sptwb.Spt.TimeOutValue = 2;
+    sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
+    sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
 
 // DEBUG
 //	CString cstr;
@@ -4050,16 +4050,16 @@ BOOL CAtaSmart::ControlSmartStatusSat(INT physicalDriveId, BYTE target, BYTE com
 
 	::ZeroMemory(&sptwb,sizeof(SCSI_PASS_THROUGH_WITH_BUFFERS));
 
-	sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
-	sptwb.Spt.PathId = 0;
-	sptwb.Spt.TargetId = 0;
-	sptwb.Spt.Lun = 0;
-	sptwb.Spt.SenseInfoLength = 24;
-	sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
-	sptwb.Spt.DataTransferLength = 0;
-	sptwb.Spt.TimeOutValue = 2;
-	sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
-	sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
+    sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
+    sptwb.Spt.PathId = 0;
+    sptwb.Spt.TargetId = 0;
+    sptwb.Spt.Lun = 0;
+    sptwb.Spt.SenseInfoLength = 24;
+    sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
+    sptwb.Spt.DataTransferLength = 0;
+    sptwb.Spt.TimeOutValue = 2;
+    sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
+    sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
 	if(type == CMD_TYPE_SAT)
 	{
 		sptwb.Spt.CdbLength = 12;
@@ -4187,16 +4187,16 @@ BOOL CAtaSmart::SendAtaCommandSat(INT physicalDriveId, BYTE target, BYTE main, B
 
 	::ZeroMemory(&sptwb,sizeof(SCSI_PASS_THROUGH_WITH_BUFFERS));
 
-	sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
-	sptwb.Spt.PathId = 0;
-	sptwb.Spt.TargetId = 0;
-	sptwb.Spt.Lun = 0;
-	sptwb.Spt.SenseInfoLength = 24;
-	sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
-	sptwb.Spt.DataTransferLength = 0;
-	sptwb.Spt.TimeOutValue = 2;
-	sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
-	sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
+    sptwb.Spt.Length = sizeof(SCSI_PASS_THROUGH);
+    sptwb.Spt.PathId = 0;
+    sptwb.Spt.TargetId = 0;
+    sptwb.Spt.Lun = 0;
+    sptwb.Spt.SenseInfoLength = 24;
+    sptwb.Spt.DataIn = SCSI_IOCTL_DATA_IN;
+    sptwb.Spt.DataTransferLength = 0;
+    sptwb.Spt.TimeOutValue = 2;
+    sptwb.Spt.DataBufferOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, DataBuf);
+    sptwb.Spt.SenseInfoOffset = offsetof(SCSI_PASS_THROUGH_WITH_BUFFERS, SenseBuf);
 	if(type == CMD_TYPE_SAT)
 	{
 		sptwb.Spt.CdbLength = 12;

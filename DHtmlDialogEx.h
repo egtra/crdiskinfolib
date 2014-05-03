@@ -57,7 +57,7 @@ protected:
 	void EnableDpiAware();
 	DWORD ChangeZoomType(DWORD zoomType);
 	double GetZoomRatio();
-	CString i18n(CString section, CString key);
+	CString i18n(CString section, CString key, BOOL inEnglish = FALSE);
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);

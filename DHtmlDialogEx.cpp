@@ -366,17 +366,25 @@ void CDHtmlDialogEx::CallScript(CString function, CString argument)
 	VariantClear(&ret);
 }
 
-CString CDHtmlDialogEx::i18n(CString section, CString key)
+CString CDHtmlDialogEx::i18n(CString section, CString key, BOOL inEnglish)
 {
 	TCHAR str[256];
 	CString cstr;
 
-	GetPrivateProfileString(section, key, _T(""), str, 256, m_CurrentLangPath);
-	cstr = str;
-	if(cstr.IsEmpty())
+	if(inEnglish)
 	{
 		GetPrivateProfileString(section, key, _T(""), str, 256, m_DefaultLangPath);
 		cstr = str;
+	}
+	else
+	{
+		GetPrivateProfileString(section, key, _T(""), str, 256, m_CurrentLangPath);
+		cstr = str;
+		if(cstr.IsEmpty())
+		{
+			GetPrivateProfileString(section, key, _T(""), str, 256, m_DefaultLangPath);
+			cstr = str;
+		}
 	}
 
 	return cstr;

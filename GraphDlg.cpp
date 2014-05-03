@@ -25,6 +25,7 @@ static const TCHAR *attributeString[] =
 	_T("SmartIntel"),
 	_T("SmartSamsung"),
 	_T("SmartSandForce"),
+	_T("SmartMicron"),
 };
 
 
@@ -44,6 +45,7 @@ CGraphDlg::CGraphDlg(CWnd* pParent /*=NULL*/, int defaultDisk)
 	m_hIconMini = AfxGetApp()->LoadIcon(IDI_MINI_ICON);
 	m_SmartDir = ((CDiskInfoApp*)AfxGetApp())->m_SmartDir;
 	_tcscpy_s(m_Ini, MAX_PATH, ((CDiskInfoApp*)AfxGetApp())->m_Ini.GetString());
+	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
 
 	InitVars(defaultDisk);
 }
@@ -163,6 +165,7 @@ BEGIN_MESSAGE_MAP(CGraphDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_SSD_INTEL, &CGraphDlg::OnSsdIntel)
 	ON_COMMAND(ID_SSD_SAMSUNG, &CGraphDlg::OnSsdSamsung)
 	ON_COMMAND(ID_SSD_SANDFORCE, &CGraphDlg::OnSsdSandforce)
+	ON_COMMAND(ID_SSD_MICRON, &CGraphDlg::OnSsdMicron)
 END_MESSAGE_MAP()
 
 BEGIN_DHTML_EVENT_MAP(CGraphDlg)
@@ -609,17 +612,17 @@ void CGraphDlg::InitMenuBar()
 
 	CString select;
 
-	cstr.Format(_T("<select id=\"SelectAttributeId\" title=\"%s\" onchange=\"this.click()\">"), i18n(_T("Graph"), _T("PLEASE_SELECT_ITEM")));
+	cstr.Format(_T("<select id=\"SelectAttributeId\" title=\"%s\" onchange=\"this.click()\">"), i18n(_T("Graph"), _T("PLEASE_SELECT_ITEM"), m_FlagSmartEnglish));
 	select = cstr;
 
 	if(m_IeVersion >= 700)
 	{
-		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("ACTUAL_VALUE")));
+		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("ACTUAL_VALUE"), m_FlagSmartEnglish));
 		select += cstr;
 	}
 	else
 	{
-		cstr.Format(_T("<option value=\"513\">%s</option>"), i18n(_T("Graph"), _T("ACTUAL_VALUE")));
+		cstr.Format(_T("<option value=\"513\">%s</option>"), i18n(_T("Graph"), _T("ACTUAL_VALUE"), m_FlagSmartEnglish));
 		select += cstr;
 		space = _T("&nbsp;&nbsp;");
 		if(SelectedAttributeId == 513)
@@ -653,7 +656,7 @@ void CGraphDlg::InitMenuBar()
 	// Reallocated Sectors Count
 	if(flagAttribute[0x05])
 	{
-		cstr.Format(_T("<option value=\"261\" selected=\"selected\">%s[05] %s</option>"), space, i18n(_T("Smart"), _T("05")));
+		cstr.Format(_T("<option value=\"261\" selected=\"selected\">%s[05] %s</option>"), space, i18n(_T("Smart"), _T("05"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 261)
 		{
@@ -664,7 +667,7 @@ void CGraphDlg::InitMenuBar()
 	// PowerOnHours
 	if(flagAttribute[0x09])
 	{
-		cstr.Format(_T("<option value=\"265\">%s[09] %s</option>"), space, i18n(_T("Smart"), _T("09")));
+		cstr.Format(_T("<option value=\"265\">%s[09] %s</option>"), space, i18n(_T("Smart"), _T("09"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 265)
 		{
@@ -675,7 +678,7 @@ void CGraphDlg::InitMenuBar()
 	// PowerOnCount
 	if(flagAttribute[0x0C])
 	{
-		cstr.Format(_T("<option value=\"268\">%s[0C] %s</option>"), space, i18n(_T("Smart"), _T("0C")));
+		cstr.Format(_T("<option value=\"268\">%s[0C] %s</option>"), space, i18n(_T("Smart"), _T("0C"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 268)
 		{
@@ -688,7 +691,7 @@ void CGraphDlg::InitMenuBar()
 	{
 		if(m_FlagFahrenheit)
 		{
-			cstr.Format(_T("<option value=\"451\">%s[C2] %s (ÅãF)</option>"), space, i18n(_T("Smart"), _T("C2")));
+			cstr.Format(_T("<option value=\"451\">%s[C2] %s (ÅãF)</option>"), space, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
 			if(SelectedAttributeId == 451)
 			{
 				index = counter;
@@ -696,7 +699,7 @@ void CGraphDlg::InitMenuBar()
 		}
 		else
 		{
-			cstr.Format(_T("<option value=\"450\">%s[C2] %s (ÅãC)</option>"), space, i18n(_T("Smart"), _T("C2")));
+			cstr.Format(_T("<option value=\"450\">%s[C2] %s (ÅãC)</option>"), space, i18n(_T("Smart"), _T("C2"), m_FlagSmartEnglish));
 			if(SelectedAttributeId == 450)
 			{
 				index = counter;
@@ -708,7 +711,7 @@ void CGraphDlg::InitMenuBar()
 	// Reallocation Event Count
 	if(flagAttribute[0xC4])
 	{
-		cstr.Format(_T("<option value=\"452\">%s[C4] %s</option>"), space, i18n(_T("Smart"), _T("C4")));
+		cstr.Format(_T("<option value=\"452\">%s[C4] %s</option>"), space, i18n(_T("Smart"), _T("C4"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 452)
 		{
@@ -719,7 +722,7 @@ void CGraphDlg::InitMenuBar()
 	// Current Pending Sector Count
 	if(flagAttribute[0xC5])
 	{
-		cstr.Format(_T("<option value=\"453\">%s[C5] %s</option>"), space, i18n(_T("Smart"), _T("C5")));
+		cstr.Format(_T("<option value=\"453\">%s[C5] %s</option>"), space, i18n(_T("Smart"), _T("C5"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 453)
 		{
@@ -730,7 +733,7 @@ void CGraphDlg::InitMenuBar()
 	// Off-Line Scan Uncorrectable Sector Count
 	if(flagAttribute[0xC6])
 	{
-		cstr.Format(_T("<option value=\"454\">%s[C6] %s</option>"), space, i18n(_T("Smart"), _T("C6")));
+		cstr.Format(_T("<option value=\"454\">%s[C6] %s</option>"), space, i18n(_T("Smart"), _T("C6"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 454)
 		{
@@ -742,7 +745,7 @@ void CGraphDlg::InitMenuBar()
 	// Life
 	if(flagAttribute[0xFF])
 	{
-		cstr.Format(_T("<option value=\"511\">%s[FF] %s</option>"), space, i18n(_T("SmartSsd"), _T("FF")));
+		cstr.Format(_T("<option value=\"511\">%s[FF] %s</option>"), space, i18n(_T("SmartSsd"), _T("FF"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 511)
 		{
@@ -754,7 +757,7 @@ void CGraphDlg::InitMenuBar()
 	// HostWrites
 	if(flagAttribute[0xE1])
 	{
-		cstr.Format(_T("<option value=\"481\">%s[E1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("E1")));
+		cstr.Format(_T("<option value=\"481\">%s[E1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("E1"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 481)
 		{
@@ -766,7 +769,7 @@ void CGraphDlg::InitMenuBar()
 	// GBytes Erased
 	if(flagAttribute[0x64])
 	{
-		cstr.Format(_T("<option value=\"356\">%s[64] %s (GB)</option>"), space, i18n(_T("SmartSandForce"), _T("64")));
+		cstr.Format(_T("<option value=\"356\">%s[64] %s (GB)</option>"), space, i18n(_T("SmartSandForce"), _T("64"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 356)
 		{
@@ -777,12 +780,12 @@ void CGraphDlg::InitMenuBar()
 
 	if(m_IeVersion >= 700)
 	{
-		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("NORMALIZED_VALUE")));
+		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("NORMALIZED_VALUE"), m_FlagSmartEnglish));
 		select += cstr;
 	}
 	else
 	{
-		cstr.Format(_T("<option value=\"514\">%s</option>"), i18n(_T("Graph"), _T("NORMALIZED_VALUE")));
+		cstr.Format(_T("<option value=\"514\">%s</option>"), i18n(_T("Graph"), _T("NORMALIZED_VALUE"), m_FlagSmartEnglish));
 		select += cstr;
 		if(SelectedAttributeId == 514)
 		{
@@ -800,11 +803,11 @@ void CGraphDlg::InitMenuBar()
 			cstr.Format(_T("%02X"), i);
 			if(i18n(sectionName, cstr).IsEmpty())
 			{
-				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(_T("Smart"), _T("UNKNOWN")));
+				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(_T("Smart"), _T("UNKNOWN"), m_FlagSmartEnglish));
 			}
 			else
 			{
-				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(sectionName, cstr));
+				cstr.Format(_T("<option value=\"%d\">%s(%02X) %s</option>"), i, space, i, i18n(sectionName, cstr, m_FlagSmartEnglish));
 			}
 			if(SelectedAttributeId == i)
 			{
@@ -902,31 +905,47 @@ BOOL CGraphDlg::UpdateGraph()
 		}
 		else
 		{
+			int end = 0;
+			int start = 0;
+			int count = 0;
 			CStringArray lines;
 			while(inFile.ReadString(line) != NULL)
 			{
 				if(line.GetLength() > 0)
 				{
-					lines.Add(line);
+					count++;
+				}
+			}			
+
+			if(count > (int)m_MaxPlotPoint && m_MaxPlotPoint != 0)
+			{
+				start = count - (int)m_MaxPlotPoint;
+				end = m_MaxPlotPoint;
+			}
+			else
+			{
+				start = 0;
+				end = count;
+			}
+			inFile.SeekToBegin();
+			count = 0;
+			while(inFile.ReadString(line) != NULL)
+			{
+				if(line.GetLength() > 0)
+				{
+					count++;
+					if(start < count && count <= start + end)
+					{
+						lines.Add(line);
+					}
 				}
 			}
 			inFile.Close();
 
-			int end = (int)lines.GetCount();
-			int start = 0;
-
-			if(m_MaxPlotPoint == 0)
-			{
-				start = 0;
-			}
-			else if(end > (int)m_MaxPlotPoint)
-			{
-				start = end - m_MaxPlotPoint;
-			}
-
+			count = 0;
 			if(m_AttributeId == 0x1C3) // Fahrenheit
 			{
-				for(int i = start; i < end; i++)
+				for(int i = 0; i < end; i++)
 				{
 					line = lines.GetAt(i);
 					dateTime = GetTimeT(line.Left(19));
@@ -948,7 +967,7 @@ BOOL CGraphDlg::UpdateGraph()
 			}
 			else
 			{
-				for(int i = start; i < end; i++)
+				for(int i = 0; i < end; i++)
 				{
 					line = lines.GetAt(i);
 					dateTime = GetTimeT(line.Left(19));
@@ -1018,7 +1037,7 @@ BOOL CGraphDlg::UpdateGraph()
 		if(threshold >= 0)
 		{
 			cstr.Format(_T("{label: \"%s\", color: \"rgb(%d, %d, %d)\", data:["),
-				i18n(_T("Dialog"), _T("LIST_THRESHOLD")),
+				i18n(_T("Dialog"), _T("LIST_THRESHOLD"), m_FlagSmartEnglish),
 				GetRValue(m_LineColor[CAtaSmart::MAX_DISK]),
 				GetGValue(m_LineColor[CAtaSmart::MAX_DISK]),
 				GetBValue(m_LineColor[CAtaSmart::MAX_DISK])
@@ -1129,12 +1148,12 @@ lines: { show: true }\
 	if(m_AttributeId >= 0x100)
 	{
 		cstr.Format(_T("%02X"), m_AttributeId % 256);
-		m_Title.Format(_T("%s"), i18n(_T("Smart"), cstr));
+		m_Title.Format(_T("%s"), i18n(_T("Smart"), cstr, m_FlagSmartEnglish));
 	}
 	else
 	{
 		cstr.Format(_T("%02X"), m_AttributeId);
-		m_Title.Format(_T("(%02X) %s"), m_AttributeId, i18n(_T("Smart"), cstr));
+		m_Title.Format(_T("(%02X) %s"), m_AttributeId, i18n(_T("Smart"), cstr, m_FlagSmartEnglish));
 	}
 
 	UpdateData(FALSE);
@@ -1273,6 +1292,7 @@ void CGraphDlg::InitMenu()
 	case CAtaSmart::SSD_VENDOR_INTEL: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_INTEL, MF_BYCOMMAND);break;
 	case CAtaSmart::SSD_VENDOR_SAMSUNG: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_SAMSUNG, MF_BYCOMMAND);break;
 	case CAtaSmart::SSD_VENDOR_SANDFORCE: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_SANDFORCE, MF_BYCOMMAND);break;
+	case CAtaSmart::SSD_VENDOR_MICRON: menu->CheckMenuRadioItem(ID_HDD, ID_SSD_MAX, ID_SSD_MICRON, MF_BYCOMMAND);break;
 
 	default:
 		m_Attribute = CAtaSmart::HDD_GENERAL;
@@ -1553,6 +1573,11 @@ void CGraphDlg::OnSsdSamsung()
 void CGraphDlg::OnSsdSandforce()
 {
 	SetAttribute(ID_SSD_SANDFORCE, CAtaSmart::SSD_VENDOR_SANDFORCE);
+}
+
+void CGraphDlg::OnSsdMicron()
+{
+	SetAttribute(ID_SSD_MICRON, CAtaSmart::SSD_VENDOR_MICRON);
 }
 
 void CGraphDlg::SetAttribute(DWORD id, DWORD type)

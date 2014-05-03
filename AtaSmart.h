@@ -94,6 +94,7 @@ public:
 		SSD_VENDOR_INTEL      = 5,
 		SSD_VENDOR_SAMSUNG    = 6,
 		SSD_VENDOR_SANDFORCE  = 7,
+		SSD_VENDOR_MICRON     = 8,
 		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
@@ -555,6 +556,7 @@ protected:
 	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);
+	BOOL IsSsdMicron(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
 };

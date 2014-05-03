@@ -497,8 +497,19 @@ void CDiskInfoDlg::OnEditCopy()
 				TCHAR unknown[256];
 				TCHAR vendorSpecific[256];
 				cstr.Format(_T("%02X"), m_Ata.vars[i].Attribute[j].Id);
-				GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, m_CurrentLangPath);
-				GetPrivateProfileString(_T("Smart"), _T("VENDOR_SPECIFIC"), _T("Vendor Specific"), vendorSpecific, 256, m_CurrentLangPath);
+
+				CString langPath;
+				if(m_FlagSmartEnglish)
+				{
+					langPath = m_DefaultLangPath;
+				}
+				else
+				{
+					langPath = m_CurrentLangPath;
+				}
+
+				GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, langPath);
+				GetPrivateProfileString(_T("Smart"), _T("VENDOR_SPECIFIC"), _T("Vendor Specific"), vendorSpecific, 256, langPath);
 
 				BYTE id = m_Ata.vars[i].Attribute[j].Id;
 
@@ -509,11 +520,11 @@ void CDiskInfoDlg::OnEditCopy()
 				else if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
 				|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFE))
 				{
-					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_CurrentLangPath);
+					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256,	langPath);
 				}
 				else
 				{
-					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
+					GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, langPath);
 				}
 
 				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)

@@ -28,6 +28,10 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	InitThemeLang();
 	InitMenu();
 
+	TCHAR str[256];
+	GetPrivateProfileString(_T("Setting"), _T("FontFace"), _T("Tahoma"), str, 256, m_Ini);
+	m_FontFace = str;
+
 	switch(GetPrivateProfileInt(_T("Setting"), _T("AutoRefresh"), 10, m_Ini))
 	{
 	case  1: OnAutoRefresh01Min(); break;
@@ -126,7 +130,7 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		if(! once)
 		{
 			CheckStartup();
-			CheckResident();
+			// CheckResident();
 			CheckHideSerialNumber();
 			ChangeTheme(m_CurrentTheme);
 			ChangeZoomType(m_ZoomType);
@@ -158,12 +162,17 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 			once = TRUE;
 			m_FlagInitializing = FALSE;
+
+			// Font Settings
+			CallScript(_T("setFont"), m_FontFace);
 		}
 	}
 }
 
 void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk, BOOL workaroundHD204UI)
 {
+	static BOOL once = FALSE;
+
 	KillTimer(TIMER_SET_POWER_ON_UNIT);
 	SetWindowTitle(i18n(_T("Message"), _T("DETECT_DISK")));
 	m_PowerOnHoursClass = _T("valueR");
@@ -171,6 +180,12 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 
 	m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk, workaroundHD204UI);
 	
+	if(! once)
+	{
+		CheckResident();
+		once = TRUE;
+	}
+
 	DWORD errorCount = 0;
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
@@ -221,28 +236,11 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 
 void CDiskInfoDlg::InitListCtrl()
 {
-	// DWORD width = 0;
-	// Get Cntrol Width
-	// CRect cr;
-	// m_List.GetWindowRect(&cr);
-	//	width = (DWORD)(620 * m_ZoomRatio - GetSystemMetrics(SM_CXVSCROLL));
-
 	DWORD style = ListView_GetExtendedListViewStyle(m_List.m_hWnd);
 	style |= LVS_EX_FULLROWSELECT | /*LVS_EX_GRIDLINES |*/ LVS_EX_LABELTIP ;
 	ListView_SetExtendedListViewStyle(m_List.m_hWnd, style);
 
 	m_List.SetImageList(&m_ImageList, LVSIL_SMALL);
-/*
-	while(m_List.DeleteColumn(0)){}
-	m_List.DeleteAllItems();
-	m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-	m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
-	m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-	m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-	m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-	m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
-	m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 388 * m_ZoomRatio - 25), 0);
-*/
 }
 
 CString CDiskInfoDlg::GetDiskStatus(DWORD statusCode)
@@ -364,7 +362,8 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xB4 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xD1 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 			|| (m_Ata.vars[index].Attribute[j].Id == 0xE7 && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
-			|| (m_Ata.vars[index].Attribute[j].Id == 0xAA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[index].IsRawValues8)
+			|| (m_Ata.vars[index].Attribute[j].Id == 0xAA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[index].IsRawValues8
+			|| (m_Ata.vars[index].Attribute[j].Id == 0xCA && m_Ata.vars[index].DiskVendorId == m_Ata.SSD_VENDOR_MICRON))
 			)
 			{
 				cstr.Format(_T("%02X"), m_Ata.vars[index].Attribute[j].Id);

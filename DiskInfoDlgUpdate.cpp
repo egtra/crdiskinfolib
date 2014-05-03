@@ -4,7 +4,7 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
+//                           Copyright 2008-2011 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -202,46 +202,46 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 	if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
-		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(136 * m_ZoomRatio), 0);
-		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 384 * m_ZoomRatio - 25), 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID"), m_FlagSmartEnglish), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(136 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME"), m_FlagSmartEnglish), LVCFMT_LEFT, (int)(width - 384 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.SSD_VENDOR_SANDFORCE;
 	}
 	// JMicron 60x
 	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && m_Ata.vars[i].IsRawValues8)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
-		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
-		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
-		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
-		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 244 * m_ZoomRatio - 25), 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID"), m_FlagSmartEnglish), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME"), m_FlagSmartEnglish), LVCFMT_LEFT, (int)(width - 244 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.SSD_VENDOR_JMICRON;
 	}
 	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
-		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
-		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
-		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
-		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
-		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 172 * m_ZoomRatio - 25), 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID"), m_FlagSmartEnglish), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(0 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(140 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME"), m_FlagSmartEnglish), LVCFMT_LEFT, (int)(width - 172 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.SSD_VENDOR_INDILINX;
 	}
 	else
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
-		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
-		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD")), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
-		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES")), LVCFMT_RIGHT, (int)(108 * m_ZoomRatio), 0);
-		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 356 * m_ZoomRatio - 25), 0);
+		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID"), m_FlagSmartEnglish), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
+		m_List.InsertColumn(3, i18n(_T("Dialog"), _T("LIST_CURRENT"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(4, i18n(_T("Dialog"), _T("LIST_WORST"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(5, i18n(_T("Dialog"), _T("LIST_THRESHOLD"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(72 * m_ZoomRatio), 0);
+		m_List.InsertColumn(6, i18n(_T("Dialog"), _T("LIST_RAW_VALUES"), m_FlagSmartEnglish), LVCFMT_RIGHT, (int)(108 * m_ZoomRatio), 0);
+		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME"), m_FlagSmartEnglish), LVCFMT_LEFT, (int)(width - 356 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.HDD_GENERAL;
 	}
 }
@@ -286,10 +286,11 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 	DWORD k = 0;
 
 	TCHAR str[256];
-	TCHAR unknown[256];
-	TCHAR vendorSpecific[256];
-	GetPrivateProfileString(_T("Smart"), _T("UNKNOWN"), _T("Unknown"), unknown, 256, m_CurrentLangPath);
-	GetPrivateProfileString(_T("Smart"), _T("VENDOR_SPECIFIC"), _T("Vendor Specific"), vendorSpecific, 256, m_CurrentLangPath);
+	CString unknown;
+	CString vendorSpecific;
+
+	unknown = i18n(_T("Smart"), _T("UNKNOWN"), m_FlagSmartEnglish);
+	vendorSpecific = i18n(_T("Smart"), _T("VENDOR_SPECIFIC"), m_FlagSmartEnglish);
 
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
 	{
@@ -371,6 +372,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xD1 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xE7 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
 				||  (m_Ata.vars[i].Attribute[j].Id == 0xAA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[i].IsRawValues8)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xCA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MICRON)
 				)
 			{
 				if(m_Ata.vars[i].Attribute[j].CurrentValue == 0
@@ -513,11 +515,25 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 		if(id == 0xBB || id == 0xBD || id == 0xBE || id == 0xE5
 		|| (0xE8 <= id && id <= 0xEF) || (0xF1 <= id && id <= 0xF9) || (0xFB <= id && id <= 0xFF))
 		{
-			GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_CurrentLangPath);
+			if(m_FlagSmartEnglish)
+			{
+				GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_DefaultLangPath);
+			}
+			else
+			{
+				GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, vendorSpecific, str, 256, m_CurrentLangPath);
+			}
 		}
 		else
 		{
-			GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
+			if(m_FlagSmartEnglish)
+			{
+				GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_DefaultLangPath);
+			}
+			else
+			{
+				GetPrivateProfileString(m_Ata.vars[i].SmartKeyName, cstr, unknown, str, 256, m_CurrentLangPath);
+			}
 		}
 
 		m_List.SetItemText(k, 2, str);
@@ -1303,6 +1319,11 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 
 void CDiskInfoDlg::ChangeLang(CString LangName)
 {
+	if(m_SelectDisk >= (DWORD)m_Ata.vars.GetCount())
+	{
+		m_SelectDisk = 0;
+	}
+
 	m_CurrentLangPath.Format(_T("%s\\%s.lang"), m_LangDir, LangName);
 	CString cstr;
 	CMenu *menu = GetMenu();
@@ -1340,7 +1361,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->EnableMenuItem(ID_CUSTOMIZE, menuState);
 
 	cstr = i18n(_T("Menu"), _T("EXIT"));
-	cstr += _T("\tESC");
+	cstr += _T("\tAlt + F4");
 	menu->ModifyMenu(ID_FILE_EXIT, MF_STRING, ID_FILE_EXIT, cstr);
 	cstr = i18n(_T("Menu"), _T("COPY"));
 	cstr += _T("\tCtrl + C");
@@ -1363,6 +1384,25 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_ADVANCED_DISK_SEARCH, MF_STRING, ID_ADVANCED_DISK_SEARCH, cstr);
 	cstr = i18n(_T("Menu"), _T("EVENT_LOG"));
 	menu->ModifyMenu(ID_EVENT_LOG, MF_STRING, ID_EVENT_LOG, cstr);
+
+	if(IsDotNet2())
+	{
+		cstr = i18n(_T("Menu"), _T("ALERT_MAIL"));
+		menu->ModifyMenu(ID_ALERT_MAIL, MF_STRING, ID_ALERT_MAIL, cstr);
+		menu->EnableMenuItem(ID_ALERT_MAIL,  MF_ENABLED);
+		cstr = i18n(_T("Menu"), _T("MAIL_SETTINGS"));
+		menu->ModifyMenu(ID_MAIL_SETTINGS, MF_STRING, ID_MAIL_SETTINGS, cstr);
+		menu->EnableMenuItem(ID_MAIL_SETTINGS,  MF_ENABLED);
+	}
+	else
+	{
+		cstr = i18n(_T("Menu"), _T("ALERT_MAIL")) + _T(" [.NET 2.0-]");
+		menu->ModifyMenu(ID_ALERT_MAIL, MF_STRING, ID_ALERT_MAIL, cstr);
+		menu->EnableMenuItem(ID_ALERT_MAIL,  MF_GRAYED);
+		cstr = i18n(_T("Menu"), _T("MAIL_SETTINGS")) + _T(" [.NET 2.0-]");
+		menu->ModifyMenu(ID_MAIL_SETTINGS, MF_STRING, ID_MAIL_SETTINGS, cstr);
+		menu->EnableMenuItem(ID_MAIL_SETTINGS,  MF_GRAYED);
+	}
 
 	cstr = i18n(_T("Menu"), _T("RESIDENT"));
 	menu->ModifyMenu(ID_RESIDENT, MF_STRING, ID_RESIDENT, cstr);
@@ -1460,7 +1500,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("Menu"), _T("AUTO_DTECTION"));
 	subMenu.ModifyMenu(3, MF_BYPOSITION, 3, cstr);
 	cstr = i18n(_T("Dialog"), _T("LIST_RAW_VALUES"));
-	subMenu.ModifyMenu(8, MF_BYPOSITION, 8, cstr);
+	subMenu.ModifyMenu(10, MF_BYPOSITION, 10, cstr);
 	subMenu.Detach();
 
 	cstr = i18n(_T("Menu"), _T("SECOND"));
@@ -1519,6 +1559,13 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	cstr = i18n(_T("TrayMenu"), _T("DISABLE_ALL"));
 	menu->ModifyMenu(ID_USB_DISABLE_ALL, MF_STRING, ID_USB_DISABLE_ALL, cstr);
 
+	cstr = i18n(_T("Menu"), _T("SMART_IN_ENGLISH"));
+	menu->ModifyMenu(ID_SMART_ENGLISH, MF_STRING, ID_SMART_ENGLISH, cstr);
+
+	cstr = i18n(_T("Menu"), _T("FONT_SETTING"));
+	menu->ModifyMenu(ID_FONT_SETTING, MF_STRING, ID_FONT_SETTING, cstr);
+
+
 	// Check Status
 
 	if(m_FlagDumpIdentifyDevice)
@@ -1555,6 +1602,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	else
 	{
 		menu->CheckMenuItem(ID_ASCII_VIEW, MF_UNCHECKED);
+	}
+
+	if(m_FlagSmartEnglish)
+	{
+		menu->CheckMenuItem(ID_SMART_ENGLISH, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_SMART_ENGLISH, MF_UNCHECKED);
 	}
 
 	if(m_FlagHideSerialNumber)
@@ -1609,6 +1665,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	else
 	{
 		menu->CheckMenuItem(ID_EVENT_LOG, MF_UNCHECKED);
+	}
+
+	if(m_FlagAlertMail)
+	{
+		menu->CheckMenuItem(ID_ALERT_MAIL, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_ALERT_MAIL, MF_UNCHECKED);
 	}
 
 	if(m_FlagAtaPassThroughSmart)

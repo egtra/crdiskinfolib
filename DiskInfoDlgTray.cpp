@@ -530,7 +530,7 @@ BOOL CDiskInfoDlg::AddTemperatureIcon(DWORD i)
 	CString cstr;
 	CString diskStatus;
 	diskStatus = GetDiskStatus(m_Ata.vars[i].DiskStatus);
-	cstr.Format(_T("(%d) %s\r\n"), i + 1, m_Ata.vars[i].Model);
+	cstr.Format(_T("(%d) %s [%s]\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus);
 
 	cstr += GetLogicalDriveInfo(i, 128);
 	cstr.TrimRight();
@@ -569,7 +569,7 @@ BOOL CDiskInfoDlg::ModifyTemperatureIcon(DWORD i)
 	CString cstr;
 	CString diskStatus;
 	diskStatus = GetDiskStatus(m_Ata.vars[i].DiskStatus);
-	cstr.Format(_T("(%d) %s\r\n"), i + 1, m_Ata.vars[i].Model);
+	cstr.Format(_T("(%d) %s [%s]\r\n"), i + 1, m_Ata.vars[i].Model, diskStatus);
 	cstr += GetLogicalDriveInfo(i, 128);
 
 	cstr.TrimRight();
