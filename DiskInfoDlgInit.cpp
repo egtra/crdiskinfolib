@@ -547,7 +547,14 @@ void CDiskInfoDlg::InitDriveList()
 			}
 			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_CLASSNAME, className);
 
-			cstr.Format(_T("Disk %d : %s %.1f GB\n%s"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, GetLogicalDriveInfo(i));
+			if(m_Ata.vars[i].PhysicalDriveId >= 0)
+			{
+				cstr.Format(_T("Disk %d : %s %.1f GB\n%s"), m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, GetLogicalDriveInfo(i));
+			}
+			else
+			{
+				cstr.Format(_T("Disk -- : %s %.1f GB\n%s"), m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0, GetLogicalDriveInfo(i));
+			}
 
 			SetElementPropertyEx(targetDisk, DISPID_IHTMLELEMENT_TITLE, cstr);
 		}

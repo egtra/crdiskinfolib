@@ -103,28 +103,40 @@ void CDiskInfoDlg::OnEditCopy()
 		}
 #endif
 		cstr += temp;
-		
-		if(m_Ata.vars[i].PhysicalDriveId < 0)
+		if(m_Ata.vars[i].CommandType == m_Ata.CMD_TYPE_CSMI)
 		{
-			temp.Format(_T(" [X-%d-%d, %s]"),
+			if(m_Ata.vars[i].PhysicalDriveId < 0)
+			{
+				temp.Format(_T(" [X/%d/%d, %s]"),
+					m_Ata.vars[i].ScsiPort, m_Ata.vars[i].sasPhyEntity.bPortIdentifier, m_Ata.vars[i].CommandTypeString);
+			}
+			else
+			{
+				temp.Format(_T(" [%d/%d/%d, %s]"),
+					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].ScsiPort, m_Ata.vars[i].sasPhyEntity.bPortIdentifier, m_Ata.vars[i].CommandTypeString);
+			}
+		}
+		else if(m_Ata.vars[i].PhysicalDriveId < 0)
+		{
+			temp.Format(_T(" [X/%d/%d, %s]"),
 				m_Ata.vars[i].ScsiPort, m_Ata.vars[i].ScsiTargetId, m_Ata.vars[i].CommandTypeString);
 		}
 		else if(m_Ata.vars[i].ScsiPort < 0)
 		{
 			if(m_Ata.vars[i].UsbVendorId > 0 && m_Ata.vars[i].UsbProductId > 0)
 			{
-				temp.Format(_T(" [%d-X-X, %s] (V=%04X, P=%04X)"),
+				temp.Format(_T(" [%d/X/X, %s] (V=%04X, P=%04X)"),
 					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString, m_Ata.vars[i].UsbVendorId, m_Ata.vars[i].UsbProductId);
 			}
 			else
 			{
-				temp.Format(_T(" [%d-X-X, %s]"),
+				temp.Format(_T(" [%d/X/X, %s]"),
 					m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].CommandTypeString);
 			}
 		}
 		else
 		{
-			temp.Format(_T(" [%d-%d-%d, %s]"),
+			temp.Format(_T(" [%d/%d/%d, %s]"),
 				m_Ata.vars[i].PhysicalDriveId, m_Ata.vars[i].ScsiPort, m_Ata.vars[i].ScsiTargetId, m_Ata.vars[i].CommandTypeString);
 		}
 

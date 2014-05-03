@@ -1209,7 +1209,7 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	}
 	else if(m_Ata.vars[i].WearLevelingCount >= 0)
 	{
-		m_RotationRate.Format(_T("%d"), m_Ata.vars[i].WearLevelingCount);		
+		m_RotationRate.Format(_T("%d %s"), m_Ata.vars[i].WearLevelingCount, i18n(_T("Dialog"), _T("POWER_ON_COUNT_UNIT")));		
 	//	m_LabelRotationRate = i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT"));
 		SetLabel(m_LabelRotationRate, _T("RotationRate"),i18n(_T("Dialog"), _T("WEAR_LEVELING_COUNT")));
 	//	SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, _T("supported"));

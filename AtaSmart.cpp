@@ -28,7 +28,9 @@ static const TCHAR *commandTypeString[] =
 	_T("io"),
 	_T("un"), // Logitec ??? 
 	_T("jm"),
-	_T("cy")
+	_T("cy"),
+	_T("pr"),
+	_T("cs")
 };
 
 static const TCHAR *ssdVendorString[] = 
@@ -136,6 +138,14 @@ DWORD CAtaSmart::UpdateSmartInfo(DWORD i)
 			}
 			vars[i].DiskStatus = CheckDiskStatus(i);
 			break;
+		case CMD_TYPE_CSMI:
+			if(! GetSmartAttributeCsmi(vars[i].ScsiPort, &(vars[i].sasPhyEntity), &(vars[i])))
+			{
+				return SMART_STATUS_NO_CHANGE;
+			}
+			vars[i].DiskStatus = CheckDiskStatus(i);
+			break;
+		
 		case CMD_TYPE_SAT:
 		case CMD_TYPE_SUNPLUS:
 		case CMD_TYPE_IO_DATA:
@@ -173,7 +183,10 @@ BOOL CAtaSmart::UpdateIdInfo(DWORD i)
 		break;
 	case CMD_TYPE_SILICON_IMAGE:
 		flag =  DoIdentifyDeviceSi(vars[i].PhysicalDriveId, vars[i].ScsiPort, vars[i].ScsiBus, vars[i].SiliconImageType, &(vars[i].IdentifyDevice));
-		break;		
+		break;
+	case CMD_TYPE_CSMI:
+		flag = DoIdentifyDeviceCsmi(vars[i].ScsiPort, &(vars[i].sasPhyEntity), &(vars[i].IdentifyDevice));
+		break;
 	case CMD_TYPE_SAT:
 	case CMD_TYPE_SUNPLUS:
 	case CMD_TYPE_IO_DATA:
@@ -276,6 +289,16 @@ BOOL CAtaSmart::SendAtaCommand(DWORD i, BYTE main, BYTE sub, BYTE param)
 		break;
 	case CMD_TYPE_SILICON_IMAGE:
 		return FALSE;
+		break;
+	case CMD_TYPE_CSMI:
+		if(vars[i].PhysicalDriveId >= 0 && main == 0xEF) // Enable/Disable AAM/APM
+		{
+			return SendAtaCommandPd(vars[i].PhysicalDriveId, vars[i].Target, main, sub, param, NULL, 0);
+		}
+		else
+		{
+			return SendAtaCommandCsmi(vars[i].ScsiPort, &(vars[i].sasPhyEntity), main, sub, param, NULL, 0);
+		}
 		break;
 	case CMD_TYPE_SAT:
 	case CMD_TYPE_SUNPLUS:
@@ -751,13 +774,6 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							flagBlackList = TRUE;
 						}
 
-						// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=614;id=diskinfo#614
-						if(! IsAdvancedDiskSearch && name1.Find(_T("WBT")) >= 0 && name1.Find(_T("6010")) >= 0
-						)
-						{
-							flagBlackList = TRUE;
-						}
-
 						// Silicon Image Controller
 						if(name1.Find(_T("Silicon Image SiI ")) == 0)
 						{
@@ -1001,6 +1017,28 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					WakeUp(i);
 				}
 				::CloseHandle(hIoCtrl);
+			}
+
+			///////////////////////////////
+			// Intel RAID support
+			///////////////////////////////
+
+
+			for(int i = 0; i < MAX_SEARCH_SCSI_PORT; i++)
+			{
+				IDENTIFY_DEVICE identify = {0};
+				CSMI_SAS_PHY_INFO phyInfo = {0};
+			
+				if(GetPhyInfo(i, phyInfo) && phyInfo.bNumberOfPhys <= sizeof(phyInfo.Phy)/sizeof(phyInfo.Phy[0]))
+				{
+					for(int j = 0; j < phyInfo.bNumberOfPhys; j++)
+					{
+						if(DoIdentifyDeviceCsmi(i, &(phyInfo.Phy[j]), &identify))
+						{
+							AddDisk(-1, i, -1, -1, 0xA0, CMD_TYPE_CSMI, &identify, FALSE, &(phyInfo.Phy[j]));
+						}
+					}
+				}
 			}
 
 			try
@@ -1417,6 +1455,11 @@ safeRelease:
 
 		for(int i = 0; i < vars.GetCount(); i++)
 		{
+			if(vars[i].PhysicalDriveId < 0)
+			{
+				continue;
+			}
+
 			CString driveLetter = _T("");
 			for(int j = 0; j < 26; j++)
 			{
@@ -1679,10 +1722,25 @@ safeRelease:
 
 int CAtaSmart::Compare(const void *p1, const void *p2)
 {
-	return ((ATA_SMART_INFO*)p1)->PhysicalDriveId - ((ATA_SMART_INFO*)p2)->PhysicalDriveId;
+	if(((ATA_SMART_INFO*)p1)->PhysicalDriveId == -1 && ((ATA_SMART_INFO*)p2)->PhysicalDriveId == -1)
+	{
+		return ((ATA_SMART_INFO*)p1)->sasPhyEntity.bPortIdentifier - ((ATA_SMART_INFO*)p2)->sasPhyEntity.bPortIdentifier;
+	}
+	else if(((ATA_SMART_INFO*)p1)->PhysicalDriveId == -1)
+	{
+		return 1;
+	}
+	else if(((ATA_SMART_INFO*)p2)->PhysicalDriveId == -1)
+	{
+		return -1;
+	}
+	else
+	{
+		return ((ATA_SMART_INFO*)p1)->PhysicalDriveId - ((ATA_SMART_INFO*)p2)->PhysicalDriveId;
+	}
 }
 
-BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType)
+BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType, PCSMI_SAS_PHY_ENTITY sasPhyEntity)
 {
 	if(vars.GetCount() >= MAX_DISK)
 	{
@@ -1701,6 +1759,10 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.CommandType = commandType;
 	asiCheck.CommandType = commandType;
 	asi.SsdVendorString = _T("");
+	if(sasPhyEntity != NULL)
+	{
+		memcpy(&(asi.sasPhyEntity), sasPhyEntity, sizeof(CSMI_SAS_PHY_ENTITY));
+	}
 
 	if(commandType == CMD_TYPE_PHYSICAL_DRIVE || CMD_TYPE_SAT <= commandType && commandType <= CMD_TYPE_PROLIFIC)
 	{
@@ -1800,7 +1862,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.UsbVendorId = VENDOR_UNKNOWN;
 	asi.UsbProductId = 0;
 	asi.Target = target;
-
+	
 	asi.SerialNumber = _T("");
 	asi.FirmwareRev = _T("");
 	asi.Model = _T("");
@@ -1878,6 +1940,20 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	//	DebugPrint(_T("asi.Model.IsEmpty() || asi.FirmwareRev.IsEmpty()"));
 		asi.IsIdInfoIncorrect = TRUE;
 		return FALSE;
+	}
+
+	// Check duplicate device
+	for(int i = 0; i < vars.GetCount(); i++)
+	{
+		if(asi.Model.Compare(vars[i].Model) == 0 && asi.SerialNumber.Compare(vars[i].SerialNumber) == 0)
+		{
+			// for CSMI devices
+			if(vars[i].PhysicalDriveId == -1)
+			{
+				vars[i].PhysicalDriveId = asi.PhysicalDriveId;
+			}
+			return FALSE;
+		}
 	}
 	
 	if(asi.Model.Find(_T("ADATA SSD")) == 0 && asi.FirmwareRev.Find(_T("3.4.6")) == 0)
@@ -2188,7 +2264,40 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 				asi.IsSmartEnabled = TRUE;
 			}
 			break;
+		case CMD_TYPE_CSMI:
+			if(GetSmartAttributeCsmi(scsiPort, sasPhyEntity, &asi))
+			{
+				CheckSsdSupport(asi);
+				GetSmartAttributeCsmi(scsiPort, sasPhyEntity, &asiCheck);
+				if(CheckSmartAttributeCorrect(&asi, &asiCheck))
+				{
+					asi.IsSmartCorrect = TRUE;
+				}
+				if(GetSmartThresholdCsmi(scsiPort, sasPhyEntity, &asi))
+				{
+					asi.IsThresholdCorrect = TRUE;
+				}
+				asi.IsSmartEnabled = TRUE;
+			}
 			
+			if(! asi.IsSmartCorrect && ControlSmartStatusCsmi(scsiPort, sasPhyEntity, ENABLE_SMART))
+			{
+				if(GetSmartAttributeCsmi(scsiPort, sasPhyEntity, &asi))
+				{
+					CheckSsdSupport(asi);
+					GetSmartAttributeCsmi(scsiPort, sasPhyEntity, &asiCheck);
+					if(CheckSmartAttributeCorrect(&asi, &asiCheck))
+					{
+						asi.IsSmartCorrect = TRUE;
+					}
+					if(GetSmartThresholdCsmi(scsiPort, sasPhyEntity, &asi))
+					{
+						asi.IsThresholdCorrect = TRUE;
+					}
+					asi.IsSmartEnabled = TRUE;
+				}
+			}
+			break;			
 		case CMD_TYPE_SAT:
 		case CMD_TYPE_SUNPLUS:
 		case CMD_TYPE_IO_DATA:
@@ -2248,15 +2357,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	{
 		asi.IsThresholdBug = TRUE;
 	}
-
-	for(int i = 0; i < vars.GetCount(); i++)
-	{
-		if(asi.Model.Compare(vars[i].Model) == 0 && asi.SerialNumber.Compare(vars[i].SerialNumber) == 0)
-		{
-			return FALSE;
-		}
-	}
-
+	
 	// DEBUG
 	// asi.IsSmartCorrect = rand() %2;
 
@@ -4640,6 +4741,217 @@ BOOL CAtaSmart::GetSmartThresholdSi(INT physicalDriveId, ATA_SMART_INFO* asi)
 	return FALSE;
 }
 
+
+/*---------------------------------------------------------------------------*/
+// CSMI support (Intel RAID support)
+/*---------------------------------------------------------------------------*/
+
+HANDLE CAtaSmart::GetIoCtrlHandleCsmi(INT scsiPort)
+{
+	HANDLE hScsiDriveIOCTL = 0;
+	CString driveName;
+
+	driveName.Format(_T("\\\\.\\Scsi%d:"), scsiPort);
+	hScsiDriveIOCTL = CreateFile(driveName, GENERIC_READ | GENERIC_WRITE,
+							FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+	if(hScsiDriveIOCTL == INVALID_HANDLE_VALUE)
+	{
+		return INVALID_HANDLE_VALUE;
+	}
+
+	return hScsiDriveIOCTL;
+}
+
+BOOL CAtaSmart::GetPhyInfo(INT scsiPort, CSMI_SAS_PHY_INFO & phyInfo)
+{
+	HANDLE hHandle = GetIoCtrlHandleCsmi(scsiPort);
+	if(hHandle == INVALID_HANDLE_VALUE)
+	{
+		return FALSE;
+	}
+
+	CSMI_SAS_DRIVER_INFO_BUFFER driverInfoBuf;
+	memset(&driverInfoBuf, 0, sizeof(driverInfoBuf));
+
+	if(! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_DRIVER_INFO, &driverInfoBuf.IoctlHeader, sizeof(driverInfoBuf)))
+	{
+		CloseHandle(hHandle);
+		DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_DRIVER_INFO"));
+		return FALSE;
+	}
+	
+	CSMI_SAS_PHY_INFO_BUFFER phyInfoBuf;
+	memset(&phyInfoBuf, 0, sizeof(phyInfoBuf));
+	if (! CsmiIoctl(hHandle, CC_CSMI_SAS_GET_PHY_INFO, &phyInfoBuf.IoctlHeader, sizeof(phyInfoBuf)))
+	{
+		CloseHandle(hHandle);
+		DebugPrint(_T("FAILED: CC_CSMI_SAS_GET_PHY_INFO"));
+		return FALSE;
+	}
+
+	memcpy(&phyInfo, &(phyInfoBuf.Information), sizeof(phyInfoBuf.Information));
+
+	CloseHandle(hHandle);
+	return TRUE;
+}
+
+BOOL CAtaSmart::CsmiIoctl(HANDLE hHandle, UINT code, SRB_IO_CONTROL *csmiBuf, UINT csmiBufSize)
+{
+	// Determine signature
+	const CHAR *sig;
+	switch (code)
+	{
+	    case CC_CSMI_SAS_GET_DRIVER_INFO:
+			sig = CSMI_ALL_SIGNATURE;
+			break;
+		case CC_CSMI_SAS_GET_PHY_INFO:
+		case CC_CSMI_SAS_STP_PASSTHRU:
+			sig = CSMI_SAS_SIGNATURE;
+			break;
+		default:
+			return FALSE;
+	}
+
+	// Set header
+	csmiBuf->HeaderLength = sizeof(IOCTL_HEADER);
+	strncpy_s((char *)csmiBuf->Signature, sizeof(csmiBuf->Signature), sig, sizeof(csmiBuf->Signature));
+	csmiBuf->Timeout = CSMI_SAS_TIMEOUT;
+	csmiBuf->ControlCode = code;
+	csmiBuf->ReturnCode = 0;
+	csmiBuf->Length = csmiBufSize - sizeof(IOCTL_HEADER);
+
+	// Call function
+	DWORD num_out = 0;
+	if (!DeviceIoControl(hHandle, IOCTL_SCSI_MINIPORT, 
+		csmiBuf, csmiBufSize, csmiBuf, csmiBufSize, &num_out, (OVERLAPPED*)0))
+	{
+		long err = GetLastError();
+		
+		if (err == ERROR_INVALID_FUNCTION || err == ERROR_NOT_SUPPORTED 
+			|| err == ERROR_DEV_NOT_EXIST)
+		{
+			return FALSE;
+		}
+	}
+
+	// Check result
+	return TRUE;
+}
+
+BOOL CAtaSmart::DoIdentifyDeviceCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, IDENTIFY_DEVICE* data)
+{
+	DebugPrint(_T("DoIdentifyDeviceCsmi"));
+	return SendAtaCommandCsmi(scsiPort, sasPhyEntity, 0xEC, 0x00, 0x00, (PBYTE)data, sizeof(IDENTIFY_DEVICE));
+}
+
+BOOL CAtaSmart::GetSmartAttributeCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, ATA_SMART_INFO* asi)
+{
+	DebugPrint(_T("GetSmartAttributeCsmi"));
+	if(SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_ATTRIBUTES, 0x00, (PBYTE)asi->SmartReadData, sizeof(asi->SmartReadData)))
+	{
+		DebugPrint(_T("FillSmartInfo"));
+		return FillSmartInfo(asi);
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+BOOL CAtaSmart::GetSmartThresholdCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, ATA_SMART_INFO* asi)
+{
+	DebugPrint(_T("GetSmartThresholdCsmi"));
+	return SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, READ_THRESHOLDS, 0x00, (PBYTE)asi->SmartReadThreshold, sizeof(asi->SmartReadThreshold));
+}
+
+BOOL CAtaSmart::ControlSmartStatusCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE command)
+{
+	DebugPrint(_T("ControlSmartStatusCsmi"));
+	return SendAtaCommandCsmi(scsiPort, sasPhyEntity, SMART_CMD, command, 0x00, NULL, 0);
+}
+
+BOOL CAtaSmart::SendAtaCommandCsmi(INT scsiPort, PCSMI_SAS_PHY_ENTITY sasPhyEntity, BYTE main, BYTE sub, BYTE param, PBYTE data, DWORD dataSize)
+{
+	HANDLE hIoCtrl = GetIoCtrlHandleCsmi(scsiPort);
+	if(hIoCtrl == INVALID_HANDLE_VALUE)
+	{
+		return	FALSE;
+	}
+
+	DWORD size = sizeof(CSMI_SAS_STP_PASSTHRU_BUFFER) + dataSize;
+	CSMI_SAS_STP_PASSTHRU_BUFFER* buf = (CSMI_SAS_STP_PASSTHRU_BUFFER*)VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
+
+	buf->Parameters.bPhyIdentifier = sasPhyEntity->Attached.bPhyIdentifier;
+	buf->Parameters.bPortIdentifier = sasPhyEntity->bPortIdentifier;
+	memcpy(&(buf->Parameters.bDestinationSASAddress), sasPhyEntity->Attached.bSASAddress, sizeof(sasPhyEntity->Attached.bSASAddress));
+	buf->Parameters.bConnectionRate = CSMI_SAS_LINK_RATE_NEGOTIATED;
+
+	if(main == 0xEF) // AAM/APM
+	{
+		buf->Parameters.uFlags = CSMI_SAS_STP_UNSPECIFIED;
+	}
+	else
+	{
+		buf->Parameters.uFlags = CSMI_SAS_STP_PIO | CSMI_SAS_STP_READ;
+	}
+	buf->Parameters.uDataLength = dataSize;
+
+	buf->Parameters.bCommandFIS[ 0] = 0x27; // Type: host-to-device FIS
+    buf->Parameters.bCommandFIS[ 1] = 0x80; // Bit7: Update command register
+
+	if(main == SMART_CMD)
+	{
+		buf->Parameters.bCommandFIS[ 2] = main;
+		buf->Parameters.bCommandFIS[ 3] = sub;
+		buf->Parameters.bCommandFIS[ 4] = 0;
+		buf->Parameters.bCommandFIS[ 5] = SMART_CYL_LOW;
+		buf->Parameters.bCommandFIS[ 6] = SMART_CYL_HI;
+		buf->Parameters.bCommandFIS[ 7] = 0xA0; // target
+		buf->Parameters.bCommandFIS[ 8] = 0;
+		buf->Parameters.bCommandFIS[ 9] = 0;
+		buf->Parameters.bCommandFIS[10] = 0;
+		buf->Parameters.bCommandFIS[11] = 0;
+		buf->Parameters.bCommandFIS[12] = param;
+		buf->Parameters.bCommandFIS[13] = 0;
+	}
+	else
+	{
+		buf->Parameters.bCommandFIS[ 2] = main;
+		buf->Parameters.bCommandFIS[ 3] = sub;
+		buf->Parameters.bCommandFIS[ 4] = 0;
+		buf->Parameters.bCommandFIS[ 5] = 0;
+		buf->Parameters.bCommandFIS[ 6] = 0;
+		buf->Parameters.bCommandFIS[ 7] = 0xA0; // target
+		buf->Parameters.bCommandFIS[ 8] = 0;
+		buf->Parameters.bCommandFIS[ 9] = 0;
+		buf->Parameters.bCommandFIS[10] = 0;
+		buf->Parameters.bCommandFIS[11] = 0;
+		buf->Parameters.bCommandFIS[12] = param;
+		buf->Parameters.bCommandFIS[13] = 0;
+	}
+
+	if(! CsmiIoctl(hIoCtrl, CC_CSMI_SAS_STP_PASSTHRU, &buf->IoctlHeader, size))
+	{
+		CloseHandle(hIoCtrl);
+		VirtualFree(buf, 0, MEM_RELEASE);
+		return FALSE;
+	}
+
+	if(main != 0xEF && buf->bDataBuffer && data != NULL)
+	{
+		memcpy_s(data, dataSize, buf->bDataBuffer, dataSize);
+	}
+	
+	CloseHandle(hIoCtrl);
+	VirtualFree(buf, 0, MEM_RELEASE);
+	
+	return	TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+// Fill S.M.A.R.T. Information
+/*---------------------------------------------------------------------------*/
+
 BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 {
 	CString str;
@@ -5307,14 +5619,16 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 	}
 	// 2012/1/15
 	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=504;id=diskinfo#504
+	// http://sourceforge.jp/ticket/browse.php?group_id=4394&tid=27443
 	else if(
 	   ((model.Find(_T("CFD_CSSD-S6TM128NMPQ")) == 0 || model.Find(_T("CFD_CSSD-S6TM256NMPQ")) == 0) && (firmware.Find(_T("VM21")) == 0 || firmware.Find(_T("VN21")) == 0))
 	|| ((model.Find(_T("PX-128M2P")) != -1 || model.Find(_T("PX-256M2P")) != -1) && _tstof(firmware) < 1.059)
+	|| (model.Find(_T("Corsair Performance Pro")) == 0 && _tstof(firmware) < 1.059)
 	)
 	{
 		return POWER_ON_10_MINUTES;
 	}
-	else if(model.Find(_T("INTEL SSDSC2CW")) == 0)
+	else if(model.Find(_T("INTEL SSDSC2CW")) == 0 || model.Find(_T("INTEL SSDSC2CT")) == 0) // Intel SSD 520 Series
 	{
 		return POWER_ON_MILLI_SECONDS;
 	}
