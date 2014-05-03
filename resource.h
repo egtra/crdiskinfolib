@@ -372,6 +372,7 @@
 #define ID_SSD_INTEL                    33006
 #define ID_SSD_SAMSUNG                  33007
 #define ID_SSD_SANDFORCE                33008
+#define ID_ATA_PASS_THROUGH_SMART       33039
 #define ID_SSD_MAX                      33099
 #define ID_Menu                         33109
 #define ID_RAW_VALUES_16                33110
@@ -390,7 +391,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         33037
+#define _APS_NEXT_COMMAND_VALUE         33040
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

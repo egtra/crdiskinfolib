@@ -118,6 +118,7 @@ protected:
 	BOOL m_FlagHideSerialNumber;
 	BOOL m_FlagAdvancedDiskSearch;
 	BOOL m_FlagEventLog;
+	BOOL m_FlagAtaPassThroughSmart;
 //	BOOL m_FlagUseEventCreate;		// Use eventcreate.exe (XP Pro or later)
 	BOOL m_FlagFahrenheit;
 	BOOL m_FlagAutoAamApm;
@@ -360,6 +361,7 @@ public:
 	afx_msg void OnAutoDetection30Sec();
 	afx_msg void OnAutoDetectionDisable();
 	afx_msg void OnEventLog();
+	afx_msg void OnAtaPassThroughSmart();
 	afx_msg void OnCelsius();
 	afx_msg void OnFahrenheit();
 	afx_msg void OnAamApm();

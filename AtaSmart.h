@@ -340,6 +340,8 @@ public:
 	DWORD GetPowerOnHours(DWORD rawValue, DWORD timeUnitType);
 	DWORD GetPowerOnHoursEx(DWORD index, DWORD timeUnitType);
 
+	VOID SetAtaPassThroughSmart(BOOL flag);
+
 	struct DISK_POSITION
 	{
 		INT					PhysicalDriveId;
@@ -494,6 +496,7 @@ protected:
 	OSVERSIONINFOEX m_Os;
 	CString m_SerialNumberA_Z[26];
 	BOOL m_FlagAtaPassThrough;
+	BOOL m_FlagAtaPassThroughSmart;
 
 	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0);
 	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1);

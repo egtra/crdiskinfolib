@@ -157,6 +157,9 @@ void CDiskInfoDlg::ShowGraphDlg(int index)
 	::CreateProcess(NULL, (LPWSTR)cstr.GetString(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 
 	m_GraphProcessId.Add(pi.dwProcessId);
+
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
 }
 
 void CDiskInfoDlg::CreateExchangeInfo()
@@ -542,6 +545,27 @@ void CDiskInfoDlg::OnAdvancedDiskSearch()
 		}
 		CheckTrayTemperatureIcon();
 	}
+}
+
+void CDiskInfoDlg::OnAtaPassThroughSmart()
+{
+	CMenu *menu = GetMenu();
+	if(m_FlagAtaPassThroughSmart)
+	{
+		m_FlagAtaPassThroughSmart = FALSE;
+		m_Ata.SetAtaPassThroughSmart(FALSE);
+		menu->CheckMenuItem(ID_ATA_PASS_THROUGH_SMART, MF_UNCHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AtaPassThroughSmart"), _T("0"), m_Ini);
+	}
+	else
+	{
+		m_FlagAtaPassThroughSmart = TRUE;
+		m_Ata.SetAtaPassThroughSmart(TRUE);
+		menu->CheckMenuItem(ID_ATA_PASS_THROUGH_SMART, MF_CHECKED);
+		WritePrivateProfileString(_T("Setting"), _T("AtaPassThroughSmart"), _T("1"), m_Ini);
+	}
+	SetMenu(menu);
+	DrawMenuBar();
 }
 
 void CDiskInfoDlg::OnEventLog()

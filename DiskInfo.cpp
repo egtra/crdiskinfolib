@@ -63,10 +63,12 @@ BOOL CDiskInfoApp::InitInstance()
 	CWinApp::InitInstance();
 
 	// IE Version Check.
+	/*
 	if(GetFileVersion(_T("Shdocvw.dll")) < 471)
 	{
 		AfxMessageBox(_T("CrystalDiskInfo is required IE 6.0 or later."));
 	}
+	*/
 
 	// CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 

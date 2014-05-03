@@ -65,9 +65,11 @@ CAtaSmart::CAtaSmart()
 	}
 
 	m_FlagAtaPassThrough = FALSE;
+	m_FlagAtaPassThroughSmart = FALSE;
 	if(m_Os.dwMajorVersion >= 6 || (m_Os.dwMajorVersion == 5 && m_Os.dwMinorVersion == 2))
 	{
 		m_FlagAtaPassThrough = TRUE;
+		m_FlagAtaPassThroughSmart = TRUE;
 	}
 	else if(m_Os.dwMajorVersion == 5 && m_Os.dwMinorVersion == 1)
 	{
@@ -77,12 +79,19 @@ CAtaSmart::CAtaSmart()
 		if(_tstoi(cstr) >= 2)
 		{
 			m_FlagAtaPassThrough = TRUE;
+			m_FlagAtaPassThroughSmart = TRUE;
 		}
 	}
 }
 
 CAtaSmart::~CAtaSmart()
 {
+}
+
+/* PUBLIC FUNCTION */
+VOID CAtaSmart::SetAtaPassThroughSmart(BOOL flag)
+{
+	m_FlagAtaPassThroughSmart = flag;
 }
 
 /* PUBLIC FUNCTION */
@@ -1921,6 +1930,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		{
 		case CMD_TYPE_PHYSICAL_DRIVE:
 	// DEBUG
+		//	ControlSmartStatusPd(physicalDriveId, asi.Target, DISABLE_SMART);
+
 			debug.Format(_T("GetSmartAttributePd(%d) - 1"), physicalDriveId);
 			DebugPrint(debug);
 			if(GetSmartAttributePd(physicalDriveId, asi.Target, &asi))
@@ -1939,7 +1950,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			//	asi.DiskStatus = CheckDiskStatus(asi.Attribute, asi.Threshold, asi.AttributeCount, asi.DiskVendorId, asi.IsSmartCorrect, asi.IsSsd);
 				asi.IsSmartEnabled = TRUE;
 			}
-			else if(asi.IsSmartSupported && ControlSmartStatusPd(physicalDriveId, asi.Target, ENABLE_SMART))
+			
+			if(! asi.IsSmartCorrect && ControlSmartStatusPd(physicalDriveId, asi.Target, ENABLE_SMART))
 			{
 				debug.Format(_T("GetSmartAttributePd(%d) - 2"), physicalDriveId);
 				DebugPrint(debug);
@@ -1977,7 +1989,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			//	asi.DiskStatus = CheckDiskStatus(asi.Attribute, asi.Threshold, asi.AttributeCount, asi.DiskVendorId, asi.IsSmartCorrect, asi.IsSsd);
 				asi.IsSmartEnabled = TRUE;
 			}
-			else if(ControlSmartStatusScsi(scsiPort, scsiTargetId, ENABLE_SMART))
+			
+			if(! asi.IsSmartCorrect && ControlSmartStatusScsi(scsiPort, scsiTargetId, ENABLE_SMART))
 			{
 				if(GetSmartAttributeScsi(scsiPort, scsiTargetId, &asi))
 				{
@@ -2048,7 +2061,8 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			//	asi.DiskStatus = CheckDiskStatus(asi.Attribute, asi.Threshold, asi.AttributeCount, asi.DiskVendorId, asi.IsSmartCorrect, asi.IsSsd);
 				asi.IsSmartEnabled = TRUE;
 			}
-			else if(ControlSmartStatusSat(physicalDriveId, asi.Target, ENABLE_SMART, asi.CommandType))
+			
+			if(! asi.IsSmartCorrect && ControlSmartStatusSat(physicalDriveId, asi.Target, ENABLE_SMART, asi.CommandType))
 			{
 				DebugPrint(_T("GetSmartAttributeSat - 2"));
 				if(GetSmartAttributeSat(physicalDriveId, asi.Target, &asi))
@@ -2433,12 +2447,6 @@ BOOL CAtaSmart::CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO*
 	
 	for(DWORD i = 0; i < asi1->AttributeCount; i++)
 	{
-		if(asi1->Attribute[i].Id == 0xFF)
-		{
-			DebugPrint(_T("asi1->Attribute[i].Id == 0xFF"));
-			return FALSE;
-		}
-
 		if(asi1->Attribute[i].Id != asi2->Attribute[i].Id)
 		{
 			DebugPrint(_T("asi1->Attribute[i].Id != asi2->Attribute[i].Id"));
@@ -2792,7 +2800,7 @@ BOOL CAtaSmart::DoIdentifyDevicePd(INT physicalDriveId, BYTE target, IDENTIFY_DE
 		sendCmd.irDriveRegs.bDriveHeadReg		= target;
 		sendCmd.cBufferSize						= IDENTIFY_BUFFER_SIZE;
 
-		DebugPrint(_T("IDENTIFY_DEVICE (General)"));
+		DebugPrint(_T("SendAtaCommandPd - IDENTIFY_DEVICE"));
 		bRet = ::DeviceIoControl(hIoCtrl, DFP_RECEIVE_DRIVE_DATA, 
 			&sendCmd, sizeof(SENDCMDINPARAMS),
 			&sendCmdOutParam, sizeof(IDENTIFY_DEVICE_OUTDATA),
@@ -2811,139 +2819,185 @@ BOOL CAtaSmart::DoIdentifyDevicePd(INT physicalDriveId, BYTE target, IDENTIFY_DE
 	return	TRUE;
 }
 
-BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_INFO* asi)
+BOOL CAtaSmart::GetSmartAttributePd(INT physicalDriveId, BYTE target, ATA_SMART_INFO* asi)
 {
-	BOOL	bRet;
+	BOOL	bRet = FALSE;
 	HANDLE	hIoCtrl;
 	DWORD	dwReturned;
 
 	SMART_READ_DATA_OUTDATA	sendCmdOutParam;
 	SENDCMDINPARAMS	sendCmd;
 
-	hIoCtrl = GetIoCtrlHandle(PhysicalDriveId);
-	if(hIoCtrl == INVALID_HANDLE_VALUE)
+	if(m_FlagAtaPassThroughSmart)
 	{
-		return	FALSE;
+		DebugPrint(_T("SendAtaCommandPd - SMART_READ_DATA (ATA_PASS_THROUGH)"));
+		bRet = SendAtaCommandPd(physicalDriveId, target, SMART_CMD, READ_ATTRIBUTES, 0x00, 
+		(PBYTE)&(asi->SmartReadData), sizeof(asi->SmartReadData));
 	}
 
-	::ZeroMemory(&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA));
-	::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
+	if(! bRet)
+	{
+		hIoCtrl = GetIoCtrlHandle(physicalDriveId);
+		if(hIoCtrl == INVALID_HANDLE_VALUE)
+		{
+			return	FALSE;
+		}
 
-	sendCmd.irDriveRegs.bFeaturesReg	= READ_ATTRIBUTES;
-	sendCmd.irDriveRegs.bSectorCountReg = 1;
-	sendCmd.irDriveRegs.bSectorNumberReg= 1;
-	sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
-	sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
-	sendCmd.irDriveRegs.bDriveHeadReg	= target;
-	sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
-	sendCmd.cBufferSize					= READ_ATTRIBUTE_BUFFER_SIZE;
+		::ZeroMemory(&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA));
+		::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
 
-	bRet = ::DeviceIoControl(hIoCtrl, DFP_RECEIVE_DRIVE_DATA, 
-		&sendCmd, sizeof(SENDCMDINPARAMS),
-		&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA),
-		&dwReturned, NULL);
+		sendCmd.irDriveRegs.bFeaturesReg	= READ_ATTRIBUTES;
+		sendCmd.irDriveRegs.bSectorCountReg = 1;
+		sendCmd.irDriveRegs.bSectorNumberReg= 1;
+		sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
+		sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
+		sendCmd.irDriveRegs.bDriveHeadReg	= target;
+		sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
+		sendCmd.cBufferSize					= READ_ATTRIBUTE_BUFFER_SIZE;
 
-	::CloseHandle(hIoCtrl);
+		DebugPrint(_T("SendAtaCommandPd - SMART_READ_DATA"));
+		bRet = ::DeviceIoControl(hIoCtrl, DFP_RECEIVE_DRIVE_DATA, 
+			&sendCmd, sizeof(SENDCMDINPARAMS),
+			&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA),
+			&dwReturned, NULL);
+
+		::CloseHandle(hIoCtrl);
 	
-	if(bRet == FALSE || dwReturned != sizeof(SMART_READ_DATA_OUTDATA))
-	{
-		return	FALSE;
-	}
+		if(bRet == FALSE || dwReturned != sizeof(SMART_READ_DATA_OUTDATA))
+		{
+			return	FALSE;
+		}
 
-	memcpy_s(&(asi->SmartReadData), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
+		memcpy_s(&(asi->SmartReadData), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
+	}
 
 	return FillSmartInfo(asi);
 }
 
 BOOL CAtaSmart::GetSmartThresholdPd(INT physicalDriveId, BYTE target, ATA_SMART_INFO* asi)
 {
-	BOOL	bRet;
+	BOOL	bRet = FALSE;
 	HANDLE	hIoCtrl;
 	DWORD	dwReturned;
 
 	SMART_READ_DATA_OUTDATA	sendCmdOutParam;
 	SENDCMDINPARAMS	sendCmd;
 
-	hIoCtrl = GetIoCtrlHandle(physicalDriveId);
-	if(hIoCtrl == INVALID_HANDLE_VALUE)
+	if(m_FlagAtaPassThroughSmart)
 	{
-		return	FALSE;
+		DebugPrint(_T("SendAtaCommandPd - SMART_READ_THRESHOLDS (ATA_PASS_THROUGH)"));
+		bRet = SendAtaCommandPd(physicalDriveId, target, SMART_CMD, READ_THRESHOLDS, 0x00, 
+			(PBYTE)&(asi->SmartReadThreshold), sizeof(asi->SmartReadThreshold));
 	}
 
-	::ZeroMemory(&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA));
-	::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
-
-	sendCmd.irDriveRegs.bFeaturesReg	= READ_THRESHOLDS;
-	sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
-	sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
-	sendCmd.irDriveRegs.bDriveHeadReg	= target;
-	sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
-	sendCmd.cBufferSize					= READ_THRESHOLD_BUFFER_SIZE;
-
-	bRet = ::DeviceIoControl(hIoCtrl, DFP_RECEIVE_DRIVE_DATA, 
-		&sendCmd, sizeof(SENDCMDINPARAMS),
-		&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA),
-		&dwReturned, NULL);
-
-	::CloseHandle(hIoCtrl);
-	
-	if(bRet == FALSE || dwReturned != sizeof(SMART_READ_DATA_OUTDATA))
+	if(bRet)
 	{
-		return	FALSE;
-	}
-
-	memcpy_s(&(asi->SmartReadThreshold), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
-
-	CString str;
-	int j = 0;
-	for(int i = 0; i < MAX_ATTRIBUTE; i++)
-	{
-		memcpy(	&(asi->Threshold[i]), 
-				&(sendCmdOutParam.Data[i * sizeof(SMART_THRESHOLD) + 1]), sizeof(SMART_THRESHOLD));
-
-		if(asi->Threshold[j].Id != 0)
+		int j = 0;
+		for(int i = 0; i < MAX_ATTRIBUTE; i++)
 		{
-			j++;
+			memcpy(	&(asi->Threshold[i]), 
+					&(asi->SmartReadThreshold[i * sizeof(SMART_THRESHOLD) + 2]), sizeof(SMART_THRESHOLD));
+
+			if(asi->Threshold[j].Id != 0)
+			{
+				j++;
+			}
 		}
 	}
+	else
+	{
+		hIoCtrl = GetIoCtrlHandle(physicalDriveId);
+		if(hIoCtrl == INVALID_HANDLE_VALUE)
+		{
+			return	FALSE;
+		}
 
+		::ZeroMemory(&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA));
+		::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
+
+		sendCmd.irDriveRegs.bFeaturesReg	= READ_THRESHOLDS;
+		sendCmd.irDriveRegs.bSectorCountReg = 1;
+		sendCmd.irDriveRegs.bSectorNumberReg= 1;
+		sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
+		sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
+		sendCmd.irDriveRegs.bDriveHeadReg	= target;
+		sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
+		sendCmd.cBufferSize					= READ_THRESHOLD_BUFFER_SIZE;
+
+		DebugPrint(_T("SendAtaCommandPd - SMART_READ_THRESHOLDS"));
+		bRet = ::DeviceIoControl(hIoCtrl, DFP_RECEIVE_DRIVE_DATA, 
+			&sendCmd, sizeof(SENDCMDINPARAMS),
+			&sendCmdOutParam, sizeof(SMART_READ_DATA_OUTDATA),
+			&dwReturned, NULL);
+
+		::CloseHandle(hIoCtrl);
+	
+		if(bRet == FALSE || dwReturned != sizeof(SMART_READ_DATA_OUTDATA))
+		{
+			return	FALSE;
+		}
+
+		memcpy_s(&(asi->SmartReadThreshold), 512, &(sendCmdOutParam.SendCmdOutParam.bBuffer), 512);
+		int j = 0;
+		for(int i = 0; i < MAX_ATTRIBUTE; i++)
+		{
+			memcpy(	&(asi->Threshold[i]), 
+					&(sendCmdOutParam.Data[i * sizeof(SMART_THRESHOLD) + 1]), sizeof(SMART_THRESHOLD));
+
+			if(asi->Threshold[j].Id != 0)
+			{
+				j++;
+			}
+		}
+	}
+	
 	return	TRUE;
 }
 
 BOOL CAtaSmart::ControlSmartStatusPd(INT physicalDriveId, BYTE target, BYTE command)
 {
-	BOOL	bRet;
+	BOOL	bRet = FALSE;
 	HANDLE	hIoCtrl;
 	DWORD	dwReturned;
 
 	SENDCMDINPARAMS		sendCmd;
 	SENDCMDOUTPARAMS	sendCmdOutParam;
 
-	hIoCtrl = GetIoCtrlHandle(physicalDriveId);
-	if(hIoCtrl == INVALID_HANDLE_VALUE)
+	if(m_FlagAtaPassThroughSmart)
 	{
-		return	FALSE;
+		DebugPrint(_T("SendAtaCommandPd - SMART_CONTROL_STATUS (ATA_PASS_THROUGH)"));
+		bRet = SendAtaCommandPd(physicalDriveId, target, SMART_CMD, command, 0x00, NULL, 0);
 	}
 
-	::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
-	::ZeroMemory(&sendCmdOutParam, sizeof(SENDCMDOUTPARAMS));
+	if(! bRet)
+	{
+		DebugPrint(_T("SendAtaCommandPd - SMART_CONTROL_STATUS"));
+		hIoCtrl = GetIoCtrlHandle(physicalDriveId);
+		if(hIoCtrl == INVALID_HANDLE_VALUE)
+		{
+			return	FALSE;
+		}
 
-	sendCmd.irDriveRegs.bFeaturesReg	= command;
-	sendCmd.irDriveRegs.bSectorCountReg = 1;
-	sendCmd.irDriveRegs.bSectorNumberReg= 1;
-	sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
-	sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
-	sendCmd.irDriveRegs.bDriveHeadReg	= target;
-	sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
-	sendCmd.cBufferSize					= 0;
+		::ZeroMemory(&sendCmd, sizeof(SENDCMDINPARAMS));
+		::ZeroMemory(&sendCmdOutParam, sizeof(SENDCMDOUTPARAMS));
 
-	bRet = ::DeviceIoControl(hIoCtrl, DFP_SEND_DRIVE_COMMAND, 
-		&sendCmd, sizeof(SENDCMDINPARAMS) - 1,
-		&sendCmdOutParam, sizeof(SENDCMDOUTPARAMS) -1,
-		&dwReturned, NULL);
+		sendCmd.irDriveRegs.bFeaturesReg	= command;
+		sendCmd.irDriveRegs.bSectorCountReg = 1;
+		sendCmd.irDriveRegs.bSectorNumberReg= 1;
+		sendCmd.irDriveRegs.bCylLowReg		= SMART_CYL_LOW;
+		sendCmd.irDriveRegs.bCylHighReg		= SMART_CYL_HI;
+		sendCmd.irDriveRegs.bDriveHeadReg	= target;
+		sendCmd.irDriveRegs.bCommandReg		= SMART_CMD;
+		sendCmd.cBufferSize					= 0;
 
-	::CloseHandle(hIoCtrl);
+		bRet = ::DeviceIoControl(hIoCtrl, DFP_SEND_DRIVE_COMMAND, 
+			&sendCmd, sizeof(SENDCMDINPARAMS) - 1,
+			&sendCmdOutParam, sizeof(SENDCMDOUTPARAMS) -1,
+			&dwReturned, NULL);
 
+		::CloseHandle(hIoCtrl);
+	}
+	
 	return	bRet;
 }
 
@@ -2984,6 +3038,14 @@ BOOL CAtaSmart::SendAtaCommandPd(INT physicalDriveId, BYTE target, BYTE main, BY
 		ab.Apt.CurrentTaskFile.bSectorCountReg = param;
 		ab.Apt.CurrentTaskFile.bDriveHeadReg = target;
 		ab.Apt.CurrentTaskFile.bCommandReg = main;
+
+		if(main == SMART_CMD)
+		{
+			ab.Apt.CurrentTaskFile.bCylLowReg		= SMART_CYL_LOW;
+			ab.Apt.CurrentTaskFile.bCylHighReg		= SMART_CYL_HI;
+			ab.Apt.CurrentTaskFile.bSectorCountReg  = 1;
+			ab.Apt.CurrentTaskFile.bSectorNumberReg = 1;
+		}
 
 		bRet = ::DeviceIoControl(hIoCtrl, IOCTL_ATA_PASS_THROUGH,
 			&ab, size, &ab, size, &dwReturned, NULL);
@@ -4224,7 +4286,7 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 					asi->Temperature = asi->Attribute[j].RawValue[0];
 				}
 
-				if(asi->Temperature > 100)
+				if(asi->Temperature >= 100)
 				{
 					asi->Temperature = 0;
 				}
@@ -4683,6 +4745,7 @@ DWORD CAtaSmart::GetTimeUnitType(CString model, CString firmware, DWORD major, D
 		else if(model.Find(_T("SAMSUNG SV")) == 0
 		||		model.Find(_T("SAMSUNG SP")) == 0
 		||		model.Find(_T("SAMSUNG HM")) == 0
+		||		model.Find(_T("SAMSUNG MP")) == 0
 		)
 		{
 			return POWER_ON_HALF_MINUTES;

@@ -172,6 +172,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 
 	m_FlagAdvancedDiskSearch = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AdvancedDiskSearch"), 0, m_Ini);
 	m_FlagEventLog = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("EventLog"), 0, m_Ini);
+	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 0, m_Ini);
 	m_FlagAutoAamApm = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AutoAamApm"), 0, m_Ini);
 	m_FlagDumpIdentifyDevice = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpIdentifyDevice"), 1, m_Ini);			// Default = Enabled
 	m_FlagDumpSmartReadData = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadData"), 0, m_Ini);
@@ -207,6 +208,15 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	else
 	{
 		UninstallEventSource();
+	}
+
+	if(m_FlagAtaPassThroughSmart)
+	{
+		m_Ata.SetAtaPassThroughSmart(TRUE);
+	}
+	else
+	{
+		m_Ata.SetAtaPassThroughSmart(FALSE);
 	}
 
 	/*
@@ -462,6 +472,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_AUTO_DETECTION_DISABLE, &CDiskInfoDlg::OnAutoDetectionDisable)
 
 	ON_COMMAND(ID_EVENT_LOG, &CDiskInfoDlg::OnEventLog)
+	ON_COMMAND(ID_ATA_PASS_THROUGH_SMART, &CDiskInfoDlg::OnAtaPassThroughSmart)
 	ON_COMMAND(ID_CELSIUS, &CDiskInfoDlg::OnCelsius)
 	ON_COMMAND(ID_FAHRENHEIT, &CDiskInfoDlg::OnFahrenheit)
 	ON_COMMAND(ID_AAM_APM, &CDiskInfoDlg::OnAamApm)

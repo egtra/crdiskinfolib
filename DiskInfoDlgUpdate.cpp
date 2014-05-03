@@ -1710,6 +1710,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		menu->CheckMenuItem(ID_EVENT_LOG, MF_UNCHECKED);
 	}
 
+	if(m_FlagAtaPassThroughSmart)
+	{
+		menu->CheckMenuItem(ID_ATA_PASS_THROUGH_SMART, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_ATA_PASS_THROUGH_SMART, MF_UNCHECKED);
+	}
+
 	if(m_FlagAutoAamApm)
 	{
 		menu->CheckMenuItem(ID_AUTO_AAM_APM, MF_CHECKED);
