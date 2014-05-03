@@ -1482,7 +1482,7 @@ protected:
 
 
 	DWORD GetTransferMode(WORD w63, WORD w76, WORD w77, WORD w88, CString &currentTransferMode, CString &maxTransferMode, CString &Interface, INTERFACE_TYPE *interfaceType);
-	DWORD GetTimeUnitType(CString model, CString firmware, DWORD major, DWORD transferMode);
+	DWORD GetTimeUnitType(ATA_SMART_INFO &asi);
 	DWORD GetAtaMajorVersion(WORD w80, CString &majorVersion);
 	VOID  GetAtaMinorVersion(WORD w81, CString &minor);
 //	DWORD GetMaxtorPowerOnHours(DWORD currentValue, DWORD rawValue);

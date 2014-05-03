@@ -226,7 +226,21 @@ void CHealthDlg::InitSelectDisk()
 		{
 			temp = _T("[SSD]");	
 		}
-		cstr.Format(_T("(%d) %s %s"), i + 1, p->m_Ata.vars.GetAt(i).Model, temp);
+
+		CString driveLetter;
+		if (p->m_Ata.vars[i].DriveMap.IsEmpty())
+		{
+			if (p->m_Ata.vars[i].PhysicalDriveId >= 0)
+			{
+				driveLetter.Format(_T("(Disk %d)"), p->m_Ata.vars[i].PhysicalDriveId);
+			}
+		}
+		else
+		{
+			driveLetter.Format(_T("(%s)"), p->m_Ata.vars[i].DriveMap);
+		}
+		cstr.Format(_T("(%d) %s %s %s"), i + 1, p->m_Ata.vars.GetAt(i).Model, temp, driveLetter);
+
 		m_CtrlSelectDisk.AddString(cstr);
 	}
 	m_CtrlSelectDisk.SetCurSel(0);
