@@ -1494,9 +1494,10 @@ void CGraphDlg::UpdateBgImage()
 	CString cstr;
 	GetPrivateProfileString(_T("Customize"), _T("GraphBgImage"), _T(""), str, 256, m_Ini);
 	cstr = str;
+	cstr.Replace(_T("\\"), _T("/"));
 	if(cstr.IsEmpty())
 	{
-		cstr = _T("image\\background.png");
+		cstr = _T("image/background.png");
 	}
 	CallScript(_T("changeBackgroundImage"), _T("url(") + cstr + _T(")"));
 }

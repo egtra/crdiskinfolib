@@ -2265,7 +2265,6 @@ BOOL CAtaSmart::IsSsdOld(ATA_SMART_INFO &asi)
 {
 	return asi.Model.Find(_T("OCZ")) == 0 
 		|| asi.Model.Find(_T("SPCC")) == 0
-		|| asi.Model.Find(_T("TS")) == 0
 		|| asi.Model.Find(_T("PATRIOT")) == 0
 		|| asi.Model.Find(_T("Solid")) >= 0
 		|| asi.Model.Find(_T("SSD")) >= 0
