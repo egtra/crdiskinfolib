@@ -28,12 +28,12 @@ CDHtmlMainDialog::CDHtmlMainDialog(UINT dlgResouce, UINT dlgHtml,
 	m_FlagWindoowMinimizeOnce = TRUE;
 	m_FlagResidentMinimize = FALSE;
 
-	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+//	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 }
 
 CDHtmlMainDialog::~CDHtmlMainDialog()
 {
-	CoUninitialize();
+//	CoUninitialize();
 }
 
 BEGIN_MESSAGE_MAP(CDHtmlMainDialog, CDHtmlDialogEx)

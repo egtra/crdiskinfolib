@@ -16,6 +16,8 @@
 #include "GetOsInfo.h"
 #include "IsCurrentUserLocalAdministrator.h"
 
+#include <afxole.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -82,6 +84,12 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 	m_Ini = ini;
 
+	CString cstr;
+	DWORD debugMode = GetPrivateProfileInt(_T("Setting"), _T("DebugMode"), 0, m_Ini);
+	SetDebugMode(debugMode);
+	cstr.Format(_T("%d"), debugMode);
+	WritePrivateProfileString(_T("Setting"), _T("DebugMode"), cstr, m_Ini);
+
 	int argc = 0;
 	int index = 0;
 	LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -122,9 +130,11 @@ BOOL CDiskInfoApp::InitInstance()
 
 	if(! flagEarthlight)
 	{
+		DebugPrint(_T("CreateMutex"));
 		hMutex = ::CreateMutex(NULL, FALSE, PRODUCT_NAME);
 		if(GetLastError() == ERROR_ALREADY_EXISTS)
 		{
+			DebugPrint(_T("ERROR_ALREADY_EXISTS"));
 			return FALSE;
 		}
 	}
@@ -198,6 +208,8 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 #endif
 
+	BOOL flagAfxOleInit = FALSE;
+
 	if(flagEarthlight)
 	{
 		CGraphDlg dlg(NULL, defaultDisk);
@@ -206,11 +218,31 @@ BOOL CDiskInfoApp::InitInstance()
 	}
 	else
 	{
+		// No Server Busy Dialog!!
+
+		DebugPrint(_T("AfxOleInit()"));
+		if(AfxOleInit())
+		{
+			flagAfxOleInit = TRUE;
+			DebugPrint(_T("AfxOleGetMessageFilter()->SetMessagePendingDelay"));
+			AfxOleGetMessageFilter()->SetMessagePendingDelay(60 * 1000);
+			DebugPrint(_T("AfxOleGetMessageFilter()->EnableNotRespondingDialog(FALSE)"));
+			AfxOleGetMessageFilter()->EnableNotRespondingDialog(FALSE);
+			DebugPrint(_T("AfxOleGetMessageFilter()->EnableBusyDialog(FALSE)"));
+			AfxOleGetMessageFilter()->EnableBusyDialog(FALSE);
+		}
+		else
+		{
+			DebugPrint(_T("CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);"));
+			CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+		}
+
 		CDiskInfoDlg dlg(NULL, flagStartupExit);
 		m_pMainWnd = &dlg;
 
 		BOOL flagReExec = FALSE;
 
+		DebugPrint(_T("dlg.DoModal()"));
 		if(dlg.DoModal() == RE_EXEC)
 		{
 			flagReExec = TRUE;
@@ -227,7 +259,11 @@ BOOL CDiskInfoApp::InitInstance()
 		}
 	}
 
-	// CoUninitialize();
+	if(! flagAfxOleInit)
+	{
+		DebugPrint(_T("CoUninitialize();"));
+		CoUninitialize();
+	}
 
 	return FALSE;
 }

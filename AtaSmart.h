@@ -392,6 +392,7 @@ public:
 		DWORD				Temperature;
 		DWORD				NominalMediaRotationRate;
 //		double				Speed;
+		ULONGLONG			HostWrites;
 
 		INT					Life;
 

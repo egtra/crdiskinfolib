@@ -191,6 +191,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	{
 		UninstallEventSource();
 	}
+
 	/*
 	CString cstr;
 	TCHAR str[MAX_PATH];

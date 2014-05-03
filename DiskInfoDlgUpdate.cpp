@@ -775,7 +775,12 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		SetElementPropertyEx(_T("BufferSize"), DISPID_IHTMLELEMENT_CLASSNAME, _T("unsupported"));
 	}
 
-	if(m_Ata.vars[i].NvCacheSize > 0)
+	// Temp
+	if(m_Ata.vars[i].HostWrites > 0)
+	{
+		m_NvCacheSize.Format(_T("%.2f GB"), (double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
+	}
+	else if(m_Ata.vars[i].NvCacheSize > 0)
 	{
 		m_NvCacheSize.Format(_T("%d MB"), (DWORD)(m_Ata.vars[i].NvCacheSize / 1024 / 1024));
 	}
@@ -783,6 +788,15 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 	{
 		m_NvCacheSize = _T("----");
 	}
+	if(m_Ata.vars[m_SelectDisk].HostWrites > 0)
+	{
+		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
+	}
+	else
+	{
+		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
+	}
+
 
 	if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
@@ -1357,7 +1371,14 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	m_LabelAtaAtapi = i18n(_T("Dialog"), _T("STANDARD"));
 	m_LabelDiskStatus = i18n(_T("Dialog"), _T("HEALTH_STATUS"));
 	m_LabelSmartStatus = i18n(_T("Dialog"), _T("SMART_STATUS"));
-	m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
+	if(m_Ata.vars.GetCount() > 0 && m_Ata.vars[m_SelectDisk].HostWrites > 0)
+	{
+		m_LabelNvCacheSize = i18n(_T("SmartIntel"), _T("E1"));
+	}
+	else
+	{
+		m_LabelNvCacheSize = i18n(_T("Dialog"), _T("NV_CACHE_SIZE"));
+	}
 	m_LabelRotationRate = i18n(_T("Dialog"), _T("ROTATION_RATE"));
 
 	UpdateData(FALSE);
@@ -1560,6 +1581,11 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	if(m_Ata.vars[i].Life >= 0)
 	{
 		AppendLog(dir, disk, _T("Life"), time, m_Ata.vars[i].Life, flagFirst);
+	}
+
+	if(m_Ata.vars[i].HostWrites > 0)
+	{
+		AppendLog(dir, disk, _T("HostWrites"), time, (int)((m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024), flagFirst);
 	}
 
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)

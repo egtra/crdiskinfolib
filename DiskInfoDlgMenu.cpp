@@ -575,7 +575,17 @@ BOOL CDiskInfoDlg::RegisterStartup()
 		si.cb			= sizeof(STARTUPINFO);
 		si.dwFlags		= STARTF_USESHOWWINDOW;
 		si.wShowWindow	= SW_HIDE;
-		cstr.Format(_T("schtasks.exe /Create /tn CrystalDiskInfo /tr \"\\\"%s\\\" \"/Startup\"\" /sc ONLOGON /RL HIGHEST /F"), path); 
+		/*
+		if(osvi.dwMajorVersion >= 7 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 1))
+		{
+			cstr.Format(_T("schtasks.exe /Create /tn CrystalDiskInfo /tr \"\\\"%s\\\" \"/Startup\"\" /sc ONLOGON /RL HIGHEST /F /ru \"Administrators\""), path);
+		}
+		else
+		{
+			cstr.Format(_T("schtasks.exe /Create /tn CrystalDiskInfo /tr \"\\\"%s\\\" \"/Startup\"\" /sc ONLOGON /RL HIGHEST /F"), path);
+		}
+		*/
+		cstr.Format(_T("schtasks.exe /Create /tn CrystalDiskInfo /tr \"\\\"%s\\\" \"/Startup\"\" /sc ONLOGON /RL HIGHEST /F"), path);
 		::CreateProcess(NULL, (LPWSTR)cstr.GetString(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 		WaitForSingleObject(pi.hProcess, 1000);
 		CloseHandle(pi.hThread);

@@ -13,7 +13,6 @@
 #include "AtaSmart.h"
 #include <wbemcli.h>
 
-#include "DebugPrint.h"
 #include "DnpService.h"
 
 #pragma comment(lib, "wbemuuid.lib")
@@ -1491,6 +1490,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	asi.NominalMediaRotationRate = 0;
 //	asi.Speed = 0.0;
 	asi.Life = -1;
+	asi.HostWrites = 0;
 
 	asi.Major = 0;
 	asi.Minor = 0;
@@ -1760,7 +1760,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 
 	CString debug;
 	// Check S.M.A.R.T. Enabled or Diabled
-	if(asi.IsSmartSupported || IsAdvancedDiskSearch)
+	if((asi.IsSmartSupported && 3 <= asi.Major) || IsAdvancedDiskSearch)
 	{
 		switch(asi.CommandType)
 		{
@@ -1986,6 +1986,15 @@ void CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			if(asi.VendorId == SSD_VENDOR_INTEL)
 			{
 				asi.Life = asi.Attribute[j].CurrentValue;
+			}
+			break;
+		case 0xE1:
+			if(asi.VendorId == SSD_VENDOR_INTEL)
+			{
+				asi.HostWrites  = MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					);
 			}
 			break;
 		default:
@@ -2554,6 +2563,15 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 					asi->Life = asi->Attribute[j].CurrentValue;
 				}
 				break;
+			case 0xE1:
+				if(asi->VendorId == SSD_VENDOR_INTEL)
+				{
+					asi->HostWrites  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
 			default:
 				break;
 			}
@@ -2897,6 +2915,15 @@ BOOL CAtaSmart::GetSmartAttributeScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 							if(asi->VendorId == SSD_VENDOR_INTEL)
 							{
 								asi->Life = asi->Attribute[j].CurrentValue;
+							}
+							break;
+						case 0xE1:
+							if(asi->VendorId == SSD_VENDOR_INTEL)
+							{
+								asi->HostWrites  = MAKELONG(
+									MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+									MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+									);
 							}
 							break;
 						default:
@@ -3494,6 +3521,15 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 					asi->Life = asi->Attribute[j].CurrentValue;
 				}
 				break;
+			case 0xE1:
+				if(asi->VendorId == SSD_VENDOR_INTEL)
+				{
+					asi->HostWrites  = MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						);
+				}
+				break;
 			default:
 				break;
 			}
@@ -4061,8 +4097,6 @@ DWORD CAtaSmart::CheckDiskStatus(SMART_ATTRIBUTE* attribute, SMART_THRESHOLD* th
 				}
 			}
 			break;
-		// Debug
-		/*
 		case 0xE8:
 			if(vendorId == SSD_VENDOR_INTEL)
 			{
@@ -4080,7 +4114,6 @@ DWORD CAtaSmart::CheckDiskStatus(SMART_ATTRIBUTE* attribute, SMART_THRESHOLD* th
 				}
 			}
 			break;
-		*/
 		default:
 			break;
 		}

@@ -150,6 +150,7 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
     Transfer Mode : %TRANSFER_MODE%\r\n\
    Power On Hours : %POWER_ON_HOURS%\r\n\
    Power On Count : %POWER_ON_COUNT%\r\n\
+%HOST_WRITES%\
       Temparature : %TEMPERATURE%\r\n\
     Health Status : %DISK_STATUS%\r\n\
          Features : %SUPPORTED_FEATURE%\r\n\
@@ -254,6 +255,18 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 			cstr = i18n(_T("Dialog"), _T("UNKNOWN"));
 		}
 		drive.Replace(_T("%POWER_ON_COUNT%"), cstr);
+
+
+		if(m_Ata.vars[i].HostWrites == 0)
+		{
+			drive.Replace(_T("%HOST_WRITES%"), _T(""));
+		}
+		else
+		{
+			cstr.Format(_T("      Host Writes : %.2f GB\r\n"),
+				(double)(m_Ata.vars[i].HostWrites * 65536 * 512) / 1024 / 1024 / 1024);		
+			drive.Replace(_T("%HOST_WRITES%"), cstr);
+		}
 
 		if(m_Ata.vars[i].Temperature > 0)
 		{

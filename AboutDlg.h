@@ -13,8 +13,8 @@ class CAboutDlg : public CDHtmlDialogEx
 {
 	DECLARE_DYNCREATE(CAboutDlg)
 
-	static const int SIZE_X = 260;
-	static const int SIZE_Y = 180;
+	static const int SIZE_X = 480;
+	static const int SIZE_Y = 160;
 
 public:
 	CAboutDlg(CWnd* pParent = NULL);

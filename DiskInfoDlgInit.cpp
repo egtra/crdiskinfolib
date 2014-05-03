@@ -12,8 +12,6 @@
 #include "DiskInfoDlg.h"
 #include "GetFileVersion.h"
 
-#include "DebugPrint.h"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -81,12 +79,6 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	case   1:	OnResidentMinimize(); break;
 	default:	OnResidentHide();	  break;
 	}
-
-	CString cstr;
-	DWORD debugMode = GetPrivateProfileInt(_T("Setting"), _T("DebugMode"), 0, m_Ini);
-	SetDebugMode(debugMode);
-	cstr.Format(_T("%d"), debugMode);
-	WritePrivateProfileString(_T("Setting"), _T("DebugMode"), cstr, m_Ini);
 
 	// USB/IEEE1394 Support
 	m_Ata.FlagUsbSat     = ! GetPrivateProfileInt(_T("USB"), _T("SAT"), 1, m_Ini);
@@ -422,7 +414,6 @@ CString CDiskInfoDlg::GetDiskStatusReason(DWORD index)
 					result += cstr;
 				}
 				break;
-			// Debug
 			case 0xE8:
 				if(m_Ata.vars[index].VendorId == m_Ata.SSD_VENDOR_INTEL)
 				{

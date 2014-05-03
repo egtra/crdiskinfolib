@@ -744,6 +744,18 @@ void CGraphDlg::InitMenuBar()
 		counter++;
 	}
 
+	// HostWrites
+	if(flagAttribute[0xE1])
+	{
+		cstr.Format(_T("<option value=\"481\">%s[E1] %s (GB)</option>"), space, i18n(_T("SmartIntel"), _T("E1")));
+		select += cstr;
+		if(SelectedAttributeId == 481)
+		{
+			index = counter;
+		}
+		counter++;
+	}
+
 	if(m_IeVersion >= 700)
 	{
 		cstr.Format(_T("<optgroup label=\"%s\">"), i18n(_T("Graph"), _T("NORMALIZED_VALUE")));
@@ -824,6 +836,7 @@ BOOL CGraphDlg::UpdateGraph()
 		case 0x1C4:fileName = _T("ReallocationEventCount");		min = 0; break;
 		case 0x1C5:fileName = _T("CurrentPendingSectorCount");	min = 0; break;
 		case 0x1C6:fileName = _T("UncorrectableSectorCount");	min = 0; break;
+		case 0x1E1:fileName = _T("HostWrites");					min = 0; break;
 		case 0x1FF:fileName = _T("Life");			max = 100;	min = 0; break;
 		default:
 			return FALSE;
