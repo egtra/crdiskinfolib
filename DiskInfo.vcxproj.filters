@@ -802,9 +802,6 @@
     <None Include="resS\DiskInfo16.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="icon1.ico">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="resN\DiskInfo.ico">
       <Filter>Resource Files</Filter>
     </None>
@@ -823,10 +820,10 @@
     <None Include="resS\703igarashi.opus" />
     <None Include="resS\704igarashi.opus" />
     <None Include="resS\705igarashi.opus" />
-    <None Include="resS\ShizukuAbout.png">
+    <None Include="resS\ShizukuAboutIcon.png">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="resS\ShizukuAboutIcon.png">
+    <None Include="resS\ShizukuAbout.png">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

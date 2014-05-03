@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2007-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once

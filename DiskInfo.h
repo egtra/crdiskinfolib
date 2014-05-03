@@ -3,10 +3,7 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                                Copyright 2008 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
-
 #pragma once
 
 #ifndef __AFXWIN_H__
@@ -76,6 +73,8 @@ public:
 	CString m_AlertMailPath;
 	CString m_OpusDecPath;
 	CString m_Ini;
+	CString m_SaveAsText;
+	BOOL m_FlagCopyExit;
 
 	CString m_ThemeDir;
 	CString m_LangDir;

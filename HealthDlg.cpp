@@ -3,10 +3,7 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                                Copyright 2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
-
 
 #include "stdafx.h"
 #include "DiskInfo.h"

@@ -363,8 +363,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 5,5,0,2013
- PRODUCTVERSION 5,5,0,2013
+ FILEVERSION 5,6,2,2013
+ PRODUCTVERSION 5,6,2,2013
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,9 +381,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, Simplified BSD License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "5.5.0.2013"
+            VALUE "FileVersion", "5.6.2.2013"
             VALUE "LegalCopyright", "Copyright (C) 2008-2013 hiyohiyo. All rights reserved."
-            VALUE "ProductVersion", "5.5.0.2013"
+            VALUE "ProductVersion", "5.6.2.2013"
 #ifdef SUISHO_SHIZUKU_SUPPORT
             VALUE "ProductName", "CrystalDiskInfo Shizuku Edition"
             VALUE "FileDescription", "CrystalDiskInfo Shizuku Edition"
@@ -588,7 +588,7 @@ BEGIN
             END
             MENUITEM SEPARATOR
             MENUITEM "&Advanced Disk Search",       ID_ADVANCED_DISK_SEARCH
-            MENUITEM "ATA_PASS_THROUGH for S.M.A.R.T.", ID_ATA_PASS_THROUGH_SMART
+            MENUITEM "ATA_PASS_THROUGH", ID_ATA_PASS_THROUGH_SMART
             POPUP "USB/IEEE 1394"
             BEGIN
                 MENUITEM "SCSI_ATA_TRANSLATION (SAT)",  ID_USB_SAT

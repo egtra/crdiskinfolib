@@ -80,8 +80,8 @@
 #endif
 #endif
 
-#define PRODUCT_VERSION			_T("5.5.1")
-#define PRODUCT_RELEASE			_T("2013/04/08")
+#define PRODUCT_VERSION			_T("5.6.2")
+#define PRODUCT_RELEASE			_T("2013/04/25")
 #define PRODUCT_COPY_YEAR		_T("2008-2013")
 #define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2013 hiyohiyo.")
 

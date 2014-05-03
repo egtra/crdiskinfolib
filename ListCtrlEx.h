@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                                Copyright 2008 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once
@@ -30,6 +28,7 @@ public:
 	COLORREF GetLineColor();
 
 	void SetFontEx(CString face, double zoomRatio);
+	BOOL IsHighContrast();
 
 protected:
 	COLORREF m_TextColor1;

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiskInfo", "DiskInfo.vcxproj", "{5496C268-D510-449C-8471-DE2B34898C28}"
 EndProject
 Global
@@ -21,8 +21,8 @@ Global
 		{5496C268-D510-449C-8471-DE2B34898C28}.Release|Win32.Build.0 = Release|Win32
 		{5496C268-D510-449C-8471-DE2B34898C28}.Release|x64.ActiveCfg = Release|x64
 		{5496C268-D510-449C-8471-DE2B34898C28}.Release|x64.Build.0 = Release|x64
-		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|Win32.ActiveCfg = ReleaseShizuku|Win32
-		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|Win32.Build.0 = ReleaseShizuku|Win32
+		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|Win32.ActiveCfg = ReleaseShizuku|x64
+		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|Win32.Build.0 = ReleaseShizuku|x64
 		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|x64.ActiveCfg = ReleaseShizuku|x64
 		{5496C268-D510-449C-8471-DE2B34898C28}.ReleaseShizuku|x64.Build.0 = ReleaseShizuku|x64
 	EndGlobalSection

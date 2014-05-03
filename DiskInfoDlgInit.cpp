@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -131,10 +129,14 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	OnUsbCypress();
 	OnUsbMemory();
 
+	DebugPrint(_T("InitAta"));
 	InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL, m_FlagWorkaroundHD204UI, m_FlagWorkaroundAdataSsd);
 
 	if(m_FlagStartupExit)
 	{
+		// Added 2013/04/12 - Workaround for Exec Failed
+		WritePrivateProfileString(_T("Workaround"), _T("ExecFailed"), _T("0"), m_Ini);
+		DebugPrint(_T("EndDialog(0)"));
 		EndDialog(0);
 		return FALSE;
 	}
@@ -142,14 +144,18 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	m_SizeX = SIZE_X;
 	m_SizeY = SIZE_Y;
 
+	DebugPrint(_T("EnableDpiAware"));
 	EnableDpiAware();
+	DebugPrint(_T("InitDHtmlDialog"));
 	InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
 	//	SetWindowTitle(_T("Initializing..."));
-
+	
 	DEV_BROADCAST_DEVICEINTERFACE filter;
 	filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
 	filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 	filter.dbcc_classguid = StrageGUID;
+
+	DebugPrint(_T("RegisterDeviceNotification"));
 	m_hDevNotify = RegisterDeviceNotification(m_hWnd, &filter, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	return TRUE; 
@@ -194,13 +200,17 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 	CString cstr;
 	cstr = szUrl;
 	static BOOL once = FALSE;
+
 	if(cstr.Find(_T("html")) != -1 || cstr.Find(_T("dlg")) != -1)
 	{
 		if(! once)
 		{
+			DebugPrint(_T("CheckStartup"));
 			CheckStartup();
 			// CheckResident();
+			DebugPrint(_T("CheckHideSerialNumber"));
 			CheckHideSerialNumber();
+			DebugPrint(_T("ChangeTheme"));
 			ChangeTheme(m_CurrentTheme);
 			if(m_CurrentTheme.Compare(_T("Simplicity")) == 0)
 			{
@@ -210,19 +220,26 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			{
 				m_FlagGoodGreen = FALSE;
 			}
+			DebugPrint(_T("ChangeZoomType"));
 			ChangeZoomType(m_ZoomType);
+			DebugPrint(_T("UpdateDialogSize"));
 			UpdateDialogSize();
+			DebugPrint(_T("ChangeLang"));
 			ChangeLang(m_CurrentLang);
+			DebugPrint(_T("CheckPage()"));
 			CheckPage();
 			
-			m_FlagShowWindow = TRUE;		
+			m_FlagShowWindow = TRUE;
+			DebugPrint(_T("CenterWindow()"));
 			CenterWindow();
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
+			DebugPrint(_T("ChangeShizukuImage"));
 			ChangeShizukuImage(m_ShizukuImageType);
 #endif
 			if(m_FlagResident)
 			{
+				DebugPrint(_T("AlarmOverheat()"));
 				AlarmOverheat();
 			//	CheckTrayTemperatureIcon();
 				if(! m_FlagResidentMinimize)
@@ -232,11 +249,13 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			}
 			else
 			{
+				DebugPrint(_T("ShowWindow(SW_SHOW)"));
 				ShowWindow(SW_SHOW);
 			}
 
 			if(m_NowDetectingUnitPowerOnHours != TRUE)
 			{
+				DebugPrint(_T("SetWindowTitle()"));
 				SetWindowTitle(_T(""));
 			}
 
@@ -244,9 +263,25 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			m_FlagInitializing = FALSE;
 
 			// Font Settings
+			DebugPrint(_T("CallScript(_T(setFont), m_FontFace)"));
 			CallScript(_T("setFont"), m_FontFace);
 
+			DebugPrint(_T("WorkaroundIE8Mode()"));
 			WorkaroundIE8Mode();
+
+			// Added 2013/04/12 - Workaround for Exec Failed
+			WritePrivateProfileString(_T("Workaround"), _T("ExecFailed"), _T("0"), m_Ini);
+
+			if(! ((CDiskInfoApp*)AfxGetApp())->m_SaveAsText.IsEmpty())
+			{
+				CopySave(((CDiskInfoApp*)AfxGetApp())->m_SaveAsText);
+			}
+
+			if(((CDiskInfoApp*)AfxGetApp())->m_FlagCopyExit)
+			{
+				DebugPrint(_T("EndDialog(0)"));
+				EndDialog(0);
+			}
 		}
 	}
 }
@@ -267,6 +302,8 @@ void CDiskInfoDlg::WorkaroundIE8Mode()
 	if(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 1 && GetIeVersion() >= 100 && CallScript(_T("isScrollBar"), NULL))
 	{
 		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("1"), m_Ini);
+
+		DebugPrint(_T("ReExecute()"));
 		ReExecute();
 	}
 }
@@ -284,6 +321,7 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 	
 	if(! once)
 	{
+		DebugPrint(_T("CheckResident()"));
 		CheckResident();
 		once = TRUE;
 	}
@@ -319,6 +357,7 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 		m_Ata.vars[i].ThresholdC6     = GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
 
 		m_Ata.vars[i].DiskStatus = m_Ata.CheckDiskStatus(i);
+		DebugPrint(_T("SaveSmartInfo(i)"));
 		SaveSmartInfo(i);
 
 #ifdef BENCHMARK
@@ -333,6 +372,7 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 #endif	
 	if(errorCount)
 	{
+		DebugPrint(_T("SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0)"));
 		SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);
 	//	SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
 	//	m_PowerOnHoursClass = _T("valueR gray");
@@ -341,9 +381,11 @@ void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChang
 	}
 	SetWindowTitle(_T(""));
 
+	DebugPrint(_T("AutoAamApmAdaption()"));
 	AutoAamApmAdaption();
 
 	#ifdef GADGET_SUPPORT
+	DebugPrint(_T("UpdateShareInfo()"));
 	UpdateShareInfo();
 	#endif
 }

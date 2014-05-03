@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -237,6 +235,15 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
 	m_FlagSmartEnglish = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("SmartEnglish"), 0, m_Ini);
 	m_FlagAlertSound = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertSound"), 1, m_Ini);
+
+	if((BOOL)GetPrivateProfileInt(_T("Workaround"), _T("ExecFailed"), 0, m_Ini))
+	{
+		m_FlagAtaPassThroughSmart = FALSE;
+		WritePrivateProfileString(_T("Setting"), _T("AtaPassThroughSmart"), _T("0"), m_Ini);
+	}
+
+	// Added 2013/04/12 - Workaround for Exec Failed
+	WritePrivateProfileString(_T("Workaround"), _T("ExecFailed"), _T("1"), m_Ini);
 	
 	TCHAR str[256];
 	GetPrivateProfileString(_T("Setting"), _T("AlertSoundPath"), _T(""), str, 256, m_Ini);
@@ -1798,6 +1805,9 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 
 void CDiskInfoDlg::ReExecute()
 {
+	// Added 2013/04/12 - Workaround for Exec Failed
+	WritePrivateProfileString(_T("Workaround"), _T("ExecFailed"), _T("0"), m_Ini);
+
 	ShowWindow(SW_HIDE);
 	RemoveTrayMainIcon();
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)

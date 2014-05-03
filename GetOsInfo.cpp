@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -221,6 +219,17 @@ void GetOsName(CString& OsFullName)
 				osName = _T("Windows 8");
 			}
 		}
+		else if(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 3)
+		{
+			if(osvi.wProductType != VER_NT_WORKSTATION)
+			{
+				osName = _T("Windows Server 2012 R2");
+			}
+			else
+			{
+				osName = _T("Windows 8.1");
+			}
+		}
 		else
 		{
 			osName.Format(_T("Windows NT %d.%d"), osvi.dwMajorVersion, osvi.dwMinorVersion);
@@ -241,94 +250,108 @@ void GetOsName(CString& OsFullName)
 					osType = (_T("Unlicensed"));
 					break;
 				case PRODUCT_BUSINESS:
-					osType = (_T("Business Edition"));
+					osType = (_T("Business"));
 					break;
 				case PRODUCT_BUSINESS_N:
-					osType = (_T("Business Edition N"));
+					osType = (_T("Business N"));
 					break;
 				case PRODUCT_CLUSTER_SERVER:
-					osType = (_T("Cluster Server Edition"));
+					osType = (_T("Cluster Server"));
 					break;
 				case PRODUCT_DATACENTER_SERVER:
-					osType = (_T("Datacenter Edition (Full installation)"));
+					osType = (_T("Datacenter (Full installation)"));
 					break;
 				case PRODUCT_DATACENTER_SERVER_CORE:
-					osType = (_T("Datacenter Edition (Server Core installation)"));
+					osType = (_T("Datacenter (Server Core installation)"));
 					break;
 				case PRODUCT_ENTERPRISE:
-					osType = (_T("Enterprise Edition"));
+					osType = (_T("Enterprise"));
 					break;
 				case PRODUCT_ENTERPRISE_N:
-					osType = (_T("Enterprise Edition N"));
+					osType = (_T("Enterprise N"));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER:
-					osType = (_T("Enterprise Edition (Full installation)"));
+					osType = (_T("Enterprise (Full installation)"));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER_CORE:
-					osType = (_T("Enterprise Edition (Server Core installation)"));
+					osType = (_T("Enterprise (Server Core installation)"));
 					break;
 				case PRODUCT_ENTERPRISE_SERVER_IA64:
-					osType = (_T("Datacenter Enterprise Edition for Itanium-based Systems"));
+					osType = (_T("Datacenter Enterprise for Itanium-based Systems"));
 					break;
 				case PRODUCT_HOME_BASIC:
-					osType = (_T("Home Basic Edition"));
+					osType = (_T("Home Basic"));
 					break;
 				case PRODUCT_HOME_BASIC_N:
-					osType = (_T("Home Basic Edition N"));
+					osType = (_T("Home Basic N"));
 					break;
 				case PRODUCT_HOME_PREMIUM:
-					osType = (_T("Home Premium Edition"));
+					osType = (_T("Home Premium"));
 					break;
 				case PRODUCT_HOME_PREMIUM_N:
-					osType = (_T("Home Premium Edition N"));
+					osType = (_T("Home Premium N"));
 					break;
 				case PRODUCT_HOME_SERVER:
-					osType = (_T("Home Server Edition"));
+					osType = (_T("Home Server"));
 					break;
 				case PRODUCT_SERVER_FOR_SMALLBUSINESS:
-					osType = (_T("Server for Small Business Edition"));
+					osType = (_T("Server for Small Business"));
 					break;
 				case PRODUCT_SMALLBUSINESS_SERVER:
 					osType = (_T("Small Business Server"));
 					break;
 				case PRODUCT_SMALLBUSINESS_SERVER_PREMIUM:
-					osType = (_T("Small Business Server Premium Edition"));
+					osType = (_T("Small Business Server Premium"));
 					break;
 				case PRODUCT_STANDARD_SERVER:
-					osType = (_T("Server Standard Edition (full installation)"));
+					osType = (_T("Server Standard (full installation)"));
 					break;
 				case PRODUCT_STANDARD_SERVER_CORE:
-					osType = (_T("Server Standard Edition (core installation)"));
+					osType = (_T("Server Standard (core installation)"));
 					break;
 				case PRODUCT_STARTER:
-					osType = (_T("Starter Edition"));
+					osType = (_T("Starter"));
 					break;
 				case PRODUCT_STORAGE_ENTERPRISE_SERVER:
-					osType = (_T("Storage Server Enterprise Edition"));
+					osType = (_T("Storage Server Enterprise"));
 					break;
 				case PRODUCT_STORAGE_EXPRESS_SERVER:
-					osType = (_T("Storage Server Express Edition"));
+					osType = (_T("Storage Server Express"));
 					break;
 				case PRODUCT_STORAGE_STANDARD_SERVER:
-					osType = (_T("Storage Server Standard Edition"));
+					osType = (_T("Storage Server Standard"));
 					break;
 				case PRODUCT_STORAGE_WORKGROUP_SERVER:
-					osType = (_T("Storage Server Workgroup Edition"));
+					osType = (_T("Storage Server Workgroup"));
 					break;
 				case PRODUCT_ULTIMATE:
-					osType = (_T("Ultimate Edition"));
+					osType = (_T("Ultimate"));
 					break;
 				case PRODUCT_ULTIMATE_N:
-					osType = (_T("Ultimate Edition N"));
+					osType = (_T("Ultimate N"));
 					break;
 				case PRODUCT_WEB_SERVER:
-					osType = (_T("Web Server Edition"));
+					osType = (_T("Web Server"));
 					break;
 				case PRODUCT_PROFESSIONAL:
-					osType = (_T("Professional"));
+					if(osvi.dwMinorVersion >= 2)
+					{
+						osType = (_T("Pro"));
+					}
+					else
+					{
+						osType = (_T("Professional"));
+					}
 					break;
 				case PRODUCT_PROFESSIONAL_N:
-					osType = (_T("Professional N"));
+					if(osvi.dwMinorVersion >= 2)
+					{
+						osType = (_T("Pro N"));
+					}
+					else
+					{
+						osType = (_T("Professional N"));
+					}
 					break;
 
 				case RRODUCT_ESSENTIALBUSINESS_SERVER_MGMT:

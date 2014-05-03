@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -48,7 +46,7 @@ CHAR CDiskInfoDlg::AsciiFilter(BYTE ch)
 	return ch;
 }
 
-void CDiskInfoDlg::OnEditCopy()
+void CDiskInfoDlg::CopySave(CString fileName)
 {
 	CString cstr, clip, driveTemplate, drive, feature, temp, line, csd;
 
@@ -838,7 +836,7 @@ void CDiskInfoDlg::OnEditCopy()
 		}
 	}
 
-	if(OpenClipboard())
+	if(fileName.IsEmpty() && OpenClipboard())
 	{
 		HGLOBAL clipbuffer;
 		TCHAR* buffer;
@@ -854,4 +852,19 @@ void CDiskInfoDlg::OnEditCopy()
 #endif
 		CloseClipboard();
 	}
+	else
+	{
+		clip.Replace(_T("\r\n"), _T("\n"));
+		FILE *fp;
+		_tfopen_s(&fp, fileName, _T("w, ccs=UTF-16LE"));
+		CStdioFile file(fp);
+		file.WriteString(clip);
+		file.Close();
+		fclose(fp);
+	}
+}
+
+void CDiskInfoDlg::OnEditCopy()
+{
+	CopySave(_T(""));
 }

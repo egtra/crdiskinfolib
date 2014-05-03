@@ -3,8 +3,6 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                                Copyright 2008 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
@@ -53,6 +51,8 @@ BOOL CDiskInfoApp::InitInstance()
 {
 	BOOL flagEarthlight = FALSE;
 	BOOL flagStartupExit = FALSE;
+	m_FlagCopyExit = FALSE;
+
 	int defaultDisk = -1;
 	HANDLE hMutex = NULL;
 
@@ -88,6 +88,7 @@ BOOL CDiskInfoApp::InitInstance()
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	m_Ini.Replace(_T("DiskInfoS.ini"), _T("DiskInfo.ini"));
+	m_Ini.Replace(_T("DiskInfoSx64.ini"), _T("DiskInfoX64.ini"));
 #endif
 
 	CString cstr;
@@ -104,6 +105,7 @@ BOOL CDiskInfoApp::InitInstance()
 	{
 		CString cstr;
 		cstr = argv[1];
+	
 		if(cstr.CompareNoCase(_T("/Earthlight")) == 0)
 		{
 			flagEarthlight = TRUE;
@@ -128,7 +130,19 @@ BOOL CDiskInfoApp::InitInstance()
 		if(cstr.CompareNoCase(_T("/Exit")) == 0)
 		{
 			flagStartupExit = TRUE;
+		}		
+		if(cstr.CompareNoCase(_T("/Copy")) == 0)
+		{
+			m_SaveAsText = m_Ini;
+			m_SaveAsText.Replace(_T("ini"), _T("txt"));
 		}
+		if(cstr.CompareNoCase(_T("/CopyExit")) == 0)
+		{
+			m_SaveAsText = m_Ini;
+			m_SaveAsText.Replace(_T("ini"), _T("txt"));
+			m_FlagCopyExit = TRUE;
+		}
+
 	}
 
 	// DEBUG

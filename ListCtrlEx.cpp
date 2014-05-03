@@ -3,14 +3,20 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                                Copyright 2008 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 #include "ListCtrlEx.h"
 
 IMPLEMENT_DYNAMIC(CListCtrlEx, CListCtrl)
+
+BOOL CListCtrlEx::IsHighContrast()
+{
+	HIGHCONTRAST hc;
+	hc.cbSize = sizeof(HIGHCONTRAST);
+	SystemParametersInfo(SPI_GETHIGHCONTRAST, sizeof(HIGHCONTRAST), &hc, 0);
+	return hc.dwFlags & HCF_HIGHCONTRASTON;
+}
 
 CListCtrlEx::CListCtrlEx()
 {
@@ -35,6 +41,11 @@ END_MESSAGE_MAP()
 
 void CListCtrlEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	if(IsHighContrast())
+	{
+		return;
+	}
+
 	LPNMLVCUSTOMDRAW lpLVCustomDraw = reinterpret_cast<LPNMLVCUSTOMDRAW>(pNMHDR);
 
 	switch(lpLVCustomDraw->nmcd.dwDrawStage)
@@ -68,7 +79,6 @@ void CListCtrlEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 					FillRect(lpLVCustomDraw->nmcd.hdc, &rc, (HBRUSH) brush.GetSafeHandle());
 				}
 			}
-
 		}
 		break;
     default:

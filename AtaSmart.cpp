@@ -3,11 +3,8 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2008-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 // Reference : http://www.usefullcode.net/2007/02/hddsmart.html (ja)
-//
 
 #include "stdafx.h"
 #include "AtaSmart.h"
@@ -2383,6 +2380,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 				asi.IsThresholdCorrect = FALSE;
 				asi.IsSmartEnabled = FALSE;
 
+				/* 2013/04/12 Disabled
 				m_FlagAtaPassThroughSmart = TRUE; // Force Enable ATA_PASS_THROUGH
 				
 				debug.Format(_T("GetSmartAttributePd(%d) - 1"), physicalDriveId);
@@ -2426,6 +2424,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 						asi.IsSmartEnabled = TRUE;
 					}
 				}
+				*/
 			}
 			break;
 		case CMD_TYPE_SCSI_MINIPORT:
@@ -3860,9 +3859,12 @@ BOOL CAtaSmart::DoIdentifyDevicePd(INT physicalDriveId, BYTE target, IDENTIFY_DE
 		return	FALSE;
 	}
 
-	DebugPrint(_T("SendAtaCommandPd - IDENTIFY_DEVICE (ATA_PASS_THROUGH)"));
-	bRet = SendAtaCommandPd(physicalDriveId, target, 0xEC, 0x00, 0x00, (PBYTE)data, sizeof(IDENTIFY_DEVICE));
-	cstr = data->Model;
+	if(m_FlagAtaPassThrough && m_FlagAtaPassThroughSmart)
+	{
+		DebugPrint(_T("SendAtaCommandPd - IDENTIFY_DEVICE (ATA_PASS_THROUGH)"));
+		bRet = SendAtaCommandPd(physicalDriveId, target, 0xEC, 0x00, 0x00, (PBYTE)data, sizeof(IDENTIFY_DEVICE));
+		cstr = data->Model;
+	}
 
 	if(bRet == FALSE || cstr.IsEmpty())
 	{
@@ -6085,6 +6087,21 @@ BOOL CAtaSmart::FillSmartThreshold(ATA_SMART_INFO* asi)
 		}
 	}
 
+	// 2013/04/13 Added P400e SSD SMART Implementation support
+	// Threshold = Attribute[].Reserved
+	if(asi->DiskVendorId == SSD_VENDOR_MICRON && count == 0)
+	{
+		for(int i = 0; i < MAX_ATTRIBUTE; i++)
+		{
+			if(asi->Attribute[i].Reserved > 0)
+			{
+				asi->Threshold[i].Id = asi->Attribute[i].Id;
+				asi->Threshold[i].ThresholdValue = asi->Attribute[i].Reserved;
+				count++;
+			}
+		}
+	}
+
 	if(count > 0)
 	{
 		return TRUE;
@@ -6504,6 +6521,10 @@ DWORD CAtaSmart::GetAtaMajorVersion(WORD w80, CString &majorVersion)
 	{
 		majorVersion = _T("");
 	}
+	else if(major == 11)
+	{
+		majorVersion = _T("ACS-4");
+	}
 	else if(major == 10)
 	{
 		majorVersion = _T("ACS-3");
@@ -6574,6 +6595,7 @@ VOID CAtaSmart::GetAtaMinorVersion(WORD w81, CString &minor)
 	case 0x001C:	minor = _T("ATA/ATAPI-6 T13 1410D version 1");				break;
 	case 0x001D:	minor = _T("ATA/ATAPI-7 published ANSI INCITS 397-2005.");	break;
 	case 0x001E:	minor = _T("ATA/ATAPI-7 T13 1532D version 0");				break;
+	case 0x001F:	minor = _T("ACS-3 Revision 3b");							break;
 	case 0x0021:	minor = _T("ATA/ATAPI-7 T13 1532D version 4a");				break;
 	case 0x0022:	minor = _T("ATA/ATAPI-6 published, ANSI INCITS 361-2002");	break;
 	case 0x0027:	minor = _T("ATA8-ACS version 3c");							break;
@@ -6584,8 +6606,10 @@ VOID CAtaSmart::GetAtaMinorVersion(WORD w81, CString &minor)
 	case 0x0039:	minor = _T("ATA8-ACS version 4c");							break;
 	case 0x0042:	minor = _T("ATA8-ACS version 3f");							break;
 	case 0x0052:	minor = _T("ATA8-ACS version 3b");							break;
+	case 0x0082:	minor = _T("ACS-2 published, ANSI INCITS 482-2012");		break;
 	case 0x0107:	minor = _T("ATA8-ACS version 2d");							break;
 	case 0x0110:	minor = _T("ACS-2 Revision 3");								break;
+	case 0x011B:	minor = _T("ACS-3 Revision 4");								break;
 	default:	//	minor.Format(_T("Reserved [%04Xh]"), w81);					break;
 					minor.Format(_T("---- [%04Xh]"), w81);						break;
 	}

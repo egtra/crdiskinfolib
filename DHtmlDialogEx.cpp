@@ -3,14 +3,13 @@
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
 //      License : Simplified BSD license
-//
-//                           Copyright 2007-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 #include "resource.h"
 #include "DHtmlDialogEx.h"
 #include "GetOsInfo.h"
+#include <Shlwapi.h>
 
 #include <strsafe.h>
 
@@ -182,7 +181,11 @@ void CDHtmlDialogEx::InitDHtmlDialog(DWORD sizeX, DWORD sizeY, CString dialogPat
 
 // Navigate
 //	ChangeAmbient();
-	Navigate(_T("file://") + dialogPath, navNoHistory);
+//	Navigate(_T("file://") + dialogPath, navNoHistory);
+	TCHAR url[MAX_PATH * 3];
+	DWORD length = MAX_PATH * 3;
+	UrlCreateFromPath(dialogPath, url, &length, NULL);
+	Navigate(url, navNoHistory);
 }
 
 // 2008/1/19 //
