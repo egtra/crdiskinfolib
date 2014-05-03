@@ -1172,15 +1172,10 @@ void CDiskInfoDlg::OnTimer(UINT_PTR nIDEvent)
 
 LRESULT CDiskInfoDlg::OnPowerBroadcast(WPARAM wParam, LPARAM lParam)
 {
-	if(m_AutoDetectionStatus <= 0)
-	{
-		return FALSE;
-	}
-
 	switch(wParam)
 	{
 	case PBT_APMRESUMESUSPEND:
-		SetTimer(TIMER_FORCE_REFRESH, m_AutoDetectionStatus * 1000, 0);
+		SetTimer(TIMER_FORCE_REFRESH, 5 * 1000, 0);
 //		MessageBox(_T("PBT_APMRESUMESUSPEND"));
 		break;
 //	case PBT_APMSUSPEND:
@@ -1305,7 +1300,6 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 
 	//DEBUG
 	DebugPrint(_T("AutoAamApmAdaption"));
-
 	// AAM
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{

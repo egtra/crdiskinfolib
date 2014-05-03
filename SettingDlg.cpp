@@ -201,7 +201,8 @@ HRESULT CSettingDlg::OnEnableAam(IHTMLElement* /*pElement*/)
 		return S_FALSE;
 	}
 
-	p->m_Ata.EnableAam(m_DiskIndex, m_AamScrollbar.GetScrollPos());
+	int targetValue = m_AamScrollbar.GetScrollPos();
+	p->m_Ata.EnableAam(m_DiskIndex, targetValue);
 	p->m_Ata.UpdateIdInfo(m_DiskIndex);
 
 	if(p->m_Ata.vars.GetAt(m_DiskIndex).IsAamEnabled)
@@ -216,7 +217,7 @@ HRESULT CSettingDlg::OnEnableAam(IHTMLElement* /*pElement*/)
 
 	// Save Settings
 	CString cstr;
-	cstr.Format(_T("%d"), m_AamScrollbar.GetScrollPos());
+	cstr.Format(_T("%d"), targetValue);
 	WritePrivateProfileString(_T("AamStatus"), p->m_Ata.vars[m_DiskIndex].ModelSerial, _T("1"), m_Ini);
 	WritePrivateProfileString(_T("AamValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
 
@@ -244,10 +245,10 @@ HRESULT CSettingDlg::OnDisableAam(IHTMLElement* /*pElement*/)
 	UpdateData(FALSE);
 
 	// Save Settings
-	CString cstr;
-	cstr.Format(_T("%d"), m_AamScrollbar.GetScrollPos());
+//	CString cstr;
+//	cstr.Format(_T("%d"), m_AamScrollbar.GetScrollPos());
 	WritePrivateProfileString(_T("AamStatus"), p->m_Ata.vars[m_DiskIndex].ModelSerial, _T("0"), m_Ini);
-	WritePrivateProfileString(_T("AamValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
+//	WritePrivateProfileString(_T("AamValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
 
 	return S_FALSE;
 }
@@ -259,7 +260,8 @@ HRESULT CSettingDlg::OnEnableApm(IHTMLElement* /*pElement*/)
 		return S_FALSE;
 	}
 
-	p->m_Ata.EnableApm(m_DiskIndex, m_ApmScrollbar.GetScrollPos());
+	int targetValue = m_ApmScrollbar.GetScrollPos();
+	p->m_Ata.EnableApm(m_DiskIndex, targetValue);
 	p->m_Ata.UpdateIdInfo(m_DiskIndex);
 
 	if(p->m_Ata.vars.GetAt(m_DiskIndex).IsApmEnabled)
@@ -273,7 +275,7 @@ HRESULT CSettingDlg::OnEnableApm(IHTMLElement* /*pElement*/)
 
 	// Save Settings
 	CString cstr;
-	cstr.Format(_T("%d"), m_ApmScrollbar.GetScrollPos());
+	cstr.Format(_T("%d"), targetValue);
 	WritePrivateProfileString(_T("ApmStatus"), p->m_Ata.vars[m_DiskIndex].ModelSerial, _T("1"), m_Ini);
 	WritePrivateProfileString(_T("ApmValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
 
@@ -300,10 +302,10 @@ HRESULT CSettingDlg::OnDisableApm(IHTMLElement* /*pElement*/)
 	UpdateData(FALSE);
 
 	// Save Settings
-	CString cstr;
-	cstr.Format(_T("%d"), m_ApmScrollbar.GetScrollPos());
+//	CString cstr;
+//	cstr.Format(_T("%d"), m_ApmScrollbar.GetScrollPos());
 	WritePrivateProfileString(_T("ApmStatus"), p->m_Ata.vars[m_DiskIndex].ModelSerial, _T("0"), m_Ini);
-	WritePrivateProfileString(_T("ApmValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
+//	WritePrivateProfileString(_T("ApmValue"), p->m_Ata.vars[m_DiskIndex].ModelSerial, cstr, m_Ini);
 
 	return S_FALSE;
 }
