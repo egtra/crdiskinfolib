@@ -67,10 +67,10 @@
 #define PRODUCT_SHORT_NAME		_T("CDI 5")
 #define PRODUCT_EDITION			_T("")
 #endif
-#define PRODUCT_VERSION			_T("5.2.0")
-#define PRODUCT_RELEASE			_T("2012/12/20")
+#define PRODUCT_VERSION			_T("5.2.1")
+#define PRODUCT_RELEASE			_T("2013/01/01")
 #define PRODUCT_COPY_YEAR		_T("2008-2012")
-#define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2012 hiyohiyo.")
+#define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2013 hiyohiyo.")
 
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")

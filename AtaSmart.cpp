@@ -2,7 +2,7 @@
 //       Author : hiyohiyo
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
-//      License : The modified BSD license
+//      License : Simplified BSD license
 //
 //                           Copyright 2008-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
@@ -546,6 +546,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	m_SiliconImageControllerType.RemoveAll();
 
 	BOOL detectUASPdisks = FALSE;
+	BOOL detectUSBMemory = FALSE;
 
 	m_BlackPhysicalDrive.RemoveAll();
 	DWORD driveLetterMap[256] = {0};
@@ -1154,6 +1155,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						if(model.Find(_T("SanDisk Extreme USB Device")) == 0)
 						{
 							flagTarget = TRUE;
+							detectUSBMemory = TRUE;
 						}
 						else if(mediaType.Find(_T("removable")) >= 0 || mediaType.IsEmpty())
 						{
@@ -1753,7 +1755,7 @@ safeRelease:
 		{
 			// None
 		}
-		else if(detectUASPdisks && GetDriveType(cstr) == DRIVE_REMOVABLE && c >= 'C')
+		else if(detectUSBMemory && GetDriveType(cstr) == DRIVE_REMOVABLE && c >= 'C')
 		{
 			// None
 		}

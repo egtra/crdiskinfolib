@@ -2,7 +2,7 @@
 //       Author : hiyohiyo
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
-//      License : The modified BSD license
+//      License : Simplified BSD license
 //
 //                           Copyright 2008-2009 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
@@ -274,7 +274,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	
 	if(GetUserDefaultLCID() == 0x0411)// Japanese
 	{
-		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), INDEX_SHIZUKU_KARUTA, m_Ini);
+		m_ShizukuImageType = GetPrivateProfileInt(_T("Setting"), _T("ShizukuImageType"), 1, m_Ini);
 	}
 	else
 	{

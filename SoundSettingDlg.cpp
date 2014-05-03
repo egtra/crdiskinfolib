@@ -2,7 +2,7 @@
 //       Author : hiyohiyo
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
-//      License : The modified BSD license
+//      License : Simplified BSD license
 //
 //                                Copyright 2012 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
