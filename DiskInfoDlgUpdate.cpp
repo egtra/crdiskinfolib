@@ -1747,6 +1747,15 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 		menu->CheckMenuItem(ID_WORKAROUND_IE8MODE, MF_UNCHECKED);
 	}
 
+	if (m_FlagWorkaroundIgnoreC4)
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_IGNORE_C4, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_IGNORE_C4, MF_UNCHECKED);
+	}
+
 	if(GetIeVersion() >= 900)
 	{
 		menu->EnableMenuItem(ID_WORKAROUND_IE8MODE, MF_ENABLED);

@@ -106,6 +106,12 @@ DWORD CDialogCx::ChangeZoomType(DWORD zoomType)
 		{
 			zoomType = ZOOM_TYPE_300;
 		}
+		/*
+		else if (current >= 250)
+		{
+			zoomType = ZOOM_TYPE_250;
+		}
+		*/
 		else if(current >= 200)
 		{
 			zoomType = ZOOM_TYPE_200;

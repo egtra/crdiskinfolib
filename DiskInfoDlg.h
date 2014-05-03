@@ -206,6 +206,7 @@ protected:
 	BOOL m_FlagWorkaroundHD204UI;
 	BOOL m_FlagWorkaroundIE8MODE;
 	BOOL m_FlagWorkaroundAdataSsd;
+	BOOL m_FlagWorkaroundIgnoreC4;
 	BOOL m_FlagEventLog;
 	BOOL m_FlagAlertMail;
 	BOOL m_FlagAtaPassThroughSmart;
@@ -406,6 +407,7 @@ public:
 	afx_msg void OnWorkaroundHD204UI();
 	afx_msg void OnWorkaroundIE8MODE();
 	afx_msg void OnWorkaroundAdataSsd();
+	afx_msg void OnWorkaroundIgnoreC4();
 	afx_msg void OnGreenMode();
 	afx_msg void OnResident();
 
@@ -515,6 +517,7 @@ public:
 	afx_msg void OnZoom125();
 	afx_msg void OnZoom150();
 	afx_msg void OnZoom200();
+	afx_msg void OnZoom250();
 	afx_msg void OnZoom300();
 	afx_msg void OnZoomAuto();
 	afx_msg void OnRawValues16();

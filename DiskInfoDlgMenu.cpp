@@ -647,6 +647,31 @@ void CDiskInfoDlg::OnWorkaroundAdataSsd()
 	}
 }
 
+void CDiskInfoDlg::OnWorkaroundIgnoreC4()
+{
+	CWaitCursor wait;
+	BOOL flagChangeDisk = FALSE;
+
+	if (m_FlagWorkaroundIgnoreC4)
+	{
+		m_FlagWorkaroundIgnoreC4 = FALSE;
+		WritePrivateProfileString(_T("Workaround"), _T("IgnoreC4"), _T("0"), m_Ini);
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_IGNORE_C4, MF_UNCHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+	else
+	{
+		m_FlagWorkaroundIgnoreC4 = TRUE;
+		WritePrivateProfileString(_T("Workaround"), _T("IgnoreC4"), _T("1"), m_Ini);
+		CMenu *menu = GetMenu();
+		menu->CheckMenuItem(ID_WORKAROUND_IGNORE_C4, MF_CHECKED);
+		SetMenu(menu);
+		DrawMenuBar();
+	}
+}
+
 void CDiskInfoDlg::OnAtaPassThroughSmart()
 {
 	CMenu *menu = GetMenu();
@@ -1360,6 +1385,16 @@ void CDiskInfoDlg::OnZoom200()
 	}
 }
 
+/*
+void CDiskInfoDlg::OnZoom250()
+{
+	if (CheckRadioZoomType(ID_ZOOM_250, 250))
+	{
+		//	ReExecute();
+		UpdateDialogSize();
+	}
+}
+*/
 void CDiskInfoDlg::OnZoom300()
 {
 	if(CheckRadioZoomType(ID_ZOOM_300, 300))
@@ -1412,6 +1447,7 @@ void CDiskInfoDlg::CheckRadioZoomType()
 	case 125: id = ID_ZOOM_125;	break;
 	case 150: id = ID_ZOOM_150;	break;
 	case 200: id = ID_ZOOM_200;	break;
+//	case 250: id = ID_ZOOM_250;	break;
 	case 300: id = ID_ZOOM_300;	break;
 	default:  id = ID_ZOOM_AUTO;	break;
 	}

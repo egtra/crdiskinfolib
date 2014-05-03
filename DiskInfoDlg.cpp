@@ -204,6 +204,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagWorkaroundHD204UI =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("HD204UI"), 0, m_Ini);
 	m_FlagWorkaroundIE8MODE =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("IE8MODE"), 0, m_Ini);
 	m_FlagWorkaroundAdataSsd =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("AdataSsd"), 1, m_Ini);
+	m_FlagWorkaroundIgnoreC4 = (BOOL) GetPrivateProfileInt(_T("Workaround"), _T("IgnoreC4"), 1, m_Ini);
 	m_FlagEventLog = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("EventLog"), 0, m_Ini);
 	m_FlagAlertMail = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertMail"), 0, m_Ini);
 	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 1, m_Ini);
@@ -536,6 +537,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CMainDialog)
 	ON_COMMAND(ID_GREEN_MODE, &CDiskInfoDlg::OnGreenMode)
 
 	ON_COMMAND(ID_WORKAROUND_ADATA_SSD, &CDiskInfoDlg::OnWorkaroundAdataSsd)
+	ON_COMMAND(ID_WORKAROUND_IGNORE_C4, &CDiskInfoDlg::OnWorkaroundIgnoreC4)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
 
 	ON_MESSAGE(WM_POWERBROADCAST, &CDiskInfoDlg::OnPowerBroadcast)
@@ -648,6 +650,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CMainDialog)
 	ON_COMMAND(ID_ZOOM_125, &CDiskInfoDlg::OnZoom125)
 	ON_COMMAND(ID_ZOOM_150, &CDiskInfoDlg::OnZoom150)
 	ON_COMMAND(ID_ZOOM_200, &CDiskInfoDlg::OnZoom200)
+//	ON_COMMAND(ID_ZOOM_250, &CDiskInfoDlg::OnZoom250)
 	ON_COMMAND(ID_ZOOM_300, &CDiskInfoDlg::OnZoom300)
 	ON_COMMAND(ID_ZOOM_AUTO, &CDiskInfoDlg::OnZoomAuto)
 	ON_COMMAND(ID_RAW_VALUES_16, &CDiskInfoDlg::OnRawValues16)
@@ -1433,7 +1436,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 	for(DWORD j = 0; j < m_Ata.vars[i].AttributeCount; j++)
 	{
 		if(( m_Ata.vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count
-		||  m_Ata.vars[i].Attribute[j].Id == 0xC4 // Reallocation Event Count
+		|| (m_Ata.vars[i].Attribute[j].Id == 0xC4 && ! m_FlagWorkaroundIgnoreC4)// Reallocation Event Count
 		||  m_Ata.vars[i].Attribute[j].Id == 0xC5 // Current Pending Sector Count
 		||  m_Ata.vars[i].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
 		) && ! m_Ata.vars[i].IsSsd)

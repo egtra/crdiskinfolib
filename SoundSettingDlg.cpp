@@ -72,7 +72,7 @@ BOOL CSoundSettingDlg::OnInitDialog()
 BEGIN_MESSAGE_MAP(CSoundSettingDlg, CDialogCx)
 	ON_BN_CLICKED(IDC_BUTTON_SELECT_FILE, &CSoundSettingDlg::OnBnClickedButtonSelectFile)
 	ON_BN_CLICKED(IDC_BUTTON_PLAY, &CSoundSettingDlg::OnBnClickedButtonPlay)
-	ON_BN_CLICKED(IDC_BUTTON_DEFALT, &CSoundSettingDlg::OnBnClickedButtonDefault)
+	ON_BN_CLICKED(IDC_BUTTON_DEFAULT, &CSoundSettingDlg::OnBnClickedButtonDefault)
 	ON_BN_CLICKED(IDC_BUTTON_OK, &CSoundSettingDlg::OnBnClickedButtonOk)
 END_MESSAGE_MAP()
 
