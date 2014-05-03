@@ -734,55 +734,42 @@ BOOL CDiskInfoDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 		int i = (int)(wParam - AUTO_REFRESH_TARGET_BASE);
 		// Target All Disk : AUTO_REFRESH_TARGET_BASE + CAtaSmart::MAX_DISK
 		// Unarget All Disk : AUTO_REFRESH_TARGET_BASE + CAtaSmart::MAX_DISK
+		CMenu *menu = GetMenu();
 		if(i == CAtaSmart::MAX_DISK) // Target All Disk
 		{
-			CMenu *menu = GetMenu();
 			for(int j = 0; j < m_Ata.vars.GetCount(); j++)
 			{
-				CString cstr;
-				cstr.Format(_T("%d"), 1);
 				m_FlagAutoRefreshTarget[j] = TRUE;
 				menu->CheckMenuItem(AUTO_REFRESH_TARGET_BASE + j, MF_CHECKED);
-				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[j].ModelSerial, cstr, m_Ini);
+				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[j].ModelSerial, _T("1"), m_Ini);
 			}
-			SetMenu(menu);
-			DrawMenuBar();
 		}
 		else if(i == CAtaSmart::MAX_DISK + 1) // Unarget All Disk
 		{
-			CMenu *menu = GetMenu();
 			for(int j = 0; j < m_Ata.vars.GetCount(); j++)
 			{
-				CString cstr;
-				cstr.Format(_T("%d"), 0);
 				m_FlagAutoRefreshTarget[j] = FALSE;
 				menu->CheckMenuItem(AUTO_REFRESH_TARGET_BASE + j, MF_UNCHECKED);
-				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[j].ModelSerial, cstr, m_Ini);
+				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[j].ModelSerial, _T("0"), m_Ini);
 			}
-			SetMenu(menu);
-			DrawMenuBar();
 		}
 		else
 		{
-			CString cstr;
-			cstr.Format(_T("%d"), i);
-
-			CMenu *menu = GetMenu();
 			if(m_FlagAutoRefreshTarget[i])
 			{
 				m_FlagAutoRefreshTarget[i] = FALSE;
 				menu->CheckMenuItem(AUTO_REFRESH_TARGET_BASE + i, MF_UNCHECKED);
+				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[i].ModelSerial, _T("0"), m_Ini);
 			}
 			else
 			{
 				m_FlagAutoRefreshTarget[i] = TRUE;
 				menu->CheckMenuItem(AUTO_REFRESH_TARGET_BASE + i, MF_CHECKED);
+				WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[i].ModelSerial, _T("1"), m_Ini);
 			}
-			SetMenu(menu);
-			DrawMenuBar();
-
-			WritePrivateProfileString(_T("AutoRefreshTarget"), m_Ata.vars[i].ModelSerial, cstr, m_Ini);
 		}
+		SetMenu(menu);
+		DrawMenuBar();
 	}
 
 	return CDHtmlMainDialog::OnCommand(wParam, lParam);

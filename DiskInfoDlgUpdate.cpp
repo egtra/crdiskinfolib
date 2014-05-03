@@ -1315,7 +1315,6 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	subSubMenu.AppendMenu(MF_SEPARATOR);
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
-		CString cstr;
 		cstr.Format(_T("(%d) %s %.1f GB"), i + 1, m_Ata.vars[i].Model, m_Ata.vars[i].TotalDiskSize / 1000.0);
 		subSubMenuInfo.wID = AUTO_REFRESH_TARGET_BASE + i;
 		subSubMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();

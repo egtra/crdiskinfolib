@@ -383,7 +383,7 @@ void CDiskInfoDlg::OnWait240Sec(){	CheckRadioWaitTime(ID_WAIT_240_SEC, 240);}
 void CDiskInfoDlg::CheckRadioWaitTime(int id, int value)
 {
 	CMenu *menu = GetMenu();
-	menu->CheckMenuRadioItem(ID_WAIT_0_SEC, ID_WAIT_120_SEC, id, MF_BYCOMMAND);
+	menu->CheckMenuRadioItem(ID_WAIT_0_SEC, ID_WAIT_240_SEC, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
 
@@ -419,7 +419,7 @@ void CDiskInfoDlg::CheckRadioWaitTime()
 	}
 
 	CMenu *menu = GetMenu();
-	menu->CheckMenuRadioItem(ID_WAIT_0_SEC, ID_WAIT_120_SEC, id, MF_BYCOMMAND);
+	menu->CheckMenuRadioItem(ID_WAIT_0_SEC, ID_WAIT_240_SEC, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
 }
