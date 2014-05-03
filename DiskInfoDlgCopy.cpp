@@ -296,14 +296,14 @@ Number of Sectors : %NUMBER_OF_SECTORS%\r\n\
 		}
 		drive.Replace(_T("%NV_CACHE_SIZE%"), cstr);
 
-		if(m_Ata.vars[i].NominalMediaRotationRate > 0)
-		{
-			cstr.Format(_T("%d RPM"), m_Ata.vars[i].NominalMediaRotationRate);
-		}
-		else if(m_Ata.vars[i].IsSsd)
+		if(m_Ata.vars[i].NominalMediaRotationRate == 1)
 		{
 			cstr = _T("---- (SSD)");
 		}
+		else if(m_Ata.vars[i].NominalMediaRotationRate > 0)
+		{
+			cstr.Format(_T("%d RPM"), m_Ata.vars[i].NominalMediaRotationRate);
+		}		
 		else
 		{
 			cstr = i18n(_T("Dialog"), _T("UNKNOWN"));

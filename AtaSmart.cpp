@@ -1500,6 +1500,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, BYT
 	if(asi.Major >= 7 && asi.IdentifyDevice.NominalMediaRotationRate == 0x01) 
 	{
 		asi.IsSsd = TRUE;
+		asi.NominalMediaRotationRate = 1;
 	}
 
 	// Temporary (2009/3/31 2.5.2)
@@ -2242,7 +2243,7 @@ BOOL CAtaSmart::SendAtaCommandPd(INT physicalDriveId, BYTE target, BYTE main, BY
 		ATA_PASS_THROUGH_EX_WITH_BUFFERS ab;
 		::ZeroMemory(&ab, sizeof(ab));
 		ab.Apt.Length = sizeof(ATA_PASS_THROUGH_EX);
-		ab.Apt.TimeOutValue = 10;
+		ab.Apt.TimeOutValue = 2;
 		DWORD size = offsetof(ATA_PASS_THROUGH_EX_WITH_BUFFERS, Buf);
 		ab.Apt.DataBufferOffset = size;
 
@@ -2254,6 +2255,7 @@ BOOL CAtaSmart::SendAtaCommandPd(INT physicalDriveId, BYTE target, BYTE main, BY
 			}
 			ab.Apt.AtaFlags = ATA_FLAGS_DATA_IN;
 			ab.Apt.DataTransferLength = dataSize;
+			ab.Buf[0] = 0xCF; // magic number
 			size += dataSize;
 		}
 

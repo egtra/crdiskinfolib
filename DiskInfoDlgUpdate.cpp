@@ -638,14 +638,14 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 		m_NvCacheSize = _T("----");
 	}
 
-	if(m_Ata.vars[i].NominalMediaRotationRate > 0)
-	{
-		m_RotationRate.Format(_T("%d RPM"), m_Ata.vars[i].NominalMediaRotationRate);
-		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("supported"));
-	}
-	else if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
+	if(m_Ata.vars[i].NominalMediaRotationRate == 1) // SSD
 	{
 		m_RotationRate = _T("---- (SSD)");
+		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("supported"));
+	}
+	else if(m_Ata.vars[i].NominalMediaRotationRate > 0)
+	{
+		m_RotationRate.Format(_T("%d RPM"), m_Ata.vars[i].NominalMediaRotationRate);
 		SetElementPropertyEx(_T("RotationRate"), DISPID_IHTMLELEMENT_CLASSNAME, &dummy, _T("supported"));
 	}
 	else
