@@ -3322,6 +3322,29 @@ BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
 		flagSmartType = TRUE;
 	}
 
+	// TOSHIBA + SandForce
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1116;id=diskinfo#1116
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1136;id=diskinfo#1136
+	if(asi.Attribute[ 0].Id == 0x01
+	&& asi.Attribute[ 1].Id == 0x02
+	&& asi.Attribute[ 2].Id == 0x03
+	&& asi.Attribute[ 3].Id == 0x05
+	&& asi.Attribute[ 4].Id == 0x07
+	&& asi.Attribute[ 5].Id == 0x08
+	&& asi.Attribute[ 6].Id == 0x09
+	&& asi.Attribute[ 7].Id == 0x0A
+	&& asi.Attribute[ 8].Id == 0x0C
+	&& asi.Attribute[ 9].Id == 0xA7
+	&& asi.Attribute[10].Id == 0xA8
+	&& asi.Attribute[11].Id == 0xA9
+	&& asi.Attribute[12].Id == 0xAA
+	&& asi.Attribute[13].Id == 0xAD
+	&& asi.Attribute[14].Id == 0xAF
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
 	return (asi.Model.Find(_T("SandForce")) >= 0 || flagSmartType);
 }
 
@@ -5661,14 +5684,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				}
 				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
 				{
-					if(asi->Attribute[j].RawValue[2] == 0)
-					{
-						asi->Temperature = 0;
-					}
-					else
-					{
-						asi->Temperature = (DWORD)(asi->Attribute[j].RawValue[0] * asi->TemperatureMultiplier);
-					}
+					asi->Temperature = (DWORD)(asi->Attribute[j].RawValue[0] * asi->TemperatureMultiplier);
 				}
 				else if(asi->Attribute[j].RawValue[0] > 0)
 				{
@@ -6095,7 +6111,8 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 		else if((
 			(0x01 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0x0D)
 //		||	vars[i].Attribute[j].Id == 0xB8
-		||	(0xBB <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xC1)
+		||	(0xBB <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xBD)
+		||	(0xBF <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xC1)
 		||	(0xC3 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xD1)
 		||	(0xD3 <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xD4)
 		||	(0xDC <= vars[i].Attribute[j].Id && vars[i].Attribute[j].Id <= 0xE4)

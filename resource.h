@@ -397,6 +397,7 @@
 #define ID_ALERT_MAIL                   33053
 #define ID_MAIL_SETTINGS                33054
 #define ID_WORKAROUND_HD204UI           33055
+#define ID_WORKAROUND_IE8MODE           33056
 #define ID_LANGUAGE_S                   33057
 #define ID_SMART_ENGLISH                33058
 #define ID_THEME_FONTSETTINGS           33059

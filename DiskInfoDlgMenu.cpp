@@ -618,6 +618,23 @@ void CDiskInfoDlg::OnWorkaroundHD204UI()
 	}
 }
 
+void CDiskInfoDlg::OnWorkaroundIE8MODE()
+{
+	CWaitCursor wait;
+	BOOL flagChangeDisk = FALSE;
+
+	if(m_FlagWorkaroundIE8MODE)
+	{
+		m_FlagWorkaroundIE8MODE = FALSE;
+		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("0"), m_Ini);
+	}
+	else
+	{
+		m_FlagWorkaroundIE8MODE = TRUE;
+		WritePrivateProfileString(_T("Workaround"), _T("IE8MODE"), _T("1"), m_Ini);
+	}
+	ReExecute();
+}
 
 void CDiskInfoDlg::OnWorkaroundAdataSsd()
 {

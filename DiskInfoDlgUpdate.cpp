@@ -1796,6 +1796,24 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	{
 		menu->CheckMenuItem(ID_WORKAROUND_HD204UI, MF_UNCHECKED);
 	}
+
+	if(m_FlagWorkaroundIE8MODE)
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_IE8MODE, MF_CHECKED);
+	}
+	else
+	{
+		menu->CheckMenuItem(ID_WORKAROUND_IE8MODE, MF_UNCHECKED);
+	}
+
+	if(GetIeVersion() >= 900)
+	{
+		menu->EnableMenuItem(ID_WORKAROUND_IE8MODE, MF_ENABLED);
+	}
+	else
+	{
+		menu->EnableMenuItem(ID_WORKAROUND_IE8MODE, MF_GRAYED);
+	}
 	
 	if(GetIeVersion() >= 600)
 	{

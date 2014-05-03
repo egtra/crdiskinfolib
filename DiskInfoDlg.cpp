@@ -223,6 +223,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 
 	m_FlagAdvancedDiskSearch = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AdvancedDiskSearch"), 0, m_Ini);
 	m_FlagWorkaroundHD204UI =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("HD204UI"), 0, m_Ini);
+	m_FlagWorkaroundIE8MODE =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("IE8MODE"), 0, m_Ini);
 	m_FlagWorkaroundAdataSsd =  (BOOL)GetPrivateProfileInt(_T("Workaround"), _T("AdataSsd"), 1, m_Ini);
 	m_FlagEventLog = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("EventLog"), 0, m_Ini);
 	m_FlagAlertMail = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AlertMail"), 0, m_Ini);
@@ -481,6 +482,8 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_OPEN_DEVICE_MANAGER, &CDiskInfoDlg::OnOpenDeviceManager)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
 	ON_COMMAND(ID_WORKAROUND_HD204UI, &CDiskInfoDlg::OnWorkaroundHD204UI)
+	ON_COMMAND(ID_WORKAROUND_IE8MODE, &CDiskInfoDlg::OnWorkaroundIE8MODE)
+
 	ON_COMMAND(ID_WORKAROUND_ADATA_SSD, &CDiskInfoDlg::OnWorkaroundAdataSsd)
 	ON_COMMAND(ID_RESIDENT, &CDiskInfoDlg::OnResident)
 

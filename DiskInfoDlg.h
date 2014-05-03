@@ -157,6 +157,7 @@ protected:
 	BOOL m_FlagHideSerialNumber;
 	BOOL m_FlagAdvancedDiskSearch;
 	BOOL m_FlagWorkaroundHD204UI;
+	BOOL m_FlagWorkaroundIE8MODE;
 	BOOL m_FlagWorkaroundAdataSsd;
 	BOOL m_FlagEventLog;
 	BOOL m_FlagAlertMail;
@@ -363,6 +364,7 @@ public:
 	afx_msg void OnOpenDeviceManager();
 	afx_msg void OnAdvancedDiskSearch();
 	afx_msg void OnWorkaroundHD204UI();
+	afx_msg void OnWorkaroundIE8MODE();
 	afx_msg void OnWorkaroundAdataSsd();
 	afx_msg void OnResident();
 

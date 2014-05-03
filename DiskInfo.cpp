@@ -181,21 +181,20 @@ BOOL CDiskInfoApp::InitInstance()
 	DefaultTheme.Format(_T("%s\\%s"), tmp, DEFAULT_THEME);
 	DefaultLanguage.Format(_T("%s\\%s"), tmp, DEFAULT_LANGUAGE);
 
-/*
-	if(IsClassicSystem())
+	if((BOOL)GetPrivateProfileInt(_T("Workaround"), _T("IE8MODE"), 0, m_Ini))
 	{
-		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR CLASSIC_DIALOG, tmp);
+		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR MAIN_DIALOG_IE8, tmp);
+		m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG_IE8, tmp);
 	}
-*/
-	if(! IsFileExist(m_MainDlgPath))
+	else
 	{
 		m_MainDlgPath.Format(_T("%s\\") DIALOG_DIR MAIN_DIALOG, tmp);
+		m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG, tmp);
 	}
 
 	m_AboutDlgPath.Format(_T("%s\\") DIALOG_DIR ABOUT_DIALOG, tmp);
 	m_SettingDlgPath.Format(_T("%s\\") DIALOG_DIR SETTING_DIALOG, tmp);
 	m_HealthDlgPath.Format(_T("%s\\") DIALOG_DIR HEALTH_DIALOG, tmp);
-	m_GraphDlgPath.Format(_T("%s\\") DIALOG_DIR GRAPH_DIALOG, tmp);
 	m_OptionDlgPath.Format(_T("%s\\") DIALOG_DIR OPTION_DIALOG, tmp);
 //	m_AlarmHistoryDlgPath.Format(_T("%s\\") DIALOG_DIR ALARM_HISTORY_DIALOG, tmp);
 	m_SoundSettingDlgPath.Format(_T("%s\\") DIALOG_DIR SOUND_SETTING_DIALOG, tmp);

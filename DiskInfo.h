@@ -36,9 +36,11 @@
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
 #define MAIN_DIALOG					_T("MainS.html")
+#define MAIN_DIALOG_IE8				_T("MainS8.html")
 #define ABOUT_DIALOG				_T("AboutS.html")
 #else
 #define MAIN_DIALOG					_T("Main.html")
+#define MAIN_DIALOG_IE8				_T("Main8.html")
 #define ABOUT_DIALOG				_T("About.html")
 #endif
 
@@ -46,6 +48,7 @@
 #define SETTING_DIALOG				_T("Setting.html")
 #define HEALTH_DIALOG				_T("Health.html")
 #define GRAPH_DIALOG				_T("Graph.html")
+#define GRAPH_DIALOG_IE8			_T("Graph8.html")
 #define OPTION_DIALOG				_T("Option.html")
 //#define ALARM_HISTORY_DIALOG		_T("AlarmHistory.html")
 #define SOUND_SETTING_DIALOG		_T("SoundSetting.html")
