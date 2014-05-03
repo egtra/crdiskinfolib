@@ -60,8 +60,8 @@
 // Version Information
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("3.9.1")
-#define PRODUCT_RELEASE			_T("2010/10/13")
+#define PRODUCT_VERSION			_T("3.9.2")
+#define PRODUCT_RELEASE			_T("2010/10/30")
 #define PRODUCT_COPY_YEAR		_T("2008-2010")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2010 hiyohiyo.")
 

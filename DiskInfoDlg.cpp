@@ -1315,19 +1315,12 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 		}
 
 		status = GetPrivateProfileInt(_T("AamStatus"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		value = GetPrivateProfileInt(_T("AamValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		if(status == 1 /* Enabled */ && value != m_Ata.GetAamValue(i))
+		value =  GetPrivateProfileInt(_T("AamValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
+		if(status == 1 /* Enabled */ && value != -1)
 		{
 			m_Ata.EnableAam(i, value);
 			m_Ata.UpdateIdInfo(i);
 			DebugPrint(_T("m_Ata.EnableAam"));
-		}
-		if(status == 0 /* Disabled */
-		&& m_Ata.vars[i].IsAamEnabled)
-		{
-			m_Ata.DisableAam(i);
-			m_Ata.UpdateIdInfo(i);
-			DebugPrint(_T("m_Ata.DisableAam"));
 		}
 	}
 
@@ -1340,19 +1333,12 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 		}
 
 		status = GetPrivateProfileInt(_T("ApmStatus"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		value = GetPrivateProfileInt(_T("ApmValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		if(status == 1 /* Enabled */ && value != m_Ata.GetApmValue(i))
+		value  = GetPrivateProfileInt(_T("ApmValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
+		if(status == 1 /* Enabled */ && value != -1)
 		{
 			m_Ata.EnableApm(i, value);
 			m_Ata.UpdateIdInfo(i);
 			DebugPrint(_T("m_Ata.EnableApm"));
-		}
-		if(status == 0 /* Disabled */
-		&& m_Ata.vars[i].IsApmEnabled)
-		{
-			m_Ata.DisableApm(i);
-			m_Ata.UpdateIdInfo(i);
-			DebugPrint(_T("m_Ata.DisableApm"));
 		}
 	}
 }
