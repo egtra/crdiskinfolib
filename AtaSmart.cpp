@@ -2118,7 +2118,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 
 	CString firmwareRevInt = asi.FirmwareRev;
 	firmwareRevInt.Replace(_T("."), _T(""));
-	if(asi.Model.Find(_T("ADATA SSD")) == 0 && _wtoi(firmwareRevInt) >= 346)
+	if(asi.Model.Find(_T("ADATA SSD")) == 0 && _wtoi(firmwareRevInt) == 346)
 	{
 		asi.TemperatureMultiplier = 0.5;
 	}
@@ -3340,6 +3340,7 @@ BOOL CAtaSmart::IsSsdSandForce(ATA_SMART_INFO &asi)
 	&& asi.Attribute[12].Id == 0xAA
 	&& asi.Attribute[13].Id == 0xAD
 	&& asi.Attribute[14].Id == 0xAF
+	&& asi.Attribute[15].Id == 0xB1
 	)
 	{
 		flagSmartType = TRUE;
@@ -5682,7 +5683,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				{
 					asi->Temperature = MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]) / 10;			
 				}
-				else if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				else if(asi->Attribute[j].RawValue[0] > 0 && asi->TemperatureMultiplier < 1.0)//(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
 				{
 					asi->Temperature = (DWORD)(asi->Attribute[j].RawValue[0] * asi->TemperatureMultiplier);
 				}

@@ -539,8 +539,16 @@ DWORD GetIeVersion()
 		{
 			if(RegQueryValueEx(hKey, _T("Version"), NULL, &type, buf, &size) == ERROR_SUCCESS)
 			{
-				cstr = buf;
+				cstr = (TCHAR*)buf;
 				ieVersion = _tstoi(cstr) * 100;
+				if(ieVersion == 900 && RegQueryValueEx(hKey, _T("svcVersion"), NULL, &type, buf, &size) == ERROR_SUCCESS)
+				{
+					cstr = (TCHAR*)buf;
+					if(_tstoi(cstr) * 100 > 900)
+					{
+						ieVersion = _tstoi(cstr) * 100;
+					}
+				}
 			}
 		}
 		RegCloseKey(hKey);
