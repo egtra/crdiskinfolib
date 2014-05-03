@@ -2531,7 +2531,11 @@ BOOL CAtaSmart::GetSmartAttributePd(INT PhysicalDriveId, BYTE target, ATA_SMART_
 				asi->PowerOnCount = rawValue;
 				break;
 			case 0xC2: // Temperature
-				if(asi->Attribute[j].RawValue[0] > 0)
+				if(asi->Model.Find(_T("SAMSUNG SV")) == 0 && (asi->Attribute[j].RawValue[1] != 0 || asi->Attribute[j].RawValue[0] > 70))
+				{
+					asi->Temperature = MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]) / 10;			
+				}
+				else if(asi->Attribute[j].RawValue[0] > 0)
 				{
 					asi->Temperature = asi->Attribute[j].RawValue[0];
 				}
@@ -2886,7 +2890,11 @@ BOOL CAtaSmart::GetSmartAttributeScsi(INT scsiPort, INT scsiTargetId, ATA_SMART_
 							asi->PowerOnCount = rawValue;
 							break;
 						case 0xC2: // Temperature
-							if(asi->Attribute[j].RawValue[0] > 0)
+							if(asi->Model.Find(_T("SAMSUNG SV")) == 0 && (asi->Attribute[j].RawValue[1] != 0 || asi->Attribute[j].RawValue[0] > 70))
+							{
+								asi->Temperature = MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]) / 10;			
+							}
+							else if(asi->Attribute[j].RawValue[0] > 0)
 							{
 								asi->Temperature = asi->Attribute[j].RawValue[0];
 							}
@@ -3490,7 +3498,11 @@ BOOL CAtaSmart::GetSmartAttributeSat(INT PhysicalDriveId, BYTE target, ATA_SMART
 				asi->PowerOnCount = rawValue;
 				break;
 			case 0xC2: // Temperature
-				if(asi->Attribute[j].RawValue[0] > 0)
+				if(asi->Model.Find(_T("SAMSUNG SV")) == 0 && (asi->Attribute[j].RawValue[1] != 0 || asi->Attribute[j].RawValue[0] > 70))
+				{
+					asi->Temperature = MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]) / 10;			
+				}
+				else if(asi->Attribute[j].RawValue[0] > 0)
 				{
 					asi->Temperature = asi->Attribute[j].RawValue[0];
 				}

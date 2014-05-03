@@ -420,16 +420,50 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 3, cstr);
 			m_List.SetItemText(k, 4, _T("---"));
 			m_List.SetItemText(k, 5, _T("---"));
-			cstr.Format(_T("%02X%02X%02X%02X%02X%02X%02X%02X"), 
-				m_Ata.vars[i].Attribute[j].Reserved,
-				m_Ata.vars[i].Attribute[j].RawValue[5],
-				m_Ata.vars[i].Attribute[j].RawValue[4],
-				m_Ata.vars[i].Attribute[j].RawValue[3],
-				m_Ata.vars[i].Attribute[j].RawValue[2],
-				m_Ata.vars[i].Attribute[j].RawValue[1],
-				m_Ata.vars[i].Attribute[j].RawValue[0],
-				m_Ata.vars[i].Attribute[j].WorstValue
-			);
+			switch(m_RawValues)
+			{
+			case 3:
+				cstr.Format(_T("%d %d %d %d %d %d %d %d"),  
+					m_Ata.vars[i].Attribute[j].Reserved,
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0],
+					m_Ata.vars[i].Attribute[j].WorstValue);
+				break;
+			case 2:
+				cstr.Format(_T("%d %d %d %d"),  
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[5], m_Ata.vars[i].Attribute[j].Reserved),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[3], m_Ata.vars[i].Attribute[j].RawValue[4]),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[1], m_Ata.vars[i].Attribute[j].RawValue[2]),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].WorstValue, m_Ata.vars[i].Attribute[j].RawValue[0]));
+				break;
+			case 1:
+				cstr.Format(_T("%I64u"),  
+					((UINT64)m_Ata.vars[i].Attribute[j].Reserved    << 56) + 
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[5] << 48) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[4] << 40) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[3] << 32) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[2] << 24) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[1] << 16) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[0] << 8) +
+					(UINT64)m_Ata.vars[i].Attribute[j].WorstValue);
+				break;
+			case 0:
+			default:
+				cstr.Format(_T("%02X%02X%02X%02X%02X%02X%02X%02X"), 
+					m_Ata.vars[i].Attribute[j].Reserved,
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0],
+					m_Ata.vars[i].Attribute[j].WorstValue);
+				break;
+			}
 			m_List.SetItemText(k, 6, cstr);
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDDDDDD"));
 		}
@@ -438,16 +472,50 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 3, _T("---"));
 			m_List.SetItemText(k, 4, _T("---"));
 			m_List.SetItemText(k, 5, _T("---"));
-			cstr.Format(_T("%02X%02X%02X%02X%02X%02X%02X%02X"), 
-				m_Ata.vars[i].Attribute[j].RawValue[5],
-				m_Ata.vars[i].Attribute[j].RawValue[4],
-				m_Ata.vars[i].Attribute[j].RawValue[3],
-				m_Ata.vars[i].Attribute[j].RawValue[2],
-				m_Ata.vars[i].Attribute[j].RawValue[1],
-				m_Ata.vars[i].Attribute[j].RawValue[0],
-				m_Ata.vars[i].Attribute[j].WorstValue,
-				m_Ata.vars[i].Attribute[j].CurrentValue
-			);							
+			switch(m_RawValues)
+			{
+			case 3:
+				cstr.Format(_T("%d %d %d %d %d %d %d %d"),  
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0],
+					m_Ata.vars[i].Attribute[j].WorstValue,
+					m_Ata.vars[i].Attribute[j].CurrentValue);
+				break;
+			case 2:
+				cstr.Format(_T("%d %d %d %d"),  
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[4], m_Ata.vars[i].Attribute[j].RawValue[5] ),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[2], m_Ata.vars[i].Attribute[j].RawValue[3]),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[0], m_Ata.vars[i].Attribute[j].RawValue[1]),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].CurrentValue, m_Ata.vars[i].Attribute[j].WorstValue));
+				break;
+			case 1:
+				cstr.Format(_T("%I64u"),  
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[5] << 56) + 
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[4] << 48) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[3] << 40) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[2] << 32) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[1] << 24) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[0] << 16) +
+					((UINT64)m_Ata.vars[i].Attribute[j].WorstValue  << 8) +
+					(UINT64)m_Ata.vars[i].Attribute[j].CurrentValue);
+				break;
+			case 0:
+			default:
+				cstr.Format(_T("%02X%02X%02X%02X%02X%02X%02X%02X"), 
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0],
+					m_Ata.vars[i].Attribute[j].WorstValue,
+					m_Ata.vars[i].Attribute[j].CurrentValue);							
+				break;
+			}
 			m_List.SetItemText(k, 6, cstr);
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDDDDDD"));
 		}
@@ -459,14 +527,43 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			m_List.SetItemText(k, 4, cstr);
 			cstr.Format(_T("%d"), m_Ata.vars[i].Threshold[j].ThresholdValue);							
 			m_List.SetItemText(k, 5, cstr);
-			cstr.Format(_T("%02X%02X%02X%02X%02X%02X"), 
-				m_Ata.vars[i].Attribute[j].RawValue[5],
-				m_Ata.vars[i].Attribute[j].RawValue[4],
-				m_Ata.vars[i].Attribute[j].RawValue[3],
-				m_Ata.vars[i].Attribute[j].RawValue[2],
-				m_Ata.vars[i].Attribute[j].RawValue[1],
-				m_Ata.vars[i].Attribute[j].RawValue[0]
-			);
+						switch(m_RawValues)
+			{
+			case 3:
+				cstr.Format(_T("%d %d %d %d %d %d"),  
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0]);
+				break;
+			case 2:
+				cstr.Format(_T("%d %d %d"),  
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[4], m_Ata.vars[i].Attribute[j].RawValue[5] ),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[2], m_Ata.vars[i].Attribute[j].RawValue[3]),
+					MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[0], m_Ata.vars[i].Attribute[j].RawValue[1]));
+				break;
+			case 1:
+				cstr.Format(_T("%I64u"),  
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[5] << 40) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[4] << 32) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[3] << 24) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[2] << 16) +
+					((UINT64)m_Ata.vars[i].Attribute[j].RawValue[1]  << 8) +
+					(UINT64)m_Ata.vars[i].Attribute[j].RawValue[0]);
+				break;
+			case 0:
+			default:
+				cstr.Format(_T("%02X%02X%02X%02X%02X%02X"), 
+					m_Ata.vars[i].Attribute[j].RawValue[5],
+					m_Ata.vars[i].Attribute[j].RawValue[4],
+					m_Ata.vars[i].Attribute[j].RawValue[3],
+					m_Ata.vars[i].Attribute[j].RawValue[2],
+					m_Ata.vars[i].Attribute[j].RawValue[1],
+					m_Ata.vars[i].Attribute[j].RawValue[0]);					
+				break;
+			}
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDD"));
 			m_List.SetItemText(k, 6, cstr);
 		}
@@ -1008,6 +1105,7 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_ADVANCED_DISK_SEARCH, MF_STRING, ID_ADVANCED_DISK_SEARCH, cstr);
 	cstr = i18n(_T("Menu"), _T("EVENT_LOG"));
 	menu->ModifyMenu(ID_EVENT_LOG, MF_STRING, ID_EVENT_LOG, cstr);
+
 	cstr = i18n(_T("Menu"), _T("RESIDENT"));
 	menu->ModifyMenu(ID_RESIDENT, MF_STRING, ID_RESIDENT, cstr);
 	
@@ -1114,6 +1212,13 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_WAIT_240_SEC, MF_STRING, ID_WAIT_240_SEC, cstr);
 
 	CheckRadioWaitTime();
+
+	subMenu.Attach(menu->GetSubMenu(2)->GetSubMenu(19)->GetSafeHmenu());
+	cstr = i18n(_T("Dialog"), _T("LIST_RAW_VALUES"));
+	subMenu.ModifyMenu(7, MF_BYPOSITION, 7, cstr);
+	subMenu.Detach();
+
+	CheckRadioRawValues();
 
 	cstr = i18n(_T("Menu"), _T("CELSIUS"));
 	menu->ModifyMenu(ID_CELSIUS, MF_STRING, ID_CELSIUS, cstr);

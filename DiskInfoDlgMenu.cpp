@@ -424,6 +424,61 @@ void CDiskInfoDlg::CheckRadioWaitTime()
 	DrawMenuBar();
 }
 
+void CDiskInfoDlg::OnRawValues16()
+{
+	CheckRadioRawValues(ID_RAW_VALUES_16, 0);
+}
+
+void CDiskInfoDlg::OnRawValues10All()
+{
+	CheckRadioRawValues(ID_RAW_VALUES_10_ALL, 1);
+}
+
+void CDiskInfoDlg::OnRawValues2byte()
+{
+	CheckRadioRawValues(ID_RAW_VALUES_2BYTE, 2);
+}
+
+void CDiskInfoDlg::OnRawValues1byte()
+{
+	CheckRadioRawValues(ID_RAW_VALUES_1BYTE, 3);
+}
+
+void CDiskInfoDlg::CheckRadioRawValues(int id, int value)
+{
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_RAW_VALUES_16, ID_RAW_VALUES_1BYTE, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+
+	m_RawValues = value;
+
+	CString cstr;
+	cstr.Format(_T("%d"), value);
+	WritePrivateProfileString(_T("Setting"), _T("RawVlues"), cstr, m_Ini);
+
+	Refresh(TRUE);
+}
+
+void CDiskInfoDlg::CheckRadioRawValues()
+{
+	int id = ID_RAW_VALUES_16;
+
+	switch(m_RawValues)
+	{
+	case   0: id = ID_RAW_VALUES_16;	break;
+	case   1: id = ID_RAW_VALUES_10_ALL;break;
+	case   2: id = ID_RAW_VALUES_2BYTE;	break;
+	case   3: id = ID_RAW_VALUES_1BYTE;	break;
+	default:  id = ID_RAW_VALUES_16;	break;
+	}
+
+	CMenu *menu = GetMenu();
+	menu->CheckMenuRadioItem(ID_RAW_VALUES_16, ID_RAW_VALUES_1BYTE, id, MF_BYCOMMAND);
+	SetMenu(menu);
+	DrawMenuBar();
+}
+
 void CDiskInfoDlg::OnOpenDiskManagement()
 {
 	ShellExecute(NULL, NULL, _T("diskmgmt.msc"), NULL, NULL, SW_SHOWNORMAL);	
@@ -512,7 +567,6 @@ void CDiskInfoDlg::OnEventLog()
 	SetMenu(menu);
 	DrawMenuBar();
 }
-
 
 void CDiskInfoDlg::CheckStartup()
 {

@@ -372,13 +372,17 @@
 #define ID_SSD_INTEL                    33006
 #define ID_SSD_SAMSUNG                  33007
 #define ID_Menu                         33008
+#define ID_RAW_VALUES_16                33010
+#define ID_RAW_VALUES_10_ALL            33011
+#define ID_RAW_VALUES_2BYTE             33012
+#define ID_RAW_VALUES_1BYTE             33013
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        146
-#define _APS_NEXT_COMMAND_VALUE         33009
+#define _APS_NEXT_COMMAND_VALUE         33020
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

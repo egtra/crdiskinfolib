@@ -95,6 +95,7 @@ protected:
 	DWORD m_DriveMenuPage;
 	DWORD m_AutoRefreshStatus;
 	DWORD m_WaitTimeStatus;
+	DWORD m_RawValues;
 	BOOL m_NowDetectingUnitPowerOnHours;
 
 	CArray<DWORD, DWORD> m_GraphProcessId;
@@ -201,9 +202,11 @@ protected:
 	void CheckRadioAutoRefresh(int id, int value);
 	void CheckRadioWaitTime(int id, int value);
 	BOOL CheckRadioZoomType(int id, int value);
+	void CheckRadioRawValues(int id, int value);
 	void CheckRadioAutoRefresh();
 	void CheckRadioWaitTime();
 	void CheckRadioZoomType();
+	void CheckRadioRawValues();
 	void ReExecute();
 	void AlarmOverheat();
 	void AlarmHealthStatus(DWORD i, CString dir, CString disk);
@@ -362,4 +365,8 @@ public:
 	afx_msg void OnZoom150();
 	afx_msg void OnZoom200();
 	afx_msg void OnZoomAuto();
+	afx_msg void OnRawValues16();
+	afx_msg void OnRawValues10All();
+	afx_msg void OnRawValues2byte();
+	afx_msg void OnRawValues1byte();
 };	

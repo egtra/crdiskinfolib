@@ -157,6 +157,7 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_DriveMenuPage = 0;
 	m_AutoRefreshStatus = 0;
 	m_WaitTimeStatus = 0;
+	m_RawValues = 0;
 	
 	m_NowDetectingUnitPowerOnHours = FALSE;
 	m_FlagInitializing = TRUE;
@@ -460,6 +461,10 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CDHtmlMainDialog)
 	ON_COMMAND(ID_ZOOM_150, &CDiskInfoDlg::OnZoom150)
 	ON_COMMAND(ID_ZOOM_200, &CDiskInfoDlg::OnZoom200)
 	ON_COMMAND(ID_ZOOM_AUTO, &CDiskInfoDlg::OnZoomAuto)
+	ON_COMMAND(ID_RAW_VALUES_16, &CDiskInfoDlg::OnRawValues16)
+	ON_COMMAND(ID_RAW_VALUES_10_ALL, &CDiskInfoDlg::OnRawValues10All)
+	ON_COMMAND(ID_RAW_VALUES_2BYTE, &CDiskInfoDlg::OnRawValues2byte)
+	ON_COMMAND(ID_RAW_VALUES_1BYTE, &CDiskInfoDlg::OnRawValues1byte)
 	END_MESSAGE_MAP()
 
 // If you add a minimize button to your dialog, you will need the code below
