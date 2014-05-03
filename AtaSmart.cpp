@@ -1716,6 +1716,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 	asi.IsRawValues8 = FALSE;
 	asi.IsRawValues7 = FALSE;
 	asi.Is9126MB = FALSE;
+	asi.IsThresholdBug = FALSE;
 
 	asi.IsSmartSupported = FALSE;
 	asi.IsLba48Supported = FALSE;
@@ -1964,6 +1965,7 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 		asi.Is9126MB = TRUE;
 	}
 
+
 	if(identify->LogicalCylinders == 0 || identify->LogicalHeads == 0 || identify->LogicalSectors == 0)
 	{
 		return FALSE;
@@ -2194,6 +2196,14 @@ BOOL CAtaSmart::AddDisk(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INT
 			return FALSE;
 			break;
 		}
+	}
+
+	// OCZ-VERTEX3 2.02 Firmware Bug
+	// http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=303;id=diskinfo#303
+	// http://www.ocztechnologyforum.com/forum/showthread.php?88540-Vertex-3-Issues-Errors-and-Slow-speeds.
+	if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE && asi.Model.Find(_T("OCZ-VERTEX3")) == 0 && asi.FirmwareRev.Find(_T("2.02")) == 0)
+	{
+		asi.IsThresholdBug = TRUE;
 	}
 
 	for(int i = 0; i < vars.GetCount(); i++)
@@ -4595,6 +4605,11 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 		return DISK_STATUS_UNKNOWN;
 	}
 
+	if(vars[i].IsThresholdBug)
+	{
+		return DISK_STATUS_UNKNOWN;
+	}
+
 	// DEBUG //
 	// vars[i].Attribute[3].RawValue[0] = rand() % 256;
 
@@ -4613,6 +4628,7 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			}
 		}
 
+		// Read Error Rate Bug
 		if(vars[i].DiskVendorId == SSD_VENDOR_SANDFORCE && vars[i].Attribute[j].Id == 0x01
 			&& vars[i].Attribute[j].CurrentValue == 0 && vars[i].Attribute[j].RawValue[0] == 0 && vars[i].Attribute[j].RawValue[1] == 0)
 		{
@@ -5016,13 +5032,13 @@ VOID CAtaSmart::GetAtaMinorVersion(WORD w81, CString &minor)
 	case 0x0027:	minor = _T("ATA8-ACS version 3c");							break;
 	case 0x0028:	minor = _T("ATA8-ACS version 6");							break;
 	case 0x0029:	minor = _T("ATA8-ACS version 4");							break;
-	case 0x0031:	minor = _T("ASC-2 Revision 2");								break;
+	case 0x0031:	minor = _T("ACS-2 Revision 2");								break;
 	case 0x0033:	minor = _T("ATA8-ACS version 3e");							break;
 	case 0x0039:	minor = _T("ATA8-ACS version 4c");							break;
 	case 0x0042:	minor = _T("ATA8-ACS version 3f");							break;
 	case 0x0052:	minor = _T("ATA8-ACS version 3b");							break;
 	case 0x0107:	minor = _T("ATA8-ACS version 2d");							break;
-	case 0x0110:	minor = _T("ASC-2 Revision 3");								break;
+	case 0x0110:	minor = _T("ACS-2 Revision 3");								break;
 	default:	//	minor.Format(_T("Reserved [%04Xh]"), w81);					break;
 					minor.Format(_T("---- [%04Xh]"), w81);						break;
 	}

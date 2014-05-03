@@ -368,6 +368,7 @@ public:
 		BOOL				IsRawValues8;
 		BOOL				IsRawValues7;
 		BOOL				Is9126MB;
+		BOOL				IsThresholdBug;
 
 		BOOL				IsSmartSupported;
 		BOOL				IsLba48Supported;

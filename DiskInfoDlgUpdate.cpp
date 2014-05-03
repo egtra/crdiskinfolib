@@ -299,7 +299,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 			continue;
 		}
 		
-		if(m_Ata.vars[i].IsSmartCorrect && m_Ata.vars[i].IsThresholdCorrect)
+		if(m_Ata.vars[i].IsSmartCorrect && m_Ata.vars[i].IsThresholdCorrect && ! m_Ata.vars[i].IsThresholdBug)
 		{
 			if(! m_Ata.vars[i].IsSsd &&
 			(  m_Ata.vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count

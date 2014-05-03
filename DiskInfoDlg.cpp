@@ -915,7 +915,12 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 
 	GetPrivateProfileString(disk, _T("HealthStatus"), _T("0"), str, 256, dir + _T("\\") + SMART_INI);
 	pre = _tstoi(str);
-	if(m_Ata.vars[i].DiskStatus > (DWORD)pre && pre != 0)
+
+	if(m_Ata.vars[i].DiskStatus == 0)
+	{
+
+	}
+	else if(m_Ata.vars[i].DiskStatus > (DWORD)pre && pre != 0)
 	{
 		cstr.Format(_T("%s: [%s] -> [%s]\r\n"), i18n(_T("Dialog"), _T("HEALTH_STATUS")),
 					GetDiskStatus(pre), GetDiskStatus(m_Ata.vars[i].DiskStatus));

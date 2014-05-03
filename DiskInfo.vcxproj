@@ -194,6 +194,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>nafxcwd.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>DeclareDPIAware.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
