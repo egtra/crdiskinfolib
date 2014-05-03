@@ -300,13 +300,12 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 		
 		if(m_Ata.vars[i].IsSmartCorrect && m_Ata.vars[i].IsThresholdCorrect)
 		{
-			switch(m_Ata.vars[i].Attribute[j].Id)
+			if(! m_Ata.vars[i].IsSsd &&
+			(  m_Ata.vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count
+			|| m_Ata.vars[i].Attribute[j].Id == 0xC5 // Current Pending Sector Count
+			|| m_Ata.vars[i].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
+			))
 			{
-			case 0x05: // Reallocated Sectors Count
-	//		case 0xC4: // Reallocation Event Count
-			case 0xC5: // Current Pending Sector Count
-			case 0xC6: // Off-Line Scan Uncorrectable Sector Count
-				{
 				WORD raw = MAKEWORD(m_Ata.vars[i].Attribute[j].RawValue[0], m_Ata.vars[i].Attribute[j].RawValue[1]);
 				WORD threshold; 
 				switch(m_Ata.vars[i].Attribute[j].Id)
@@ -321,7 +320,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 					threshold = m_Ata.vars[i].ThresholdC6;
 					break;
 				}
-				if(threshold > 0 && raw >= threshold && ! m_Ata.vars[i].IsSsd)
+				if(threshold > 0 && raw >= threshold)
 				{
 					caution = 1;
 				}
@@ -330,7 +329,8 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 					caution = 0;
 				}
 
-				if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 && m_Ata.vars[i].Attribute[j].CurrentValue <= m_Ata.vars[i].Threshold[j].ThresholdValue)
+				if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 
+				&& m_Ata.vars[i].Attribute[j].CurrentValue < m_Ata.vars[i].Threshold[j].ThresholdValue)
 				{
 					if(flag)
 					{
@@ -363,43 +363,37 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
 					}
 				}
-				}
-				break;
-			case 0xBB: // Vendor Specific
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
+			}
+			// Life
+			else if((m_Ata.vars[i].Attribute[j].Id == 0xE8 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xBB && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_MTRON)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xB4 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SAMSUNG)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xD1 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xE7 && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+				||  (m_Ata.vars[i].Attribute[j].Id == 0xAA && m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && ! m_Ata.vars[i].IsRawValues8)
+				)
+			{
+				if(m_Ata.vars[i].Attribute[j].CurrentValue == 0
+				|| m_Ata.vars[i].Attribute[j].CurrentValue < m_Ata.vars[i].Threshold[j].ThresholdValue)
 				{
-					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
+					if(flag)
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
-					}
-					else if(m_Ata.vars[i].Attribute[j].CurrentValue < 10)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
-						}
+						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
 					}
 					else
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
+						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
+					}
+				}
+				else if(m_Ata.vars[i].Attribute[j].CurrentValue <= 10)
+				{
+					if(flag)
+					{
+						m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
+					}
+					else
+					{
+						m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
 					}
 				}
 				else
@@ -413,118 +407,33 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
 					}
 				}
-				break;
-			case 0xD1:
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INDILINX)
+			}
+			else if(m_Ata.vars[i].Attribute[j].Id == 0x01 // Read Error Rate for SandForce Bug
+				&& m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
+			{
+				if(m_Ata.vars[i].Attribute[j].CurrentValue == 0 
+				&& m_Ata.vars[i].Attribute[j].RawValue[0] == 0
+				&& m_Ata.vars[i].Attribute[j].RawValue[1] == 0)
 				{
-					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
+					if(flag)
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
-					}
-					else if(m_Ata.vars[i].Attribute[j].CurrentValue < 10)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
-						}
+						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
 					}
 					else
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
+						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
 					}
 				}
-				break;
-			case 0xE8:
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_INTEL)
+				else if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0
+					 && m_Ata.vars[i].Attribute[j].CurrentValue < m_Ata.vars[i].Threshold[j].ThresholdValue)
 				{
-					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
+					if(flag)
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
-					}
-					else if(m_Ata.vars[i].Attribute[j].CurrentValue < 10)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
-						}
+						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
 					}
 					else
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
-					}
-				}
-				break;
-			case 0xE7:
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
-				{
-					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
-					}
-					else if(m_Ata.vars[i].Attribute[j].CurrentValue < 10)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 1 /*IDI_CAUTION*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 1 /*IDI_CAUTION*/);
-						}
-					}
-					else
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
+						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
 					}
 				}
 				else
@@ -538,94 +447,50 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
 					}
 				}
-				break;
-			case 0x01: // Read Error Rate for SandForce Bug
-				if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_SANDFORCE)
-				{
-					if(m_Ata.vars[i].Attribute[j].CurrentValue == 0 && m_Ata.vars[i].Attribute[j].RawValue[0] == 0 && m_Ata.vars[i].Attribute[j].RawValue[1] == 0)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
-					}
-					else if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 && m_Ata.vars[i].Attribute[j].CurrentValue <= m_Ata.vars[i].Threshold[j].ThresholdValue)
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
-					}
-					else
-					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
-					}
-					break;
-				}
-			//	break;
-			default:
-				if(
-				(m_Ata.vars[i].IsSsd && ! m_Ata.vars[i].IsRawValues8)
-				||
-				((0x01 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0x0D)
+			}
+			else if((m_Ata.vars[i].IsSsd && ! m_Ata.vars[i].IsRawValues8)
+				||	((0x01 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0x0D)
 				||	(0xBF <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xD1)
 				||	(0xDC <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xE4)
 				||	(0xE6 <= m_Ata.vars[i].Attribute[j].Id && m_Ata.vars[i].Attribute[j].Id <= 0xE7)
 				||	m_Ata.vars[i].Attribute[j].Id == 0xF0
 				||	m_Ata.vars[i].Attribute[j].Id == 0xFA
 				))
+			{
+				if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 
+				&& m_Ata.vars[i].Attribute[j].CurrentValue < m_Ata.vars[i].Threshold[j].ThresholdValue)
 				{
-					if(m_Ata.vars[i].Threshold[j].ThresholdValue != 0 && m_Ata.vars[i].Attribute[j].CurrentValue <= m_Ata.vars[i].Threshold[j].ThresholdValue)
+					if(flag)
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
-						}
+						m_List.SetItem(k, 0, mask, _T(""), 2 /*IDI_BAD*/, 0, 0, 0, 0);
 					}
 					else
 					{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
+						m_List.InsertItem(k, _T(""), 2 /*IDI_BAD*/);
 					}
 				}
 				else
 				{
-						if(flag)
-						{
-							m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
-						}
-						else
-						{
-							m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
-						}
+					if(flag)
+					{
+						m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+					}
+					else
+					{
+						m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+					}
 				}
-
-				break;
+			}
+			else
+			{
+				if(flag)
+				{
+					m_List.SetItem(k, 0, mask, _T(""), 0 /*IDI_GOOD*/, 0, 0, 0, 0);
+				}
+				else
+				{
+					m_List.InsertItem(k, _T(""), 0 /*IDI_GOOD*/);
+				}
 			}
 		}
 		else

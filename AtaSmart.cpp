@@ -4472,12 +4472,11 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			flagUnknown = FALSE;
 		}
 
-		switch(vars[i].Attribute[j].Id)
+		if( vars[i].Attribute[j].Id == 0x05 // Reallocated Sectors Count
+		||	vars[i].Attribute[j].Id == 0xC5 // Current Pending Sector Count
+		||	vars[i].Attribute[j].Id == 0xC6 // Off-Line Scan Uncorrectable Sector Count
+		)
 		{
-		case 0x05: // Reallocated Sectors Count
-//		case 0xC4: // Reallocation Event Count
-		case 0xC5: // Current Pending Sector Count
-		case 0xC6: // Off-Line Scan Uncorrectable Sector Count
 			if(vars[i].Attribute[j].RawValue[0] == 0xFF
 			&& vars[i].Attribute[j].RawValue[1] == 0xFF
 			&& vars[i].Attribute[j].RawValue[2] == 0xFF
@@ -4509,78 +4508,31 @@ DWORD CAtaSmart::CheckDiskStatus(DWORD i)
 			{
 				flagUnknown = FALSE;
 			}
-			break;
-		case 0xBB: // Vendor Specific
-			if(vars[i].DiskVendorId == SSD_VENDOR_MTRON)
-			{
-				if(vars[i].Attribute[j].CurrentValue == 0)
-				{
-					error = 1;
-				}
-				else if(vars[i].Attribute[j].CurrentValue < 10)
-				{
-					caution = 1;
-				}
-				else
-				{
-					flagUnknown = FALSE;
-				}
-			}
-			break;
-		case 0xD1:
-			if(vars[i].DiskVendorId == SSD_VENDOR_INDILINX)
-			{
-				if(vars[i].Attribute[j].CurrentValue == 0)
-				{
-					error = 1;
-				}
-				else if(vars[i].Attribute[j].CurrentValue < 10)
-				{
-					caution = 1;
-				}
-				else
-				{
-					flagUnknown = FALSE;
-				}
-			}
-			break;
-		case 0xE7:
-			if(vars[i].DiskVendorId == SSD_VENDOR_SANDFORCE)
-			{
-				if(vars[i].Attribute[j].CurrentValue == 0)
-				{
-					error = 1;
-				}
-				else if(vars[i].Attribute[j].CurrentValue < 10)
-				{
-					caution = 1;
-				}
-				else
-				{
-					flagUnknown = FALSE;
-				}
-			}
-			break;
-		case 0xE8:
-			if(vars[i].DiskVendorId == SSD_VENDOR_INTEL)
-			{
-				if(vars[i].Attribute[j].CurrentValue == 0)
-				{
-					error = 1;
-				}
-				else if(vars[i].Attribute[j].CurrentValue < 10)
-				{
-					caution = 1;
-				}
-				else
-				{
-					flagUnknown = FALSE;
-				}
-			}
-			break;
-		default:
-			break;
 		}
+		else 
+		if((vars[i].Attribute[j].Id == 0xE8 && vars[i].DiskVendorId == SSD_VENDOR_INTEL)
+		|| (vars[i].Attribute[j].Id == 0xBB && vars[i].DiskVendorId == SSD_VENDOR_MTRON)
+		|| (vars[i].Attribute[j].Id == 0xB4 && vars[i].DiskVendorId == SSD_VENDOR_SAMSUNG)
+		|| (vars[i].Attribute[j].Id == 0xD1 && vars[i].DiskVendorId == SSD_VENDOR_INDILINX)
+		|| (vars[i].Attribute[j].Id == 0xE7 && vars[i].DiskVendorId == SSD_VENDOR_SANDFORCE)
+		|| (vars[i].Attribute[j].Id == 0xAA && vars[i].DiskVendorId == SSD_VENDOR_JMICRON && ! vars[i].IsRawValues8)
+		)
+		{
+			if(vars[i].Attribute[j].CurrentValue == 0
+			|| vars[i].Attribute[j].CurrentValue < vars[i].Threshold[j].ThresholdValue
+			)
+			{
+				error = 1;
+			}
+			else if(vars[i].Attribute[j].CurrentValue <= 10)
+			{
+				caution = 1;
+			}
+			else
+			{
+				flagUnknown = FALSE;
+			}
+		}	
 	}
 
 	if(error > 0)
