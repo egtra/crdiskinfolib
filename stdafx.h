@@ -62,13 +62,26 @@
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
 #define PRODUCT_SHORT_NAME		_T("CDI 5 SE")
-#define PRODUCT_EDITION			_T("Shizuku Edition")
 #else
 #define PRODUCT_SHORT_NAME		_T("CDI 5")
+#endif
+
+#ifdef SUISHO_SHIZUKU_SUPPORT
+#ifdef _M_X64
+#define PRODUCT_EDITION			_T("Shizuku Edition x64")
+#else
+#define PRODUCT_EDITION			_T("Shizuku Edition")
+#endif
+#else
+#ifdef _M_X64
+#define PRODUCT_EDITION			_T("x64")
+#else
 #define PRODUCT_EDITION			_T("")
 #endif
-#define PRODUCT_VERSION			_T("5.2.2")
-#define PRODUCT_RELEASE			_T("2013/01/07")
+#endif
+
+#define PRODUCT_VERSION			_T("5.3.0")
+#define PRODUCT_RELEASE			_T("2013/01/20")
 #define PRODUCT_COPY_YEAR		_T("2008-2012")
 #define PRODUCT_COPYRIGHT		_T("Copyright &copy; 2008-2013 hiyohiyo.")
 

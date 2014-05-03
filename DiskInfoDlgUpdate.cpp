@@ -97,7 +97,7 @@ void CDiskInfoDlg::UpdateShareInfo()
 	RegSetValueEx(hKey, _T("Version"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD)); 
 	value = GetTickCount();
 	RegSetValueEx(hKey, _T("LastUpdate"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD)); 
-	value = m_Ata.vars.GetCount();
+	value = (DWORD)m_Ata.vars.GetCount();
 	RegSetValueEx(hKey, _T("DiskCount"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD)); 
 
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
@@ -111,16 +111,16 @@ void CDiskInfoDlg::UpdateShareInfo()
 
 		key.Format(_T("Disk%d"), i);
 		wsprintf(str, m_Ata.vars[i].ModelSerial);
-		RegSetValueEx(hKey, key, 0, REG_SZ,
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+		RegSetValueEx(hKey, key, 0, REG_SZ, 
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 
 
 		wsprintf(str, m_Ata.vars[i].DriveMap);
 		RegSetValueEx(hSubKey, _T("DriveLetter"), 0, REG_SZ,
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 		wsprintf(str, m_Ata.vars[i].Model);
 		RegSetValueEx(hSubKey, _T("Model"), 0, REG_SZ, 
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 
 		if(m_Ata.vars[i].TotalDiskSize >= 1000)
 		{
@@ -131,7 +131,7 @@ void CDiskInfoDlg::UpdateShareInfo()
 			_stprintf_s(str, 256, _T("%d MB"), m_Ata.vars[i].TotalDiskSize);
 		}
 		RegSetValueEx(hSubKey, _T("DiskSize"), 0, REG_SZ,
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 		
 		if(m_FlagFahrenheit)
 		{
@@ -164,11 +164,11 @@ void CDiskInfoDlg::UpdateShareInfo()
 			}
 		}
 		RegSetValueEx(hSubKey, _T("Temperature"), 0, REG_SZ,
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 
 		_stprintf_s(str, 256, _T("%s"), GetTemperatureClass(m_Ata.vars[i].Temperature));
 		RegSetValueEx(hSubKey, _T("TemperatureClass"), 0, REG_SZ,
-			(CONST BYTE*)&str, (_tcslen(str) + 1) * sizeof(TCHAR));
+			(CONST BYTE*)&str, (DWORD)(_tcslen(str) + 1) * sizeof(TCHAR));
 
 		value = m_Ata.vars[i].DiskStatus;
 		RegSetValueEx(hSubKey, _T("DiskStatus"), 0, REG_DWORD, (CONST BYTE*)&value, sizeof(DWORD));

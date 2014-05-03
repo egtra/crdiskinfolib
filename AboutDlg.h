@@ -22,7 +22,7 @@ class CAboutDlg : public CDHtmlDialogEx
 	static const int SIZE_Y = 660;
 #else
 	static const int SIZE_X = 640;
-	static const int SIZE_Y = 160;
+	static const int SIZE_Y = 170;
 #endif
 
 public:

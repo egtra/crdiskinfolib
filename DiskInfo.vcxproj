@@ -129,6 +129,8 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|Win32'">$(ProjectName)S</TargetName>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|Win32'">true</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName)X64</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|x64'">$(ProjectName)Sx64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -299,7 +301,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName)x64.exe</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName)X64.exe</OutputFile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -320,7 +322,7 @@
     <ClCompile>
       <Optimization>MinSpace</Optimization>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUISHO_SHIZUKU_SUPPORT;WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -328,12 +330,12 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUISHO_SHIZUKU_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>$(OutDir)$(ProjectName)x64.exe</OutputFile>
+      <OutputFile>$(OutDir)$(ProjectName)Sx64.exe</OutputFile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -645,10 +647,12 @@
     <ResourceCompile Include="EventMessage.rc" />
     <ResourceCompile Include="Normal.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseShizuku|x64'">true</ExcludedFromBuild>
     </ResourceCompile>
     <ResourceCompile Include="Shizuku.rc">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

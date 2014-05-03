@@ -385,6 +385,10 @@
 #define ID_SSD_SAMSUNG                  33007
 #define ID_SSD_SANDFORCE                33008
 #define ID_SSD_MICRON                   33009
+#define ID_SSD_OCZ                      33010
+#define ID_SSD_PLEXTOR                  33011
+#define ID_SSD_SANDISK                  33012
+#define ID_SSD_OCZ_VECTOR               33013
 #define ID_SSD_MAX                      33049
 #define ID_ATA_PASS_THROUGH_SMART       33050
 #define ID_ADVANCEDFEATURE_ALERTMAIL    33051

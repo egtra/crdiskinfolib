@@ -202,4 +202,8 @@ public:
 	afx_msg void OnSsdSamsung();
 	afx_msg void OnSsdSandforce();
 	afx_msg void OnSsdMicron();
+	afx_msg void OnSsdOcz();
+	afx_msg void OnSsdPlextor();
+	afx_msg void OnSsdSanDisk();
+	afx_msg void OnSsdOczVector();
 };

@@ -50,6 +50,7 @@ static const TCHAR *ssdVendorString[] =
 	_T("wd"), // WDC
 	_T("px"), // PLEXTOR
 	_T("sd"), // SanDisk
+	_T("oz"), // OCZ Vector
 };
 
 static const TCHAR *deviceFormFactorString[] = 
@@ -2734,6 +2735,13 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
+	else if(IsSsdOczVector(asi))
+	{
+		asi.SmartKeyName = _T("SmartOczVector");
+		asi.DiskVendorId = SSD_VENDOR_OCZ_VECTOR;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
+	}
 	else if(asi.IsSsd)
 	{
 		asi.SmartKeyName = _T("SmartSsd");
@@ -2790,7 +2798,7 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 			}
 			break;
 		case 0xE9:
-			if(asi.DiskVendorId == SSD_VENDOR_OCZ)
+			if(asi.DiskVendorId == SSD_VENDOR_OCZ || asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 			{
 				if(asi.Attribute[j].CurrentValue <= 100)
 				{
@@ -2961,6 +2969,18 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
 					));
 			}
+			else if(asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+			{
+				asi.NandWrites  = (INT)(
+					(UINT64)
+					( (UINT64)asi.Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[3] * 256 * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[2] * 256 * 256
+					+ (UINT64)asi.Attribute[j].RawValue[1] * 256
+					+ (UINT64)asi.Attribute[j].RawValue[0])
+					* 16 / 1024 / 1024);
+			}
 			break;
 		case 0x64:
 			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
@@ -3031,6 +3051,23 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 				{
 					asi.Life = asi.Attribute[j].CurrentValue;
 				}
+			}
+		case 0xC6:
+			if(asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+			{
+				asi.HostReads = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
+			}
+			break;
+		case 0xC7:
+			if(asi.DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+			{
+				asi.HostWrites = (INT)(MAKELONG(
+					MAKEWORD(asi.Attribute[j].RawValue[0], asi.Attribute[j].RawValue[1]),
+					MAKEWORD(asi.Attribute[j].RawValue[2], asi.Attribute[j].RawValue[3])
+					));
 			}
 			break;
 		default:
@@ -3365,6 +3402,28 @@ BOOL CAtaSmart::IsSsdSanDisk(ATA_SMART_INFO &asi)
 	}
 
 	return (asi.Model.Find(_T("SanDisk SSD")) >= 0 || flagSmartType == TRUE);
+}
+
+BOOL CAtaSmart::IsSsdOczVector(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+
+	// 2013/1/19
+	// OCZ-VECTOR - http://crystalmark.info/bbs/c-board.cgi?cmd=one;no=1031;id=diskinfo#1031
+	if(asi.Attribute[ 0].Id == 0x05
+	&& asi.Attribute[ 1].Id == 0x09
+	&& asi.Attribute[ 2].Id == 0x0C
+	&& asi.Attribute[ 3].Id == 0xAB
+	&& asi.Attribute[ 4].Id == 0xAE
+	&& asi.Attribute[ 5].Id == 0xBB
+	&& asi.Attribute[ 6].Id == 0xC3
+	&& asi.Attribute[ 7].Id == 0xC4
+	)
+	{
+		flagSmartType = TRUE;
+	}
+	
+	return (flagSmartType);
 }
 
 BOOL CAtaSmart::CheckSmartAttributeCorrect(ATA_SMART_INFO* asi1, ATA_SMART_INFO* asi2)
@@ -5647,7 +5706,7 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 				}
 				break;
 			case 0xE9:
-				if(asi->DiskVendorId == SSD_VENDOR_OCZ)
+				if(asi->DiskVendorId == SSD_VENDOR_OCZ || asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
 				{
 					if(asi->Attribute[j].CurrentValue <= 100)
 					{
@@ -5818,6 +5877,18 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
 						));
 				}
+				else if(asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+				{
+					asi->NandWrites  = (INT)(
+						(UINT64)
+						( (UINT64)asi->Attribute[j].RawValue[5] * 256 * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[4] * 256 * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[3] * 256 * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[2] * 256 * 256
+						+ (UINT64)asi->Attribute[j].RawValue[1] * 256
+						+ (UINT64)asi->Attribute[j].RawValue[0])
+						* 16 / 1024 / 1024);
+				}
 				break;
 			case 0x64:
 				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
@@ -5888,6 +5959,24 @@ BOOL CAtaSmart::FillSmartData(ATA_SMART_INFO* asi)
 					{
 						asi->Life = asi->Attribute[j].CurrentValue;
 					}
+				}
+				break;
+			case 0xC6:
+				if(asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+				{
+					asi->HostReads  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
+				}
+				break;
+			case 0xC7:
+				if(asi->DiskVendorId == SSD_VENDOR_OCZ_VECTOR)
+				{
+					asi->HostWrites  = (INT)(MAKELONG(
+						MAKEWORD(asi->Attribute[j].RawValue[0], asi->Attribute[j].RawValue[1]),
+						MAKEWORD(asi->Attribute[j].RawValue[2], asi->Attribute[j].RawValue[3])
+						));
 				}
 				break;
 			default:
