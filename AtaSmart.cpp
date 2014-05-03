@@ -538,7 +538,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	IsWorkaroundHD204UI = workaroundHD204UI;
 	IsWorkaroundAdataSsd = workaroundAdataSsd;
 
-	FlagNvidia = FALSE;
+	FlagNvidiaController = FALSE;
+	FlagMarvellController = FALSE;
 
 	CArray<DISK_POSITION, DISK_POSITION> previous;
 	
@@ -752,8 +753,14 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						// NVIDIA ATA Controller
 						if (name1.Find(_T("NVIDIA")) == 0)
 						{
-							FlagNvidia = TRUE;
+							FlagNvidiaController = TRUE;
 						}
+						// Marvell ATA Controller
+						if (name1.Find(_T("Marvell")) == 0)
+						{
+							FlagMarvellController = TRUE;
+						}
+						
 
 						if(cstr.Find(_T("   - ") + name1) >= 0 || cstr.Find(_T("   + ") + name1) >= 0)
 						{
@@ -822,10 +829,21 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 						// Black List
 						if(! IsAdvancedDiskSearch 
-						&& (name1.Find(_T("VIA VT6410")) == 0 || name1.Find(_T("ITE IT8212 ATA RAID")) == 0)
+						&& (name1.Find(_T("VIA VT6410")) == 0)
 						)
 						{
 							flagBlackList = TRUE;
+						}
+
+						// NVIDIA SCSI Controller
+						if (name1.Find(_T("NVIDIA")) == 0)
+						{
+							FlagNvidiaController = TRUE;
+						}
+						// Marvell SCSI Controller
+						if (name1.Find(_T("Marvell")) == 0)
+						{
+							FlagMarvellController = TRUE;
 						}
 
 						// Silicon Image Controller
@@ -1330,7 +1348,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 						}
 
 						DebugPrint(_T("flagTarget && GetDiskInfo"));
-						if (flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType, FlagNvidia, pnpDeviceId))
+						if (flagTarget && GetDiskInfo(physicalDriveId, scsiPort, scsiTargetId, interfaceType, usbVendorId, usbProductId, scsiBus, siliconImageType, FlagNvidiaController, FlagMarvellController, pnpDeviceId))
 						{
 							DebugPrint(_T("int index = (int)vars.GetCount() - 1;"));
 							int index = (int)vars.GetCount() - 1;
@@ -3787,7 +3805,7 @@ VOID CAtaSmart::WakeUp(INT physicalDriveId)
 }
 
 BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, 
-	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType, BOOL flagNvidia, CString pnpDeviceId
+	INTERFACE_TYPE interfaceType, VENDOR_ID usbVendorId, DWORD productId, INT scsiBus, DWORD siliconImageType, BOOL FlagNvidiaController, BOOL FlagMarvellController, CString pnpDeviceId
 	)
 {
 	DebugPrint(_T("GetDiskInfo"));
@@ -3859,7 +3877,7 @@ BOOL CAtaSmart::GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId,
 						debug.Format(_T("DoIdentifyDeviceScsi(%d, %d) - 4"), scsiPort, scsiTargetId);
 						DebugPrint(debug);
 
-						if ((FlagNvidia || IsAdvancedDiskSearch) && scsiPort >= 0 && scsiTargetId >= 0 && DoIdentifyDeviceScsi(scsiPort, scsiTargetId, &identify))
+						if ((FlagNvidiaController || FlagMarvellController || IsAdvancedDiskSearch) && scsiPort >= 0 && scsiTargetId >= 0 && DoIdentifyDeviceScsi(scsiPort, scsiTargetId, &identify))
 						{
 							debug.Format(_T("AddDisk(%d, %d, %d) - 5"), physicalDriveId, scsiPort, scsiTargetId);
 							DebugPrint(debug);

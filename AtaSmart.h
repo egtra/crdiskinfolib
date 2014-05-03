@@ -1414,7 +1414,8 @@ public:
 
 	DWORD MeasuredGetTickCount;
 
-	BOOL FlagNvidia;
+	BOOL FlagNvidiaController;
+	BOOL FlagMarvellController;
 	BOOL FlagUsbSat;
 	BOOL FlagUsbSunplus;
 	BOOL FlagUsbIodata;
@@ -1432,7 +1433,7 @@ protected:
 	BOOL m_FlagAtaPassThrough;
 	BOOL m_FlagAtaPassThroughSmart;
 
-	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0, BOOL flagNvidia = 0, CString pnpDeviceId = _T(""));
+	BOOL GetDiskInfo(INT physicalDriveId, INT scsiPort, INT scsiTargetId, INTERFACE_TYPE interfaceType, VENDOR_ID vendorId, DWORD productId = 0, INT scsiBus = -1, DWORD siliconImageId = 0, BOOL FlagNvidiaController = 0, BOOL FlagMarvellController = 0, CString pnpDeviceId = _T(""));
 	BOOL AddDisk(INT PhysicalDriveId, INT ScsiPort, INT scsiTargetId, INT scsiBus, BYTE target, COMMAND_TYPE commandType, IDENTIFY_DEVICE* identify, INT siliconImageType = -1, PCSMI_SAS_PHY_ENTITY sasPhyEntity = NULL, CString pnpDeviceId = _T(""));
 	DWORD CheckSmartAttributeUpdate(DWORD index, SMART_ATTRIBUTE* pre, SMART_ATTRIBUTE* cur);
 
