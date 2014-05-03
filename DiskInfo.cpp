@@ -173,6 +173,7 @@ BOOL CDiskInfoApp::InitInstance()
 	{
 		m_AlertMailPath = _T("");
 	}
+	m_OpusDecPath.Format(_T("%s\\%s"), tmp, OPUS_DEC_PATH);
 	
 	m_ThemeIndex = MENU_THEME_INDEX;
 	m_LangIndex = MENU_LANG_INDEX;

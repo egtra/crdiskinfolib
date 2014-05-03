@@ -27,6 +27,7 @@
 #define ALARM_HISTORY_CSV			_T("AlarmHistory.csv")
 #define ALERT_MAIL_PATH				_T("CdiResource\\AlertMail.exe")
 #define ALERT_MAIL_4_PATH			_T("CdiResource\\AlertMail4.exe")
+#define OPUS_DEC_PATH				_T("CdiResource\\opus\\opusdec.exe")
 
 
 #define MENU_THEME_INDEX			3
@@ -64,6 +65,7 @@ public:
 	CString m_ExeDir;
 	CString m_GadgetDir;
 	CString m_AlertMailPath;
+	CString m_OpusDecPath;
 	CString m_Ini;
 
 	CString m_ThemeDir;

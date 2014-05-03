@@ -123,6 +123,7 @@ protected:
 	CString		m_GadgetDir;
 	CString		m_ExeDir;
 	CString		m_AlertMailPath;
+	CString		m_OpusDecPath;
 	CString		m_AlertSoundPath;
 
 	DWORD m_SelectDisk;
