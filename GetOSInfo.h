@@ -36,6 +36,7 @@ DWORD GetIeVersion();
 #define PRODUCT_ENTERPRISE_SERVER_CORE_V         0x00000029 // Server Enterprise Edition without Hyper-V (core installation)
 #define PRODUCT_ENTERPRISE_SERVER_IA64           0x0000000F // Server Enterprise Edition for Itanium-based Systems
 #define PRODUCT_ENTERPRISE_SERVER_V              0x00000026 // Server Enterprise Edition without Hyper-V (full installation)
+
 #define PRODUCT_HOME_BASIC                       0x00000002 // Home Basic Edition
 #define PRODUCT_HOME_BASIC_N                     0x00000005 // Home Basic Edition
 #define PRODUCT_HOME_PREMIUM                     0x00000003 // Home Premium Edition
@@ -63,7 +64,19 @@ DWORD GetIeVersion();
 #define PRODUCT_WEB_SERVER_CORE                  0x0000001D // Web Server Edition (core installation)
 #define PRODUCT_PROFESSIONAL					 0x00000030 // Professional
 #define PRODUCT_PROFESSIONAL_N					 0x00000031 // Professional N
- 
+
+#define PRODUCT_CORE							 0x00000065 // Windows 8
+#define PRODUCT_CORE_N                           0x00000062 // Windows 8 N
+#define PRODUCT_CORE_COUNTRYSPECIFIC			 0x00000063 // Windows 8 China
+#define PRODUCT_CORE_SINGLELANGUAGE				 0x00000064 // Windows 8 Single Language
+
+#define RRODUCT_ESSENTIALBUSINESS_SERVER_MGMT	 0x0000003B // Windows Essential Server Solution Management
+#define PRODUCT_ESSENTIALBUSINESS_SERVER_ADDL	 0x0000003C // Windows Essential Server Solution Additional
+#define PRODUCT_ESSENTIALBUSINESS_SERVER_MGMTSVC 0x0000003D // Windows Essential Server Solution Management SVC
+#define PRODUCT_ESSENTIALBUSINESS_SERVER_ADDLSVC 0x0000003E // Windows Essential Server Solution Additional SVC
+
+
+
 #define SM_TABLETPC             86
 #define SM_MEDIACENTER          87
 #define SM_STARTER              88

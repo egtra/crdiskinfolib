@@ -224,8 +224,8 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagAtaPassThroughSmart = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AtaPassThroughSmart"), 0, m_Ini);
 	m_FlagAutoAamApm = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AutoAamApm"), 0, m_Ini);
 	m_FlagDumpIdentifyDevice = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpIdentifyDevice"), 1, m_Ini);			// Default = Enabled
-	m_FlagDumpSmartReadData = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadData"), 0, m_Ini);
-	m_FlagDumpSmartReadThreshold = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadThreshold"), 0, m_Ini);
+	m_FlagDumpSmartReadData = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadData"), 1, m_Ini);
+	m_FlagDumpSmartReadThreshold = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("DumpSmartReadThreshold"), 1, m_Ini);
 	m_FlagResidentMinimize = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ResidentMinimize"), 0, m_Ini);
 	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
@@ -605,7 +605,7 @@ LRESULT CDiskInfoDlg::OnPlayAlertSound(WPARAM wParam, LPARAM lParam)
 	m_AlertSoundPath = str;
 
 	AlertSound(id, AS_SET_SOUND_ID);
-	AlertSound(1, AS_PLAY_SOUND);
+	AlertSound(1000, AS_PLAY_SOUND);
 
 	return 0;
 }
@@ -1237,7 +1237,7 @@ BOOL CDiskInfoDlg::AddAlarmHistory(DWORD eventId, CString disk, CString message)
 #ifdef ALERT_VOICE_SUPPORT
 BOOL CDiskInfoDlg::AlertSound(DWORD eventId, DWORD mode)
 {
-	if(eventId != 1 && ! m_FlagAlertSound)
+	if(mode != AS_SET_SOUND_ID && eventId != 1000 && ! m_FlagAlertSound)
 	{
 		return FALSE;
 	}

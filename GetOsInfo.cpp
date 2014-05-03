@@ -330,6 +330,13 @@ void GetOsName(CString& OsFullName)
 				case PRODUCT_PROFESSIONAL_N:
 					osType = (_T("Professional N"));
 					break;
+
+				case RRODUCT_ESSENTIALBUSINESS_SERVER_MGMT:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_ADDL:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_MGMTSVC:
+				case PRODUCT_ESSENTIALBUSINESS_SERVER_ADDLSVC:
+					osType = (_T("Essentials"));
+					break;
 				}
 			}
 		}

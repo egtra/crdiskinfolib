@@ -685,7 +685,7 @@ void CDiskInfoDlg::OnEditCopy()
 				cstr.Format(_T("%03d: %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X"),
 								k * 10,
 								data[10 * k + 0], data[10 * k + 1], data[10 * k + 2], data[10 * k + 3], data[10 * k + 4],
-								data[10 * k + 6], data[10 * k + 6], data[10 * k + 7], data[10 * k + 8], data[10 * k + 9]);
+								data[10 * k + 5], data[10 * k + 6], data[10 * k + 7], data[10 * k + 8], data[10 * k + 9]);
 				line += cstr;
 				if(m_FlagAsciiView)
 				{

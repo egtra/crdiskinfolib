@@ -67,8 +67,8 @@
 #define PRODUCT_SHORT_NAME		_T("CDI")
 #define PRODUCT_EDITION			_T("")
 #endif
-#define PRODUCT_VERSION			_T("5.0.2")
-#define PRODUCT_RELEASE			_T("2012/8/15")
+#define PRODUCT_VERSION			_T("5.0.3")
+#define PRODUCT_RELEASE			_T("2012/8/27")
 #define PRODUCT_COPY_YEAR		_T("2008-2012")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2012 hiyohiyo.")
 
