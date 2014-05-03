@@ -67,8 +67,8 @@
 #define PRODUCT_SHORT_NAME		_T("CDI")
 #define PRODUCT_EDITION			_T("")
 #endif
-#define PRODUCT_VERSION			_T("5.0.0")
-#define PRODUCT_RELEASE			_T("2012/6/16")
+#define PRODUCT_VERSION			_T("5.0.1")
+#define PRODUCT_RELEASE			_T("2012/8/13")
 #define PRODUCT_COPY_YEAR		_T("2008-2012")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2012 hiyohiyo.")
 
@@ -76,7 +76,7 @@
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")
 
 #define	URL_PROJECT_SHIZUKU_JA		_T("http://crystalmark.info/Shizuku/")
-#define	URL_PROJECT_SHIZUKU_EN		_T("http://crystalmark.info/Shizuku/")
+#define	URL_PROJECT_SHIZUKU_EN		_T("http://crystalmark.info/Shizuku/index-en.html")
 
 #define URL_HTML_HELP_JA		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-ja/")
 #define URL_HTML_HELP_EN 		_T("http://crystalmark.info/software/CrystalDiskInfo/manual-en/")
