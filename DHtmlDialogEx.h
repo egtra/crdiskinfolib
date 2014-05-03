@@ -4,7 +4,7 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2007-2009 hiyohiyo. All rights reserved.
+//                           Copyright 2007-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #pragma once
@@ -52,6 +52,7 @@ protected:
 
 	void SetElementPropertyEx(LPCTSTR szElementId, DISPID dispid, CString className);
 	void SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtml);
+	void SetElementInnerHtmlEx(LPCTSTR szElementId, CString innerHtml);
 	void CallScript(CString funcition, CString argument);
 	void EnableDpiAware();
 	DWORD ChangeZoomType(DWORD zoomType);
@@ -62,6 +63,7 @@ protected:
 	virtual void OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl);
 	virtual void PostNcDestroy();
 	virtual BOOL OnAmbientProperty(COleControlSite* pSite, DISPID dispid, VARIANT* pvar);
+	virtual STDMETHODIMP GetOptionKeyPath(LPOLESTR *pchKey, DWORD dw);
 
 	DECLARE_MESSAGE_MAP()
 	DECLARE_DHTML_EVENT_MAP()

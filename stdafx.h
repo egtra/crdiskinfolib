@@ -55,12 +55,13 @@
 
 // New Feature
 // #define BENCHMARK
+// #define GADGET_SUPPORT
 
 // Version Information
 #define PRODUCT_NAME			_T("CrystalDiskInfo")
 #define PRODUCT_SHORT_NAME		_T("CDI")
-#define PRODUCT_VERSION			_T("3.8.0")
-#define PRODUCT_RELEASE			_T("2010/9/5")
+#define PRODUCT_VERSION			_T("3.9.0")
+#define PRODUCT_RELEASE			_T("2010/10/9")
 #define PRODUCT_COPY_YEAR		_T("2008-2010")
 #define PRODUCT_COPYRIGHT		_T("Copyright (C) 2008-2010 hiyohiyo.")
 

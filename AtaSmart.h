@@ -335,7 +335,7 @@ public:
 	BYTE GetRecommendAamValue(DWORD index);
 	BYTE GetRecommendApmValue(DWORD index);
 
-	BOOL Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
+	VOID Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
 	BOOL MeasuredTimeUnit();
 	DWORD GetPowerOnHours(DWORD rawValue, DWORD timeUnitType);
 	DWORD GetPowerOnHoursEx(DWORD index, DWORD timeUnitType);
@@ -548,7 +548,8 @@ protected:
 	BOOL IsSsdOld(ATA_SMART_INFO &asi);
 	BOOL IsSsdMtron(ATA_SMART_INFO &asi);
 	BOOL IsSsdIndlinx(ATA_SMART_INFO &asi);
-	BOOL IsSsdJMicron(ATA_SMART_INFO &asi);
+	BOOL IsSsdJMicron60x(ATA_SMART_INFO &asi);
+	BOOL IsSsdJMicron61x(ATA_SMART_INFO &asi);
 	BOOL IsSsdIntel(ATA_SMART_INFO &asi);
 	BOOL IsSsdSamsung(ATA_SMART_INFO &asi);
 	BOOL IsSsdSandForce(ATA_SMART_INFO &asi);

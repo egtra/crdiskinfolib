@@ -407,7 +407,7 @@ void CDHtmlMainDialog::OnWindowPosChanging(WINDOWPOS * lpwndpos)
 	{
 		lpwndpos->flags &= ~SWP_SHOWWINDOW;
 	}
-
+	
 	if(m_FlagWindoowMinimizeOnce && ! m_FlagInitializing)
 	{
 		m_FlagWindoowMinimizeOnce = FALSE;

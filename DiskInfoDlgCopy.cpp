@@ -533,7 +533,8 @@ void CDiskInfoDlg::OnEditCopy()
 						str
 						);
 				}
-				else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
+				// For JMicron 60x
+				else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && m_Ata.vars[i].IsRawValues8)
 				{
 					cstr.Format(_T("%02X %s %02X%02X%02X%02X%02X%02X%02X%02X %s\r\n"),
 						m_Ata.vars[i].Attribute[j].Id,

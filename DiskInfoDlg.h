@@ -127,7 +127,9 @@ protected:
 	BOOL m_FlagDumpSmartReadThreshold;
 	BOOL m_FlagShowTemperatureIconOnly;
 	BOOL m_FlagAsciiView;
+#ifdef GADGET_SUPPORT
 	BOOL m_FlagSidebar;
+#endif
 
 	BOOL AddTemperatureIcon(DWORD index);
 	BOOL RemoveTemperatureIcon(DWORD index);
@@ -183,7 +185,7 @@ protected:
 	void SelectDrive(DWORD index);
 	void InitDriveList();
 	void InitListCtrl();
-	BOOL InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
+	void InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk);
 
 	void ChangeLang(CString LangName);
 	void UpdateDialogSize();

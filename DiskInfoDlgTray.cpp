@@ -177,7 +177,7 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 	{
 		hDiskTemp[i] = CreateMenu();
 		hDiskMenu[i] = CreateMenu();
-		for(int j = 40; j <= 60; j++)
+		for(int j = 30; j <= 60; j++)
 		{
 			if(m_FlagFahrenheit)
 			{
@@ -290,7 +290,7 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 	hDiskTemp[CAtaSmart::MAX_DISK] = CreateMenu();
 	hDiskMenu[CAtaSmart::MAX_DISK] = CreateMenu();
 	hDiskHealth = CreateMenu();
-	for(int j = 40; j <= 60; j++)
+	for(int j = 30; j <= 60; j++)
 	{
 		if(m_FlagFahrenheit)
 		{

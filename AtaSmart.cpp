@@ -461,7 +461,7 @@ BOOL CAtaSmart::MeasuredTimeUnit()
 }
 
 /* PUBLIC FUNCTION */
-BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
+VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 {
 	// Debug
 	// useWmi = FALSE;
@@ -510,19 +510,11 @@ BOOL CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 
 		bool initWmi = true;
 		CDnpService	cService;
-		
-		for(int i = 0; i < 3; i++)
+	
+		if(! cService.IsServiceRunning(_T("Winmgmt")))
 		{
-			if(! cService.IsServiceRunning(_T("Winmgmt")))
-			{
-				DebugPrint(_T("Waiting... Winmgmt"));
-				initWmi = cService.EasyStart(_T("Winmgmt"));
-				continue;
-			}
-			else
-			{
-				break;
-			}
+			DebugPrint(_T("Waiting... Winmgmt"));
+			initWmi = cService.EasyStart(_T("Winmgmt"));
 		}
 
 		if(initWmi)
@@ -1547,8 +1539,6 @@ safeRelease:
 			}
 		}
 	}
-
-	return IsEnabledWmi;
 }
 
 int CAtaSmart::Compare(const void *p1, const void *p2)
@@ -2137,13 +2127,21 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 	}
-	else if(IsSsdJMicron(asi))
+	else if(IsSsdJMicron60x(asi))
 	{
-		asi.SmartKeyName = _T("SmartJMicron");
+		asi.SmartKeyName = _T("SmartJMicron60x");
 		asi.DiskVendorId = SSD_VENDOR_JMICRON;
 		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
 		asi.IsSsd = TRUE;
 		asi.IsRawValues8 = TRUE;
+		return ;
+	}
+	else if(IsSsdJMicron61x(asi))
+	{
+		asi.SmartKeyName = _T("SmartJMicron61x");
+		asi.DiskVendorId = SSD_VENDOR_JMICRON;
+		asi.SsdVendorString = ssdVendorString[asi.DiskVendorId];
+		asi.IsSsd = TRUE;
 		return ;
 	}
 	else if(IsSsdIndlinx(asi))
@@ -2237,6 +2235,15 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 					);
 			}
 			break;
+		case 0xB4:
+			if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+			{
+				if(asi.Attribute[j].CurrentValue <= 100)
+				{
+					asi.Life = asi.Attribute[j].CurrentValue;
+				}
+			}
+			break;
 		case 0xE7:
 			if(asi.DiskVendorId == SSD_VENDOR_SANDFORCE)
 			{
@@ -2246,8 +2253,8 @@ VOID CAtaSmart::CheckSsdSupport(ATA_SMART_INFO &asi)
 				}
 			}
 			break;
-		case 0xB4:
-			if(asi.DiskVendorId == SSD_VENDOR_SAMSUNG)
+		case 0xAA:
+			if(asi.DiskVendorId == SSD_VENDOR_JMICRON && ! asi.IsRawValues8)
 			{
 				if(asi.Attribute[j].CurrentValue <= 100)
 				{
@@ -2280,7 +2287,7 @@ BOOL CAtaSmart::IsSsdMtron(ATA_SMART_INFO &asi)
 	return ((asi.Attribute[ 0].Id == 0xBB && asi.AttributeCount == 1) || asi.Model.Find(_T("MTRON")) == 0);
 }
 
-BOOL CAtaSmart::IsSsdJMicron(ATA_SMART_INFO &asi)
+BOOL CAtaSmart::IsSsdJMicron60x(ATA_SMART_INFO &asi)
 {
 	BOOL flagSmartType = FALSE;
 
@@ -2298,16 +2305,34 @@ BOOL CAtaSmart::IsSsdJMicron(ATA_SMART_INFO &asi)
 	}
 
 	return flagSmartType;
-		/*
-		   asi.Model.Find(_T("G-Monster-V2")) == 0
-		|| asi.Model.Find(_T("G-Monster-V5-J")) == 0
-		|| asi.Model.Find(_T("PATRIOT MEMORY")) == 0
-		|| asi.Model.Find(_T("OCZ CORE")) == 0
-		|| asi.Model.Find(_T("OCZ APEX")) == 0
-		|| asi.Model.Find(_T("ASUS-JM")) == 0
-		|| asi.Model.Find(_T("KEIAN SSD")) == 0
-		|| 
-		*/
+}
+
+BOOL CAtaSmart::IsSsdJMicron61x(ATA_SMART_INFO &asi)
+{
+	BOOL flagSmartType = FALSE;
+
+	if(asi.Attribute[ 0].Id == 0x01
+	&& asi.Attribute[ 1].Id == 0x02
+	&& asi.Attribute[ 2].Id == 0x03
+	&& asi.Attribute[ 3].Id == 0x05
+	&& asi.Attribute[ 4].Id == 0x07
+	&& asi.Attribute[ 5].Id == 0x08
+	&& asi.Attribute[ 6].Id == 0x09
+	&& asi.Attribute[ 7].Id == 0x0A
+	&& asi.Attribute[ 8].Id == 0x0C
+	&& asi.Attribute[ 9].Id == 0xA8
+	&& asi.Attribute[10].Id == 0xAF
+	&& asi.Attribute[11].Id == 0xC0
+	&& asi.Attribute[12].Id == 0xC2
+//	&& asi.Attribute[13].Id == 0xF0
+//	&& asi.Attribute[14].Id == 0xAA
+//	&& asi.Attribute[15].Id == 0xAD
+	)
+	{
+		flagSmartType = TRUE;
+	}
+
+	return flagSmartType;
 }
 
 BOOL CAtaSmart::IsSsdIndlinx(ATA_SMART_INFO &asi)
@@ -4346,6 +4371,15 @@ BOOL CAtaSmart::FillSmartInfo(ATA_SMART_INFO* asi)
 				break;
 			case 0xE7:
 				if(asi->DiskVendorId == SSD_VENDOR_SANDFORCE)
+				{
+					if(asi->Attribute[j].CurrentValue <= 100)
+					{
+						asi->Life = asi->Attribute[j].CurrentValue;
+					}
+				}
+				break;
+			case 0xAA:
+				if(asi->DiskVendorId == SSD_VENDOR_JMICRON && ! asi->IsRawValues8)
 				{
 					if(asi->Attribute[j].CurrentValue <= 100)
 					{

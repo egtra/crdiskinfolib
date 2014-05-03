@@ -95,31 +95,23 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	OnUsbJmicron();
 	OnUsbCypress();
 
-	if(! InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL))
-	{
-//		AfxMessageBox(i18n(_T("Message"), _T("PLEASE_ENABLE_WMI")));
-//		ShellExecute(NULL, NULL, _T("services.msc"), NULL, NULL, SW_SHOWNORMAL);	
-//		EndDialog(0);
-	}
-//	else
-	{
-		if(m_FlagStartupExit)
-		{
-			EndDialog(0);
-			return FALSE;
-		}
+	InitAta((BOOL)GetPrivateProfileInt(_T("Setting"), _T("UseWMI"), 1, m_Ini), m_FlagAdvancedDiskSearch, NULL);
 
-		EnableDpiAware();
-		InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
-	//	SetWindowTitle(_T("Initializing..."));
+	if(m_FlagStartupExit)
+	{
+		EndDialog(0);
+		return FALSE;
 	}
-/**/
+
+	EnableDpiAware();
+	InitDHtmlDialog(m_SizeX, m_SizeY, ((CDiskInfoApp*)AfxGetApp())->m_MainDlgPath);
+	//	SetWindowTitle(_T("Initializing..."));
+
 	DEV_BROADCAST_DEVICEINTERFACE filter;
 	filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
 	filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
 	filter.dbcc_classguid = StrageGUID;
 	m_hDevNotify = RegisterDeviceNotification(m_hWnd, &filter, DEVICE_NOTIFY_WINDOW_HANDLE);
-
 
 	return TRUE; 
 }
@@ -134,6 +126,7 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 		if(! once)
 		{
 			CheckStartup();
+			CheckResident();
 			CheckHideSerialNumber();
 			ChangeTheme(m_CurrentTheme);
 			ChangeZoomType(m_ZoomType);
@@ -142,7 +135,6 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 			CheckPage();
 			
 			m_FlagShowWindow = TRUE;		
-
 			CenterWindow();
 
 			if(m_FlagResident)
@@ -166,81 +158,68 @@ void CDiskInfoDlg::OnDocumentComplete(LPDISPATCH pDisp, LPCTSTR szUrl)
 
 			once = TRUE;
 			m_FlagInitializing = FALSE;
-
 		}
 	}
 }
 
-BOOL CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
+void CDiskInfoDlg::InitAta(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk)
 {
 	KillTimer(TIMER_SET_POWER_ON_UNIT);
 	SetWindowTitle(i18n(_T("Message"), _T("DETECT_DISK")));
 	m_PowerOnHoursClass = _T("valueR");
 	m_NowDetectingUnitPowerOnHours = FALSE;
 
-	if(m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk))
+	m_Ata.Init(useWmi, advancedDiskSearch, flagChangeDisk);
+	
+	DWORD errorCount = 0;
+	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
-		if(! m_FlagStartupExit)
+		int unitType = GetPrivateProfileInt(_T("PowerOnUnit"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
+		if(unitType >= 0)
 		{
-			CheckResident();
+			m_Ata.vars[i].MeasuredTimeUnitType = unitType;
+			m_Ata.vars[i].MeasuredPowerOnHours = m_Ata.GetPowerOnHoursEx(i, unitType);
+		}
+		else if(m_Ata.vars[i].PowerOnRawValue > 0)
+		{
+			errorCount++;
 		}
 
-		DWORD errorCount = 0;
-		for(int i = 0; i < m_Ata.vars.GetCount(); i++)
-		{
-			int unitType = GetPrivateProfileInt(_T("PowerOnUnit"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-			if(unitType >= 0)
-			{
-				m_Ata.vars[i].MeasuredTimeUnitType = unitType;
-				m_Ata.vars[i].MeasuredPowerOnHours = m_Ata.GetPowerOnHoursEx(i, unitType);
-			}
-			else if(m_Ata.vars[i].PowerOnRawValue > 0)
-			{
-				errorCount++;
-			}
+		m_FlagAutoRefreshTarget[i] = GetPrivateProfileInt(_T("AutoRefreshTarget"), m_Ata.vars[i].ModelSerial, 1, m_Ini);;
+		m_Ata.vars[i].AlarmTemperature = GetPrivateProfileInt(_T("AlarmTemperature"), m_Ata.vars[i].ModelSerial, 50, m_Ini);
+		m_Ata.vars[i].AlarmHealthStatus = GetPrivateProfileInt(_T("AlarmHealthStatus"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
 
-			m_FlagAutoRefreshTarget[i] = GetPrivateProfileInt(_T("AutoRefreshTarget"), m_Ata.vars[i].ModelSerial, 1, m_Ini);;
-			m_Ata.vars[i].AlarmTemperature = GetPrivateProfileInt(_T("AlarmTemperature"), m_Ata.vars[i].ModelSerial, 50, m_Ini);
-			m_Ata.vars[i].AlarmHealthStatus = GetPrivateProfileInt(_T("AlarmHealthStatus"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+		m_Ata.vars[i].Threshold05     = GetPrivateProfileInt(_T("ThreasholdOfCaution05"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+		m_Ata.vars[i].ThresholdC5     = GetPrivateProfileInt(_T("ThreasholdOfCautionC5"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
+		m_Ata.vars[i].ThresholdC6     = GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
 
-			m_Ata.vars[i].Threshold05     = GetPrivateProfileInt(_T("ThreasholdOfCaution05"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
-			m_Ata.vars[i].ThresholdC5     = GetPrivateProfileInt(_T("ThreasholdOfCautionC5"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
-			m_Ata.vars[i].ThresholdC6     = GetPrivateProfileInt(_T("ThreasholdOfCautionC6"), m_Ata.vars[i].ModelSerial, 1, m_Ini);
-
-			m_Ata.vars[i].DiskStatus = m_Ata.CheckDiskStatus(i);
-			SaveSmartInfo(i);
+		m_Ata.vars[i].DiskStatus = m_Ata.CheckDiskStatus(i);
+		SaveSmartInfo(i);
 
 #ifdef BENCHMARK
-			// Benchmark Reuslt
-			TCHAR str[256];
-			GetPrivateProfileString(_T("Benchmark"), m_Ata.vars[i].ModelSerial, _T("0.0"), str, 256, m_Ini);
-			m_Ata.vars[i].Speed = Decode10X(str) / 1000.0;
+		// Benchmark Reuslt
+		TCHAR str[256];
+		GetPrivateProfileString(_T("Benchmark"), m_Ata.vars[i].ModelSerial, _T("0.0"), str, 256, m_Ini);
+		m_Ata.vars[i].Speed = Decode10X(str) / 1000.0;
 #endif
-		}
-		if(errorCount)
-		{
-			SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);
-			SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
-			m_PowerOnHoursClass = _T("valueR gray");
-			m_NowDetectingUnitPowerOnHours = TRUE;
-		}
-		else
-		{
-			SetWindowTitle(_T(""));
-		}
-
-		AutoAamApmAdaption();
-
-		#ifdef GADGET_SUPPORT
-		UpdateShareInfo();
-		#endif
-
-		return TRUE;
+	}
+	if(errorCount)
+	{
+		SetTimer(TIMER_SET_POWER_ON_UNIT, 130000, 0);
+		SetWindowTitle(i18n(_T("Message"), _T("DETECT_UNIT_POWER_ON_HOURS")));
+		m_PowerOnHoursClass = _T("valueR gray");
+		m_NowDetectingUnitPowerOnHours = TRUE;
 	}
 	else
 	{
-		return FALSE;
+		SetWindowTitle(_T(""));
 	}
+
+	AutoAamApmAdaption();
+
+	#ifdef GADGET_SUPPORT
+	UpdateShareInfo();
+	#endif
 }
 
 void CDiskInfoDlg::InitListCtrl()

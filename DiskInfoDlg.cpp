@@ -180,7 +180,9 @@ CDiskInfoDlg::CDiskInfoDlg(CWnd* pParent /*=NULL*/, BOOL flagStartupExit)
 	m_FlagResidentMinimize = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ResidentMinimize"), 0, m_Ini);
 	m_FlagShowTemperatureIconOnly = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("ShowTemperatureIconOnly"), 0, m_Ini);
 	m_FlagAsciiView = (BOOL)GetPrivateProfileInt(_T("Setting"), _T("AsciiView"), 0, m_Ini);
+#ifdef GADGET_SUPPORT
 	m_FlagSidebar = IsSidebar();
+#endif
 
 	m_AutoDetectionStatus = GetPrivateProfileInt(_T("Setting"), _T("AutoDetection"), 0, m_Ini);
 	if(m_AutoDetectionStatus < 0)
@@ -874,7 +876,8 @@ void CDiskInfoDlg::OnSize(UINT nType, int cx, int cy)
 		GetClientRect(&rect);
 		if(rect.bottom - rect.top > 0)
 		{
-			cstr.Format(_T("%d"), (DWORD)((rect.bottom - rect.top) / m_ZoomRatio));
+			m_SizeY = (DWORD)((rect.bottom - rect.top) / m_ZoomRatio);
+			cstr.Format(_T("%d"), m_SizeY);
 			WritePrivateProfileString(_T("Setting"), _T("Height"), cstr, m_Ini);
 		}
 	}
@@ -1300,6 +1303,9 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 	int status = 0;
 	int value = 0;
 
+	//DEBUG
+	DebugPrint(_T("AutoAamApmAdaption"));
+
 	// AAM
 	for(int i = 0; i < m_Ata.vars.GetCount(); i++)
 	{
@@ -1310,17 +1316,18 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 
 		status = GetPrivateProfileInt(_T("AamStatus"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
 		value = GetPrivateProfileInt(_T("AamValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		if(status == 1 /* Enabled */
-		&& (! m_Ata.vars[i].IsAamEnabled || value != m_Ata.GetAamValue(i)))
+		if(status == 1 /* Enabled */ && value != m_Ata.GetAamValue(i))
 		{
 			m_Ata.EnableAam(i, value);
 			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.EnableAam"));
 		}
 		if(status == 0 /* Disabled */
 		&& m_Ata.vars[i].IsAamEnabled)
 		{
 			m_Ata.DisableAam(i);
 			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.DisableAam"));
 		}
 	}
 
@@ -1334,17 +1341,18 @@ void CDiskInfoDlg::AutoAamApmAdaption()
 
 		status = GetPrivateProfileInt(_T("ApmStatus"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
 		value = GetPrivateProfileInt(_T("ApmValue"), m_Ata.vars[i].ModelSerial, -1, m_Ini);
-		if(status == 1 /* Enabled */
-		&& (! m_Ata.vars[i].IsApmEnabled || value != m_Ata.GetApmValue(i)))
+		if(status == 1 /* Enabled */ && value != m_Ata.GetApmValue(i))
 		{
 			m_Ata.EnableApm(i, value);
 			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.EnableApm"));
 		}
 		if(status == 0 /* Disabled */
 		&& m_Ata.vars[i].IsApmEnabled)
 		{
 			m_Ata.DisableApm(i);
 			m_Ata.UpdateIdInfo(i);
+			DebugPrint(_T("m_Ata.DisableApm"));
 		}
 	}
 }

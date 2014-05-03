@@ -4,13 +4,15 @@
 //          Web : http://crystalmark.info/
 //      License : The modified BSD license
 //
-//                           Copyright 2007-2009 hiyohiyo. All rights reserved.
+//                           Copyright 2007-2010 hiyohiyo. All rights reserved.
 /*---------------------------------------------------------------------------*/
 
 #include "stdafx.h"
 #include "resource.h"
 #include "DHtmlDialogEx.h"
 #include "GetOsInfo.h"
+
+#include <strsafe.h>
 
 CDHtmlDialogEx::CDHtmlDialogEx(UINT dlgResouce, UINT dlgHtml, CWnd* pParent)
 				:CDHtmlDialog(dlgResouce, dlgHtml, pParent)
@@ -311,6 +313,16 @@ void CDHtmlDialogEx::SetElementOuterHtmlEx(LPCTSTR szElementId, CString outerHtm
 	}
 }
 
+void CDHtmlDialogEx::SetElementInnerHtmlEx(LPCTSTR szElementId, CString innerHtml)
+{
+	CComPtr<IHTMLElement> sphtmlElem;
+	GetElement(szElementId, &sphtmlElem);
+	if(sphtmlElem)
+	{
+		sphtmlElem->put_innerHTML(CComBSTR(innerHtml));
+	}
+}
+
 void CDHtmlDialogEx::CallScript(CString function, CString argument)
 {
 	CComPtr<IHTMLDocument2> pDocument;
@@ -368,4 +380,29 @@ CString CDHtmlDialogEx::i18n(CString section, CString key)
 	}
 
 	return cstr;
+}
+
+/////////////////////////////////////////////////////////////////////////
+// Added 2010/10/3 http://msdn.microsoft.com/ja-jp/library/aa753258.aspx
+/////////////////////////////////////////////////////////////////////////
+
+STDMETHODIMP CDHtmlDialogEx::GetOptionKeyPath(LPOLESTR *pchKey, DWORD dw)
+{
+    HRESULT hr;
+    WCHAR* szKey = L"Software";
+	
+    size_t cbLength;
+    hr = StringCbLengthW(szKey, 1280, &cbLength);
+    //  TODO: Add error handling code here.
+    
+    if (pchKey)
+    {
+        *pchKey = (LPOLESTR)CoTaskMemAlloc(cbLength + sizeof(WCHAR));
+        if (*pchKey)
+            hr = StringCbCopyW(*pchKey, cbLength + sizeof(WCHAR), szKey);
+    }
+    else
+        hr = E_INVALIDARG;
+
+    return hr;
 }

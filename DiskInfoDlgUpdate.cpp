@@ -210,7 +210,8 @@ void CDiskInfoDlg::RebuildListHeader(DWORD i, BOOL forceUpdate)
 		m_List.InsertColumn(2, i18n(_T("Dialog"), _T("LIST_ATTRIBUTE_NAME")), LVCFMT_LEFT, (int)(width - 384 * m_ZoomRatio - 25), 0);
 		preVendorId = m_Ata.SSD_VENDOR_SANDFORCE;
 	}
-	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
+	// JMicron 60x
+	else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && m_Ata.vars[i].IsRawValues8)
 	{
 		m_List.InsertColumn(0, _T(""), LVCFMT_CENTER, 25, 0);
 		m_List.InsertColumn(1, i18n(_T("Dialog"), _T("LIST_ID")), LVCFMT_CENTER, (int)(32 * m_ZoomRatio), 0);
@@ -717,7 +718,7 @@ BOOL CDiskInfoDlg::UpdateListCtrl(DWORD i)
 		//	m_List.SetItemText(k, 6, _T("DDDDDDDDDDDDDD"));
 			m_List.SetItemText(k, 6, cstr);
 		}
-		else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON)
+		else if(m_Ata.vars[i].DiskVendorId == m_Ata.SSD_VENDOR_JMICRON && m_Ata.vars[i].IsRawValues8)
 		{
 			cstr.Format(_T("%d"), m_Ata.vars[i].Attribute[j].CurrentValue);							
 			m_List.SetItemText(k, 3, cstr);

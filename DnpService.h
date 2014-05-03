@@ -56,158 +56,107 @@ class	CDnpService
 		//	スレッド中で呼び出し、IsCancel()を利用することで無限ループに陥らない
 		//	コントロールが可能。
 		//
-		bool	EasyStartStop(LPCTSTR pszName,bool bStart)
+		bool EasyStartStop(LPCTSTR pszName, bool b)
 		{
-			bool			ret;
-			BOOL			bRet;
-			SC_HANDLE		hManager;
-			SC_HANDLE		hService;
+			bool			ret = false;
+			BOOL			bRet = FALSE;
+			SC_HANDLE		hManager = NULL;
+			SC_HANDLE		hService = NULL;
 			SERVICE_STATUS	sStatus;
 
-			ret = false;
-			hManager = NULL;
-			hService = NULL;
-			while(1)			//無限ループではない！
+			hManager = ::OpenSCManager(NULL,NULL,GENERIC_EXECUTE);
+			if(hManager == NULL)
 			{
-				hManager = ::OpenSCManager(NULL,NULL,GENERIC_EXECUTE);
-				if(hManager == NULL)
-					break;
+				return false;
+			}
+	
+			hService = ::OpenService(hManager, pszName, SERVICE_START | SERVICE_QUERY_STATUS);
+			if(hService == NULL)
+			{
+				if(hManager){::CloseServiceHandle(hManager);}
+				return false;
+			}
+	
+			::ZeroMemory(&sStatus,sizeof(SERVICE_STATUS));
+			bRet = ::QueryServiceStatus(hService,&sStatus);
+			if(bRet == FALSE)
+			{
+				if(hService){::CloseServiceHandle(hService);}
+				if(hManager){::CloseServiceHandle(hManager);}
+				return false;
+			}
 
-				if(bStart)
-					hService = ::OpenService(hManager,pszName,SERVICE_START | SERVICE_QUERY_STATUS);
-				else
-					hService = ::OpenService(hManager,pszName,SERVICE_STOP | SERVICE_QUERY_STATUS);
-				if(hService == NULL)
-					break;
+			if(sStatus.dwCurrentState == SERVICE_RUNNING)
+			{
+				if(hService){::CloseServiceHandle(hService);}
+				if(hManager){::CloseServiceHandle(hManager);}
+				return true;
+			}
 
-				::ZeroMemory(&sStatus,sizeof(SERVICE_STATUS));
-				bRet = ::QueryServiceStatus(hService,&sStatus);
-				if(bRet == FALSE)
-					break;
+			CString cstr;
+			cstr.Format(_T("sStatus.dwCurrentState:%08X"), sStatus.dwCurrentState);
+			DebugPrint(cstr);
 
-				if(bStart && sStatus.dwCurrentState == SERVICE_RUNNING)
+			//サービス開始要求
+			DebugPrint(_T("StartService - 1"));
+			bRet = ::StartService(hService, NULL, NULL);
+
+			//開始まで無限ループで待機
+			DebugPrint(_T("QueryServiceStatus - 1"));
+			int count = 0;
+			while(::QueryServiceStatus(hService, &sStatus))
+			{
+				// 無限ループを回避 (最大 1 秒間 WMI の初期化を待つ)
+				if(count >= 4)
 				{
-					//既にサービスは動いている
-					ret = true;
 					break;
 				}
-				if((bStart == false) && sStatus.dwCurrentState == SERVICE_STOPPED)
-				{
-					//既にサービスは止まっている
-					ret = true;
-					break;
-				}
-
-				CString cstr;
-				cstr.Format(_T("sStatus.dwCurrentState:%08X"), sStatus.dwCurrentState);
-				DebugPrint(cstr);
-
-				if(bStart)
-				{
-					////////////////////////////
-					//	サービス開始
-					//
-
-					if(sStatus.dwCurrentState == SERVICE_STOPPED)
-					{
-						//サービス開始要求
-						DebugPrint(_T("StartService"));
-						bRet = ::StartService(hService,NULL,NULL);
-						// ERROR_ALREADY_EXISTS
-						/*
-						if(bRet == FALSE)
-						{
-							cstr.Format(_T("%08X"), GetLastError());
-							DebugPrint(_T("NG:StartService"));
-							DebugPrint(cstr);
-							break;
-						}
-						else
-						{
-							DebugPrint(_T("OK:StartService"));
-						}
-						*/
-
-						//開始まで無限ループで待機
-						//IsCancelを利用すれば無限ループからの脱出が可能
-						DebugPrint(_T("QueryServiceStatus"));
-						int count = 0;
-						while(::QueryServiceStatus(hService,&sStatus))
-						{
-							// 無限ループを回避 (最大 5 秒間 WMI の初期化を待つ)
-							if(count >= 10)
-							{
-								break;
-							}
-
-							if(sStatus.dwCurrentState == SERVICE_RUNNING)
-							{
-								ret = true;
-								break;
-							}
-							DebugPrint(_T("sStatus.dwCurrentState != SERVICE_RUNNING"));
-
-							if(IsCancel())
-								break;
-
-							::Sleep(500);
-							DebugPrint(_T("Sleep"));
-							count++;
-							continue;
-						}
-						cstr.Format(_T("GetLastError():%08X"), GetLastError());
-						DebugPrint(cstr);
-					}
-					break;
-				}
-
-
-				////////////////////////////
-				//	サービス停止
-				//
 
 				if(sStatus.dwCurrentState == SERVICE_RUNNING)
 				{
-					//サービス停止要求
-					bRet = ::ControlService(hService,SERVICE_CONTROL_STOP,&sStatus);
-					/*
-					if(bRet == FALSE)
-						break;
-					*/
+					DebugPrint(_T("StartService Completed : SERVICE_RUNNING"));
+					if(hService){::CloseServiceHandle(hService);}
+					if(hManager){::CloseServiceHandle(hManager);}
+					return true;
+				}
+					
+				::Sleep(100 * count);
+				DebugPrint(_T("Sleep"));
+				count++;
+			}
+				
+			// サービスの起動モードを auto に強制変更
+			ShellExecute(NULL, NULL, _T("sc"), _T("config Winmgmt start= auto"), NULL, SW_HIDE);
+			count = 0;
+			DebugPrint(_T("QueryServiceStatus - 2"));
+			while(::QueryServiceStatus(hService, &sStatus))
+			{
+				//サービス開始要求
+				DebugPrint(_T("StartService - 2"));
+				::StartService(hService, NULL, NULL);
 
-					//停止まで無限ループで待機
-					//IsCancelを利用すれば無限ループからの脱出が可能
-					while(::QueryServiceStatus(hService,&sStatus))
-					{
-						if(sStatus.dwCurrentState == SERVICE_STOPPED)
-						{
-							ret = true;
-							break;
-						}
-
-						if(IsCancel())
-							break;
-
-						//::Sleep(sStatus.dwWaitHint);
-						//本来ならばdwWaitHitだけSleepをかけるが、中断処理を入れるため
-						//500msecを上限にSleepする
-						::Sleep((sStatus.dwWaitHint > 500) ? 500 : sStatus.dwWaitHint);
-						continue;
-					}
+				// 無限ループを回避 (最大 5 秒間 WMI の初期化を待つ)
+				if(count >= 10)
+				{
+					break;
 				}
 
-				break;		//必須！この行がないと無限ループになるかも
+				if(sStatus.dwCurrentState == SERVICE_RUNNING)
+				{
+					DebugPrint(_T("StartService Completed : SERVICE_RUNNING"));
+					if(hService){::CloseServiceHandle(hService);}
+					if(hManager){::CloseServiceHandle(hManager);}
+					return true;
+				}
+					
+				::Sleep(500);
+				DebugPrint(_T("Sleep"));
+				count++;
 			}
 
-			DebugPrint(_T("EasyStartStop"));
-			//ATLASSERT(ret);
-
-			if(hService)
-				::CloseServiceHandle(hService);
-			if(hManager)
-				::CloseServiceHandle(hManager);
-
-			return	ret;
+			if(hService){::CloseServiceHandle(hService);}
+			if(hManager){::CloseServiceHandle(hManager);}
+			return false;
 		}
 	};
 
