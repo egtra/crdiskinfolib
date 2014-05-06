@@ -10,6 +10,9 @@
 #include "AtaSmart.h"
 #include <wbemcli.h>
 
+#include "DiskInfoLib.h"
+using CrDiskInfoLib::DebugPrint;
+
 #include "DnpService.h"
 
 #pragma comment(lib, "wbemuuid.lib")
@@ -541,7 +544,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 	FlagNvidiaController = FALSE;
 	FlagMarvellController = FALSE;
 
-	CArray<DISK_POSITION, DISK_POSITION> previous;
+	CAtlArray<DISK_POSITION> previous;
 	
 	if(flagChangeDisk != NULL)
 	{
@@ -601,11 +604,6 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 		{
 			try
 			{
-			//	DebugPrint(_T("CoInitialize()"));
-			//	CoInitialize(NULL);
-				DebugPrint(_T("CoInitializeSecurity()"));
-				CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT,
-					RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
 				DebugPrint(_T("CoCreateInstance()"));
 				//CLSID_WbemAdministrativeLocator / 
 				if(FAILED(CoCreateInstance(CLSID_WbemLocator, NULL, CLSCTX_INPROC_SERVER,
@@ -666,7 +664,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 		if(IsEnabledWmi)
 		{
-			CStringArray csa;
+			CAtlArray<CString> csa;
 			CString temp, cstr, cstr1, cstr2;
 			try
 			{// Win32_IDEController
@@ -1003,7 +1001,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 							VariantClear(&pVal);
 							if(cstr.Find(_T("USBSTOR")) >= 0)
 							{
-								EXTERNAL_DISK_INFO edi = {0};
+								EXTERNAL_DISK_INFO edi = {};
 								int curPos= 0;
 								CString resToken;
 								resToken = deviceId.Tokenize(_T("\\&"), curPos);
@@ -1107,7 +1105,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 				HANDLE	hIoCtrl;
 				DWORD	dwReturned;
 				DISK_GEOMETRY dg = {0};
-				CAtaSmart::INTERFACE_TYPE interfaceType = INTERFACE_TYPE_UNKNOWN;
+				INTERFACE_TYPE interfaceType = INTERFACE_TYPE_UNKNOWN;
 				CAtaSmart::VENDOR_ID vendor = VENDOR_UNKNOWN;
 							
 				hIoCtrl = GetIoCtrlHandle(i);
@@ -1634,7 +1632,7 @@ safeRelease:
 		HANDLE	hIoCtrl;
 		DWORD	dwReturned;
 		DISK_GEOMETRY dg;
-		CAtaSmart::INTERFACE_TYPE interfaceType = INTERFACE_TYPE_UNKNOWN;
+		INTERFACE_TYPE interfaceType = INTERFACE_TYPE_UNKNOWN;
 		CAtaSmart::VENDOR_ID vendor = VENDOR_UNKNOWN;
 
 		for(int j = 0; j < vars.GetCount(); j++)
@@ -5704,7 +5702,7 @@ BOOL CAtaSmart::AddDiskCsmi(INT scsiPort)
 	}
 
 //	CArray<CSMI_SAS_RAID_DRIVES, CSMI_SAS_RAID_DRIVES> raidDrives;
-	CArray<UCHAR, UCHAR> raidDrives;
+	CAtlArray<UCHAR> raidDrives;
 
 	DWORD size = sizeof(CSMI_SAS_RAID_CONFIG_BUFFER) + sizeof(CSMI_SAS_RAID_DRIVES) * raidInfoBuf.Information.uNumRaidSets * raidInfoBuf.Information.uMaxDrivesPerSet;
 	PCSMI_SAS_RAID_CONFIG_BUFFER buf = (PCSMI_SAS_RAID_CONFIG_BUFFER)VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
