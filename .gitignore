@@ -1,0 +1,9 @@
+/Build
+/Freesia
+/ipch
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.suo
+*.user
