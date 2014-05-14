@@ -28,3 +28,7 @@ includeディレクトリをインクルードディレクトリに追加して�
 
 CrDiskInfoLib.vcxprojまたはCrDiskInfoLib.vcprojをビルドすると静的ライブラリが作られます。
 これをリンクしてください。
+
+Visual Studio 2005の場合、別途Windows SDKが必要です。
+付属のPlatform SDKではビルドできません。
+Windows SDK 7.1でビルドできることを確認しています。
