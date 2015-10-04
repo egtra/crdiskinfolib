@@ -40,14 +40,12 @@ public:
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	afx_msg void OnSecretVoice();
 	afx_msg void OnBnClickedProjectShizukuKirinokasumu();
-	afx_msg void OnBnClickedProjectShizukuIgarashihiromi();
 	afx_msg void OnBnClickedProjectShizukuLinuxhajapan();
 	afx_msg void OnBnClickedProjectShizukuOpensourcechannel();
 	afx_msg void OnBnClickedProjectShizukuBellche();
 #endif
 	CButtonCx m_CtrlCrystalDewWorld;
 	CButtonCx m_CtrlProjectShizukuKirinokasumu;
-	CButtonCx m_CtrlProjectShizukuIgarashihiromi;
 	CButtonCx m_CtrlProjectShizukuLinuxhajapan;
 	CButtonCx m_CtrlProjectShizukuOpensourcechannel;
 	CButtonCx m_CtrlProjectShizukuBellche;

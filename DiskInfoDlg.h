@@ -401,6 +401,11 @@ public:
 	afx_msg void OnAutoRefresh10Min();
 	afx_msg void OnAutoRefresh30Min();
 	afx_msg void OnAutoRefresh60Min();
+	afx_msg void OnAutoRefresh120Min();
+	afx_msg void OnAutoRefresh180Min();
+	afx_msg void OnAutoRefresh360Min();
+	afx_msg void OnAutoRefresh720Min();
+	afx_msg void OnAutoRefresh1440Min();
 	afx_msg void OnOpenDiskManagement();
 	afx_msg void OnOpenDeviceManager();
 	afx_msg void OnAdvancedDiskSearch();

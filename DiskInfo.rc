@@ -339,7 +339,6 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     PUSHBUTTON      "",IDC_LOGO,26,17,156,107
     PUSHBUTTON      "",IDC_PROJECT_SHIZUKU_KIRINOKASUMU,77,144,228,21
-    PUSHBUTTON      "",IDC_PROJECT_SHIZUKU_IGARASHIHIROMI,78,166,227,26
     PUSHBUTTON      "",IDC_PROJECT_SHIZUKU_LINUXHAJAPAN,77,194,232,22
     PUSHBUTTON      "",IDC_PROJECT_SHIZUKU_OPENSOURCECHANNEL,196,229,270,31
     PUSHBUTTON      "",IDC_PROJECT_SHIZUKU_BELLCHE,196,267,270,31
@@ -456,8 +455,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 6,3,2,2015
- PRODUCTVERSION 6,3,2,2015
+ FILEVERSION 6,5,2,2015
+ PRODUCTVERSION 6,5,2,2015
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -474,9 +473,9 @@ BEGIN
         BEGIN
             VALUE "Comments", "http://crystalmark.info/, The MIT License."
             VALUE "CompanyName", "Crystal Dew World"
-            VALUE "FileVersion", "6.3.2.2015"
+            VALUE "FileVersion", "6.5.2.2015"
             VALUE "LegalCopyright", "(C) 2008-2015 hiyohiyo"
-            VALUE "ProductVersion", "6.3.2.2015"
+            VALUE "ProductVersion", "6.5.2.2015"
             VALUE "ProductName", "CrystalDiskInfo"
             VALUE "FileDescription", "CrystalDiskInfo"
             VALUE "OriginalFilename", "DiskInfo.exe"
@@ -603,7 +602,12 @@ BEGIN
             MENUITEM "10 min.",                     ID_AUTO_REFRESH_10_MIN
             MENUITEM "30 min.",                     ID_AUTO_REFRESH_30_MIN
             MENUITEM "60 min.",                     ID_AUTO_REFRESH_60_MIN
-            MENUITEM "Disable",                     ID_AUTO_REFRESH_DISABLE
+			MENUITEM "120 min.",					ID_AUTO_REFRESH_120_MIN
+			MENUITEM "180 min.",					ID_AUTO_REFRESH_180_MIN
+			MENUITEM "360 min.",					ID_AUTO_REFRESH_360_MIN
+			MENUITEM "720 min.",					ID_AUTO_REFRESH_720_MIN
+			MENUITEM "1440 min.",					ID_AUTO_REFRESH_1440_MIN
+			MENUITEM "Disable", ID_AUTO_REFRESH_DISABLE
         END
         POPUP "Auto Refresh Target"
         BEGIN

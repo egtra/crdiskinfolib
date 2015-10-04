@@ -434,6 +434,41 @@ void CDiskInfoDlg::CreateMainMenu(DWORD index)
 	if(m_AutoRefreshStatus == 60){subMenuInfo.fState = MFS_CHECKED;}else{subMenuInfo.fState = MFS_UNCHECKED;}
 	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
 
+	cstr = _T("120 ") + i18n(_T("Menu"), _T("MINUTE"));
+	subMenuInfo.dwTypeData = (LPWSTR) cstr.GetString();
+	subMenuInfo.wID = ID_AUTO_REFRESH_120_MIN;
+	if (m_AutoRefreshStatus == 120){ subMenuInfo.fState = MFS_CHECKED; }
+	else{ subMenuInfo.fState = MFS_UNCHECKED; }
+	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
+
+	cstr = _T("180 ") + i18n(_T("Menu"), _T("MINUTE"));
+	subMenuInfo.dwTypeData = (LPWSTR) cstr.GetString();
+	subMenuInfo.wID = ID_AUTO_REFRESH_180_MIN;
+	if (m_AutoRefreshStatus == 180){ subMenuInfo.fState = MFS_CHECKED; }
+	else{ subMenuInfo.fState = MFS_UNCHECKED; }
+	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
+
+	cstr = _T("360 ") + i18n(_T("Menu"), _T("MINUTE"));
+	subMenuInfo.dwTypeData = (LPWSTR) cstr.GetString();
+	subMenuInfo.wID = ID_AUTO_REFRESH_360_MIN;
+	if (m_AutoRefreshStatus == 360){ subMenuInfo.fState = MFS_CHECKED; }
+	else{ subMenuInfo.fState = MFS_UNCHECKED; }
+	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
+
+	cstr = _T("720 ") + i18n(_T("Menu"), _T("MINUTE"));
+	subMenuInfo.dwTypeData = (LPWSTR) cstr.GetString();
+	subMenuInfo.wID = ID_AUTO_REFRESH_720_MIN;
+	if (m_AutoRefreshStatus == 720){ subMenuInfo.fState = MFS_CHECKED; }
+	else{ subMenuInfo.fState = MFS_UNCHECKED; }
+	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
+
+	cstr = _T("1440 ") + i18n(_T("Menu"), _T("MINUTE"));
+	subMenuInfo.dwTypeData = (LPWSTR) cstr.GetString();
+	subMenuInfo.wID = ID_AUTO_REFRESH_1440_MIN;
+	if (m_AutoRefreshStatus == 1440){ subMenuInfo.fState = MFS_CHECKED; }
+	else{ subMenuInfo.fState = MFS_UNCHECKED; }
+	InsertMenuItem(hSubMenu, -1, TRUE, &subMenuInfo);
+
 	cstr = i18n(_T("TrayMenu"), _T("DISABLE"));
 	subMenuInfo.dwTypeData = (LPWSTR)cstr.GetString();
 	subMenuInfo.wID= ID_AUTO_REFRESH_DISABLE;

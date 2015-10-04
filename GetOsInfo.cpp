@@ -235,7 +235,7 @@ void GetOsName(CString& OsFullName)
 		{
 			if (osvi.wProductType != VER_NT_WORKSTATION)
 			{
-				osName = _T("Windows Server");
+				osName = _T("Windows Server 2016");
 			}
 			else
 			{

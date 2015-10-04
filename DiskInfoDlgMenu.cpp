@@ -296,11 +296,16 @@ void CDiskInfoDlg::OnAutoRefresh05Min(){	CheckRadioAutoRefresh(ID_AUTO_REFRESH_0
 void CDiskInfoDlg::OnAutoRefresh10Min(){	CheckRadioAutoRefresh(ID_AUTO_REFRESH_10_MIN, 10);}
 void CDiskInfoDlg::OnAutoRefresh30Min(){	CheckRadioAutoRefresh(ID_AUTO_REFRESH_30_MIN, 30);}
 void CDiskInfoDlg::OnAutoRefresh60Min(){	CheckRadioAutoRefresh(ID_AUTO_REFRESH_60_MIN, 60);}
+void CDiskInfoDlg::OnAutoRefresh120Min(){ CheckRadioAutoRefresh(ID_AUTO_REFRESH_120_MIN, 120); }
+void CDiskInfoDlg::OnAutoRefresh180Min(){ CheckRadioAutoRefresh(ID_AUTO_REFRESH_180_MIN, 180); }
+void CDiskInfoDlg::OnAutoRefresh360Min(){ CheckRadioAutoRefresh(ID_AUTO_REFRESH_360_MIN, 360); }
+void CDiskInfoDlg::OnAutoRefresh720Min(){ CheckRadioAutoRefresh(ID_AUTO_REFRESH_720_MIN, 720); }
+void CDiskInfoDlg::OnAutoRefresh1440Min(){ CheckRadioAutoRefresh(ID_AUTO_REFRESH_1440_MIN, 1440); }
 
 void CDiskInfoDlg::CheckRadioAutoRefresh(int id, int value)
 {
 	CMenu *menu = GetMenu();
-	menu->CheckMenuRadioItem(ID_AUTO_REFRESH_DISABLE, ID_AUTO_REFRESH_60_MIN, id, MF_BYCOMMAND);
+	menu->CheckMenuRadioItem(ID_AUTO_REFRESH_DISABLE, ID_AUTO_REFRESH_1440_MIN, id, MF_BYCOMMAND);
 	SetMenu(menu);
 	DrawMenuBar();
 
@@ -327,12 +332,18 @@ void CDiskInfoDlg::CheckRadioAutoRefresh()
 
 	switch(m_AutoRefreshStatus)
 	{
-	case  1: id = ID_AUTO_REFRESH_01_MIN; break;
-	case  3: id = ID_AUTO_REFRESH_03_MIN; break;
-	case  5: id = ID_AUTO_REFRESH_05_MIN; break;
-	case 10: id = ID_AUTO_REFRESH_10_MIN; break;
-	case 30: id = ID_AUTO_REFRESH_30_MIN; break;
-	case 60: id = ID_AUTO_REFRESH_60_MIN; break;
+	case    1: id = ID_AUTO_REFRESH_01_MIN; break;
+	case    3: id = ID_AUTO_REFRESH_03_MIN; break;
+	case    5: id = ID_AUTO_REFRESH_05_MIN; break;
+	case   10: id = ID_AUTO_REFRESH_10_MIN; break;
+	case   30: id = ID_AUTO_REFRESH_30_MIN; break;
+	case   60: id = ID_AUTO_REFRESH_60_MIN; break;
+	case  120: id = ID_AUTO_REFRESH_120_MIN; break;
+	case  180: id = ID_AUTO_REFRESH_180_MIN; break;
+	case  360: id = ID_AUTO_REFRESH_360_MIN; break;
+	case  720: id = ID_AUTO_REFRESH_720_MIN; break;
+	case 1440: id = ID_AUTO_REFRESH_1440_MIN; break;
+
 	default: id = ID_AUTO_REFRESH_DISABLE; break;
 	}
 

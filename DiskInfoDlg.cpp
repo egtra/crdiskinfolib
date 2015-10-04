@@ -529,6 +529,11 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CMainDialog)
 	ON_COMMAND(ID_AUTO_REFRESH_10_MIN, &CDiskInfoDlg::OnAutoRefresh10Min)
 	ON_COMMAND(ID_AUTO_REFRESH_30_MIN, &CDiskInfoDlg::OnAutoRefresh30Min)
 	ON_COMMAND(ID_AUTO_REFRESH_60_MIN, &CDiskInfoDlg::OnAutoRefresh60Min)
+	ON_COMMAND(ID_AUTO_REFRESH_120_MIN, &CDiskInfoDlg::OnAutoRefresh120Min)
+	ON_COMMAND(ID_AUTO_REFRESH_180_MIN, &CDiskInfoDlg::OnAutoRefresh180Min)
+	ON_COMMAND(ID_AUTO_REFRESH_360_MIN, &CDiskInfoDlg::OnAutoRefresh360Min)
+	ON_COMMAND(ID_AUTO_REFRESH_720_MIN, &CDiskInfoDlg::OnAutoRefresh720Min)
+	ON_COMMAND(ID_AUTO_REFRESH_1440_MIN, &CDiskInfoDlg::OnAutoRefresh1440Min)
 	ON_COMMAND(ID_OPEN_DISK_MANAGEMENT, &CDiskInfoDlg::OnOpenDiskManagement)
 	ON_COMMAND(ID_OPEN_DEVICE_MANAGER, &CDiskInfoDlg::OnOpenDeviceManager)
 	ON_COMMAND(ID_ADVANCED_DISK_SEARCH, &CDiskInfoDlg::OnAdvancedDiskSearch)
@@ -1066,6 +1071,14 @@ CString CDiskInfoDlg::IP(CString imageName)
 	{
 		imagePath.Format(L"%s%s\\%s-%3d.png", m_ThemeDir, L"ShizukuMiko", imageName, (DWORD)(m_ZoomRatio * 100));
 		if(IsFileExist(imagePath))
+		{
+			return imagePath;
+		}
+	}
+	if (m_CurrentTheme.Find(L"ShizukuHotaru") == 0)
+	{
+		imagePath.Format(L"%s%s\\%s-%3d.png", m_ThemeDir, L"ShizukuHeianKomachi", imageName, (DWORD) (m_ZoomRatio * 100));
+		if (IsFileExist(imagePath))
 		{
 			return imagePath;
 		}

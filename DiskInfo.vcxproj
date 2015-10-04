@@ -140,7 +140,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SUISHO_SHIZUKU_SUPPORT;WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -457,18 +457,6 @@
   <ItemGroup>
     <None Include="resN\DiskInfo.ico" />
     <None Include="resN\DiskInfo16.ico" />
-    <None Include="resS\001igarashi.opus" />
-    <None Include="resS\601igarashi.opus" />
-    <None Include="resS\602igarashi.opus" />
-    <None Include="resS\603igarashi.opus" />
-    <None Include="resS\604igarashi.opus" />
-    <None Include="resS\605igarashi.opus" />
-    <None Include="resS\606igarashi.opus" />
-    <None Include="resS\701igarashi.opus" />
-    <None Include="resS\702igarashi.opus" />
-    <None Include="resS\703igarashi.opus" />
-    <None Include="resS\704igarashi.opus" />
-    <None Include="resS\705igarashi.opus" />
     <None Include="resS\DiskInfo.ico" />
     <None Include="resS\DiskInfo16.ico" />
     <None Include="res\001soundkenjin.opus" />

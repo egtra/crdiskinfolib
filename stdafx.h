@@ -80,8 +80,8 @@
 	#endif
 #endif
 
-#define PRODUCT_VERSION			_T("6.3.2")
-#define PRODUCT_RELEASE			_T("2015/04/01")
+#define PRODUCT_VERSION			_T("6.5.2")
+#define PRODUCT_RELEASE			_T("2015/06/14")
 #define PRODUCT_COPY_YEAR		_T("2008-2015")
 #define PRODUCT_COPYRIGHT		_T("© 2008-2015 hiyohiyo")
 #define PRODUCT_LICENSE			_T("The MIT License")
@@ -93,7 +93,6 @@
 #define	URL_PROJECT_SHIZUKU_EN		_T("http://suishoshizuku.com/en/")
 
 #define	URL_KIRINOKASUMU		L"http://kirino.moo.jp/"
-#define URL_IGARASHIHIROMI		L"http://ameblo.jp/yukinko-magic/"
 #define URL_LINUXHAJAPAN		L"http://linux-ha.sourceforge.jp/wp/"
 #define URL_OPENSOURCECHANNEL	L"http://ch.nicovideo.jp/oss"
 #define URL_BELLCHE				L"http://www.bellche.com/"
@@ -124,3 +123,5 @@ static const int RE_EXEC = 5963;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 #endif
+
+#pragma warning(disable : 4996)

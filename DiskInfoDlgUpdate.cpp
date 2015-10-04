@@ -1559,6 +1559,11 @@ void CDiskInfoDlg::ChangeLang(CString LangName)
 	menu->ModifyMenu(ID_AUTO_REFRESH_10_MIN, MF_STRING, ID_AUTO_REFRESH_10_MIN, _T("10 ") + cstr);
 	menu->ModifyMenu(ID_AUTO_REFRESH_30_MIN, MF_STRING, ID_AUTO_REFRESH_30_MIN, _T("30 ") + cstr);
 	menu->ModifyMenu(ID_AUTO_REFRESH_60_MIN, MF_STRING, ID_AUTO_REFRESH_60_MIN, _T("60 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_120_MIN, MF_STRING, ID_AUTO_REFRESH_120_MIN, _T("120 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_180_MIN, MF_STRING, ID_AUTO_REFRESH_180_MIN, _T("180 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_360_MIN, MF_STRING, ID_AUTO_REFRESH_360_MIN, _T("360 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_720_MIN, MF_STRING, ID_AUTO_REFRESH_720_MIN, _T("720 ") + cstr);
+	menu->ModifyMenu(ID_AUTO_REFRESH_1440_MIN, MF_STRING, ID_AUTO_REFRESH_1440_MIN, _T("1440 ") + cstr);
 
 	CheckRadioAutoRefresh();
 
