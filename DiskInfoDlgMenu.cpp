@@ -916,7 +916,7 @@ BOOL CDiskInfoDlg::RegisterStartup()
 							pDefinition->get_Settings(&pSettings);
 							pSettings->put_DisallowStartIfOnBatteries(flag);
 							pSettings->put_StopIfGoingOnBatteries(flag);
-							pSettings->put_Priority(NORMAL_PRIORITY_CLASS);
+							pSettings->put_Priority(5);
 
 							SAFE_RELEASE(pRegisteredTask);
 							hr = pRootFolder->RegisterTaskDefinition(
