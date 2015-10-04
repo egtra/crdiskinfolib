@@ -1,7 +1,7 @@
 // CrDiskInfoLib: Sample.cpp
 // Copyright (c) 2014, Egtra
 //
-// This code is released under the Simplified BSD license.
+// This code is released under the MIT license.
 // See LICENSE.txt
 
 #include "stdafx.h"

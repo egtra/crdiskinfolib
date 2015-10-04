@@ -1,7 +1,7 @@
 // CrDiskInfoLib: include/DiskInfoLib.h
 // Copyright (c) 2014, Egtra
 //
-// This code is released under the Simplified BSD license.
+// This code is released under the MIT License.
 // See LICENSE.txt
 
 #pragma once

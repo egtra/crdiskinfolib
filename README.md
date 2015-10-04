@@ -8,8 +8,8 @@ C++ライブラリとして使用できるように体裁を整えました。
 
 ## ライセンス
 
-Simplified BSD License（2条項BSDライセンス）です。
-詳細はCOPYRIGHT.txtまたはCOPYRIGHT-ja.txtを参照下さい。
+MIT Licenseです。
+詳細はLICENSE.txtまたはLICENSE-ja.txtを参照下さい。
 
 ## 使用法
 
