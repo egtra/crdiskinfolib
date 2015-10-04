@@ -26,6 +26,8 @@ BEGIN_MESSAGE_MAP(CDiskInfoApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
+GdiplusStartupInput gdiplusStartupInput;
+ULONG_PTR gdiplusToken;
 
 // CDiskInfoApp construction
 
@@ -35,6 +37,10 @@ CDiskInfoApp::CDiskInfoApp()
 	// Place all significant initialization in InitInstance
 }
 
+CDiskInfoApp::~CDiskInfoApp()
+{
+	GdiplusShutdown(gdiplusToken);
+}
 
 // The one and only CDiskInfoApp object
 
@@ -61,6 +67,8 @@ BOOL CDiskInfoApp::InitInstance()
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 	CWinApp::InitInstance();
+
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	// IE Version Check.
 	/*

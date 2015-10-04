@@ -45,6 +45,7 @@ class CDiskInfoApp : public CWinApp
 {
 public:
 	CDiskInfoApp();
+	~CDiskInfoApp();
 
 	CString m_GraphDlgPath;
 	CString m_OptionDlgPath;

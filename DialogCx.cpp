@@ -306,9 +306,9 @@ BOOL CDialogCx::IsDrawFrame()
 
 afx_msg LRESULT CDialogCx::OnDpiChanged(WPARAM wParam, LPARAM lParam)
 {
-	static int preTime = 0;
-	int currentTime = GetTickCount();
-	if (preTime + 1000 > currentTime)
+	static DWORD preTime = 0;
+	DWORD currentTime = GetTickCount();
+	if (currentTime - preTime < 1000)
 	{
 		return 0;
 	}

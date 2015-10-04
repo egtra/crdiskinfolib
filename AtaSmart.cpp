@@ -625,7 +625,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					}
 
 					DebugPrint(_T("ConnectServer()"));
-					if(FAILED(pIWbemLocator->ConnectServer(SysAllocString(L"\\\\.\\root\\cimv2"), 
+					if (FAILED(pIWbemLocator->ConnectServer(_bstr_t(L"\\\\.\\root\\cimv2"),
 						NULL, NULL, 0L,
 						securityFlag,
 						NULL, NULL, &pIWbemServices)))
@@ -670,8 +670,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			CString temp, cstr, cstr1, cstr2;
 			try
 			{// Win32_IDEController
-				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"),
-					SysAllocString(L"select Name, DeviceID from Win32_IDEController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"),
+					_bstr_t(L"select Name, DeviceID from Win32_IDEController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				if(FAILED(hRes))
 				{
 					goto safeRelease;
@@ -723,7 +723,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					int workaroundDevice = 0;
 					CString mapping;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_IDEController.DeviceID=\"%s\"} WHERE AssocClass = Win32_IDEControllerDevice"), deviceId);
-					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
+					pIWbemServices->ExecQuery(_bstr_t(L"WQL"), _bstr_t(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
 					while (pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaroundDevice < 256)
 					{
 						workaroundDevice++;
@@ -796,8 +796,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			try
 			{
 				cstr = _T("");
-				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"),
-					SysAllocString(L"select Name, DeviceID from Win32_SCSIController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"),
+					_bstr_t(L"select Name, DeviceID from Win32_SCSIController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				if(FAILED(hRes))
 				{
 					goto safeRelease;
@@ -898,7 +898,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					int workaroundDevice = 0;
 					CString mapping;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_SCSIController.DeviceID=\"%s\"} WHERE AssocClass = Win32_SCSIControllerDevice"), deviceId);
-					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
+					pIWbemServices->ExecQuery(_bstr_t(L"WQL"), _bstr_t(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
 					while (pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1 && workaroundDevice < 256)
 					{
 						workaroundDevice++;
@@ -970,8 +970,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 			try
 			{// Win32_USBController
-				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"),
-					SysAllocString(L"select Name, DeviceID from Win32_USBController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"),
+					_bstr_t(L"select Name, DeviceID from Win32_USBController"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				if(FAILED(hRes))
 				{
 					goto safeRelease;
@@ -992,7 +992,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 					CString mapping, enclosure;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_USBController.DeviceID=\"%s\"} WHERE AssocClass = Win32_USBControllerDevice"), deviceId);
-					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
+					pIWbemServices->ExecQuery(_bstr_t(L"WQL"), _bstr_t(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
 					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 					{
 						VARIANT pVal;
@@ -1049,8 +1049,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 /*
 			try
 			{// Win32_1394Controller
-				pIWbemServices->ExecQuery(SysAllocString(L"WQL"),
-					SysAllocString(L"select Name, DeviceID from Win32_1394Controller"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				pIWbemServices->ExecQuery(_bstr_t(L"WQL"),
+					_bstr_t(L"select Name, DeviceID from Win32_1394Controller"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 				{
 					VARIANT  pVal;
@@ -1066,7 +1066,7 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 
 					CString mapping, enclosure;
 					mapping.Format(_T("ASSOCIATORS OF {Win32_1394Controller.DeviceID=\"%s\"} WHERE AssocClass = Win32_1394ControllerDevice"), deviceId);
-					pIWbemServices->ExecQuery(SysAllocString(L"WQL"), SysAllocString(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
+					pIWbemServices->ExecQuery(_bstr_t(L"WQL"), _bstr_t(mapping), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
 					while(pEnumCOMDevs2 && SUCCEEDED(pEnumCOMDevs2->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 					{
 						VARIANT pVal;
@@ -1142,8 +1142,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			try
 			{
 				DebugPrint(_T("DO:SELECT * FROM Win32_DiskDrive"));
-				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
-					SysAllocString(L"SELECT * FROM Win32_DiskDrive"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"), 
+					_bstr_t(L"SELECT * FROM Win32_DiskDrive"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				if(FAILED(hRes))
 				{
 					goto safeRelease;
@@ -1516,8 +1516,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 			try
 			{
 				DebugPrint(_T("DO:SELECT * FROM Win32_DiskPartition"));
-				hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
-					SysAllocString(L"SELECT * FROM Win32_DiskPartition"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
+				hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"), 
+					_bstr_t(L"SELECT * FROM Win32_DiskPartition"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs);
 				if(FAILED(hRes))
 				{
 					DebugPrint(_T("NG:SELECT * FROM Win32_DiskPartition"));
@@ -1541,8 +1541,8 @@ VOID CAtaSmart::Init(BOOL useWmi, BOOL advancedDiskSearch, PBOOL flagChangeDisk,
 					physicalDriveId = _ttoi(cstr);
 					SAFE_RELEASE(pCOMDev);
 
-					hRes = pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
-						SysAllocString(L"SELECT * FROM Win32_LogicalDisk Where DriveType = 3"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
+					hRes = pIWbemServices->ExecQuery(_bstr_t(L"WQL"), 
+						_bstr_t(L"SELECT * FROM Win32_LogicalDisk Where DriveType = 3"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs2);
 					if(FAILED(hRes))
 					{
 						DebugPrint(_T("NG:SELECT * FROM Win32_LogicalDisk Where DriveType = 3"));
@@ -3360,7 +3360,8 @@ INT CAtaSmart::CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi)
 
 	// Block Size: 2MB
 	if (model.Find(L"M2") >= 0 || model.Find(L"M3") >= 0
-	|| ((model.Find(L"M5P") >= 0 || model.Find(L"M5S")) && _wtoi(serial.Mid(1, 5)) <= 2247)
+		|| (model.Find(L"M5S") && _wtoi(serial.Mid(1, 5)) <= 2247)
+//		|| ((model.Find(L"M5P") >= 0 || model.Find(L"M5S")) && _wtoi(serial.Mid(1, 5)) <= 2247)
 	)
 	{
 		if (capacity > 0)
@@ -5589,14 +5590,14 @@ BOOL CAtaSmart::GetSmartInfoWmi(DWORD type, ATA_SMART_INFO* asi)
 		{
 			long securityFlag = 0;
 			if(m_Os.dwMajorVersion >= 6){securityFlag = WBEM_FLAG_CONNECT_USE_MAX_WAIT;}
-			if(SUCCEEDED(pIWbemLocator->ConnectServer(SysAllocString(L"\\\\.\\root\\WMI"), 
+			if(SUCCEEDED(pIWbemLocator->ConnectServer(_bstr_t(L"\\\\.\\root\\WMI"), 
 				NULL, NULL, 0L, securityFlag, NULL, NULL, &pIWbemServices)))
 			{
 				if(SUCCEEDED(CoSetProxyBlanket(pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE,
 					NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE)))
 				{
-					if(SUCCEEDED(pIWbemServices->ExecQuery(SysAllocString(L"WQL"), 
-						SysAllocString(query), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs)))
+					if(SUCCEEDED(pIWbemServices->ExecQuery(_bstr_t(L"WQL"), 
+						_bstr_t(query), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumCOMDevs)))
 					{
 						while(pEnumCOMDevs && SUCCEEDED(pEnumCOMDevs->Next(10000, 1, &pCOMDev, &uReturned)) && uReturned == 1)
 						{
