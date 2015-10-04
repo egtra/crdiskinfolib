@@ -2,7 +2,7 @@
 //       Author : hiyohiyo
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
-//      License : Simplified BSD license
+//      License : The MIT License
 /*---------------------------------------------------------------------------*/
 
 #ifndef __GET_OS_INFO_H__
