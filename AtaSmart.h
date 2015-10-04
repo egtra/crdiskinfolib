@@ -2,7 +2,7 @@
 //       Author : hiyohiyo
 //         Mail : hiyohiyo@crystalmark.info
 //          Web : http://crystalmark.info/
-//      License : Simplified BSD license
+//      License : The MIT License
 /*---------------------------------------------------------------------------*/
 // Reference : http://www.usefullcode.net/2007/02/hddsmart.html (ja)
 
@@ -88,6 +88,7 @@ public:
 		SSD_VENDOR_SANDISK	  = 13,
 		SSD_VENDOR_OCZ_VECTOR = 14,
 		HDD_SSD_VENDOR_TOSHIBA= 15,
+		SSD_VENDOR_CORSAIR    = 16,
 		SSD_VENDOR_MAX        = 99,
 
 		VENDOR_UNKNOWN      = 0x0000,
@@ -300,7 +301,7 @@ public:
 		INT					NandWrites;
 		INT					WearLevelingCount;
 
-		INT					PlextorNandWritesUnit;
+//		INT					PlextorNandWritesUnit;
 
 		INT					Life;
 
@@ -475,7 +476,8 @@ protected:
 	BOOL IsSsdPlextor(ATA_SMART_INFO &asi);
 	BOOL IsSsdSanDisk(ATA_SMART_INFO &asi);
 	BOOL IsSsdOczVector(ATA_SMART_INFO &asi);
-	INT CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi);
+	BOOL IsSsdToshiba(ATA_SMART_INFO &asi);
+//	INT CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi);
 
 	static int Compare(const void *p1, const void *p2);
 

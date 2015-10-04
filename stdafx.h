@@ -16,3 +16,5 @@
 
 #include <atlstr.h>
 #include <atlcoll.h>
+
+#pragma warning(disable : 4996)
