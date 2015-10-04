@@ -1183,6 +1183,14 @@ BOOL CDiskInfoDlg::ChangeDisk(DWORD i)
 			cstr.Format(_T("%.3f TB"), m_Ata.vars[i].NandWrites / 1024.0);
 		}
 		m_RotationRate.Format(_T("%d GB"), m_Ata.vars[i].NandWrites);
+		/*
+		if (m_Ata.vars[i].PlextorNandWritesUnit)
+		{
+			m_RotationRate += L" (?)";
+			cstr += L" (?)";
+		}
+		*/
+
 		m_LabelRotationRate = i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES"));
 		m_CtrlRotationRate.SetToolTipText(cstr);
 		m_CtrlLabelRotationRate.SetToolTipText(i18n(_T("Dialog"), _T("TOTAL_NAND_WRITES")));

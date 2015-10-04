@@ -906,17 +906,19 @@ BOOL CDiskInfoDlg::RegisterStartup()
 				hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
 				if(SUCCEEDED(hr))
 				{
-					pRootFolder->GetTask(_bstr_t(wszTaskName), &pRegisteredTask);
+					hr = pRootFolder->GetTask(_bstr_t(wszTaskName), &pRegisteredTask);
 					if(SUCCEEDED(hr))
 					{						
-						pRegisteredTask->get_Definition(&pDefinition);
+						hr = pRegisteredTask->get_Definition(&pDefinition);
 						if(SUCCEEDED(hr))
 						{
-							VARIANT_BOOL flag = FALSE;							
+							VARIANT_BOOL flag = FALSE;
 							pDefinition->get_Settings(&pSettings);
 							pSettings->put_DisallowStartIfOnBatteries(flag);
 							pSettings->put_StopIfGoingOnBatteries(flag);
+							pSettings->put_Priority(NORMAL_PRIORITY_CLASS);
 
+							SAFE_RELEASE(pRegisteredTask);
 							hr = pRootFolder->RegisterTaskDefinition(
 								_bstr_t(wszTaskName), pDefinition, TASK_CREATE_OR_UPDATE, 
 								_variant_t(), _variant_t(), TASK_LOGON_INTERACTIVE_TOKEN,
@@ -1385,7 +1387,6 @@ void CDiskInfoDlg::OnZoom200()
 	}
 }
 
-/*
 void CDiskInfoDlg::OnZoom250()
 {
 	if (CheckRadioZoomType(ID_ZOOM_250, 250))
@@ -1394,7 +1395,7 @@ void CDiskInfoDlg::OnZoom250()
 		UpdateDialogSize();
 	}
 }
-*/
+
 void CDiskInfoDlg::OnZoom300()
 {
 	if(CheckRadioZoomType(ID_ZOOM_300, 300))
@@ -1447,7 +1448,7 @@ void CDiskInfoDlg::CheckRadioZoomType()
 	case 125: id = ID_ZOOM_125;	break;
 	case 150: id = ID_ZOOM_150;	break;
 	case 200: id = ID_ZOOM_200;	break;
-//	case 250: id = ID_ZOOM_250;	break;
+	case 250: id = ID_ZOOM_250;	break;
 	case 300: id = ID_ZOOM_300;	break;
 	default:  id = ID_ZOOM_AUTO;	break;
 	}

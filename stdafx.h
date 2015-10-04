@@ -80,8 +80,8 @@
 	#endif
 #endif
 
-#define PRODUCT_VERSION			_T("6.1.14")
-#define PRODUCT_RELEASE			_T("2014/06/04")
+#define PRODUCT_VERSION			_T("6.2.0")
+#define PRODUCT_RELEASE			_T("2014/08/28")
 #define PRODUCT_COPY_YEAR		_T("2008-2014")
 #define PRODUCT_COPYRIGHT		_T("Copyright © 2008-2014 hiyohiyo")
 #define PRODUCT_LICENSE			_T("Simplified BSD License")
@@ -89,8 +89,8 @@
 #define URL_CRYSTAL_DEW_WORLD_JA	_T("http://crystalmark.info/")
 #define URL_CRYSTAL_DEW_WORLD_EN 	_T("http://crystalmark.info/?lang=en")
 
-#define	URL_PROJECT_SHIZUKU_JA		_T("http://crystalmark.info/Shizuku/")
-#define	URL_PROJECT_SHIZUKU_EN		_T("http://crystalmark.info/Shizuku/index-en.html")
+#define	URL_PROJECT_SHIZUKU_JA		_T("http://suishoshizuku.com/")
+#define	URL_PROJECT_SHIZUKU_EN		_T("http://suishoshizuku.com/en/")
 
 #define	URL_KIRINOKASUMU		L"http://kirino.moo.jp/"
 #define URL_IGARASHIHIROMI		L"http://ameblo.jp/yukinko-magic/"

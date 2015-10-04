@@ -101,7 +101,7 @@ BOOL CDiskInfoDlg::OnInitDialog()
 	case 125:  CheckRadioZoomType(ID_ZOOM_125, 125); break;
 	case 150:  CheckRadioZoomType(ID_ZOOM_150, 150); break;
 	case 200:  CheckRadioZoomType(ID_ZOOM_200, 200); break;
-//	case 250:  CheckRadioZoomType(ID_ZOOM_250, 250); break;
+	case 250:  CheckRadioZoomType(ID_ZOOM_250, 250); break;
 	case 300:  CheckRadioZoomType(ID_ZOOM_300, 300); break;
 	default:   CheckRadioZoomType(ID_ZOOM_AUTO, 0); break;
 	}

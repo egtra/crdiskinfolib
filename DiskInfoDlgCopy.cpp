@@ -328,7 +328,17 @@ void CDiskInfoDlg::CopySave(CString fileName)
 		}
 		else
 		{
-			cstr.Format(_T("     NAND Writes : %d GB\r\n"), m_Ata.vars[i].NandWrites);		
+			/*
+			if (m_Ata.vars[i].PlextorNandWritesUnit)
+			{
+				cstr.Format(_T("     NAND Writes : %d GB (?)\r\n"), m_Ata.vars[i].NandWrites);	
+			}
+			else
+			{
+				cstr.Format(_T("     NAND Writes : %d GB\r\n"), m_Ata.vars[i].NandWrites);
+			}
+			*/
+			cstr.Format(_T("     NAND Writes : %d GB\r\n"), m_Ata.vars[i].NandWrites);
 			drive.Replace(_T("%NAND_WRITES%"), cstr);
 		}
 

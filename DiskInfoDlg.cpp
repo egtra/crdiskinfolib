@@ -650,7 +650,7 @@ BEGIN_MESSAGE_MAP(CDiskInfoDlg, CMainDialog)
 	ON_COMMAND(ID_ZOOM_125, &CDiskInfoDlg::OnZoom125)
 	ON_COMMAND(ID_ZOOM_150, &CDiskInfoDlg::OnZoom150)
 	ON_COMMAND(ID_ZOOM_200, &CDiskInfoDlg::OnZoom200)
-//	ON_COMMAND(ID_ZOOM_250, &CDiskInfoDlg::OnZoom250)
+	ON_COMMAND(ID_ZOOM_250, &CDiskInfoDlg::OnZoom250)
 	ON_COMMAND(ID_ZOOM_300, &CDiskInfoDlg::OnZoom300)
 	ON_COMMAND(ID_ZOOM_AUTO, &CDiskInfoDlg::OnZoomAuto)
 	ON_COMMAND(ID_RAW_VALUES_16, &CDiskInfoDlg::OnRawValues16)
@@ -2227,8 +2227,8 @@ void CDiskInfoDlg::SetControlFont()
 	m_CtrlTemperature.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_BOLD, m_FontType);
 	m_CtrlLife.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_NORMAL, m_FontType);
 #else
-	m_CtrlDiskStatus.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_BOLD);
-	m_CtrlTemperature.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor, FW_BOLD);
+	m_CtrlDiskStatus.SetFontEx(m_FontFace, 18, m_ZoomRatio, textAlpha, textColor, FW_BOLD, m_FontType);
+	m_CtrlTemperature.SetFontEx(m_FontFace, 20, m_ZoomRatio, textAlpha, textColor, FW_BOLD, m_FontType);
 #endif
 }
 
