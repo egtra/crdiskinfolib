@@ -3360,8 +3360,7 @@ INT CAtaSmart::CheckPlextorNandWritesUnit(ATA_SMART_INFO &asi)
 
 	// Block Size: 2MB
 	if (model.Find(L"M2") >= 0 || model.Find(L"M3") >= 0
-		|| (model.Find(L"M5S") && _wtoi(serial.Mid(1, 5)) <= 2247)
-//		|| ((model.Find(L"M5P") >= 0 || model.Find(L"M5S")) && _wtoi(serial.Mid(1, 5)) <= 2247)
+	|| ((model.Find(L"M5P") >= 0 || model.Find(L"M5S")) && _wtoi(serial.Mid(1, 5)) <= 2247)
 	)
 	{
 		if (capacity > 0)

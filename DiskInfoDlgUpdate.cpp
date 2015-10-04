@@ -2141,13 +2141,13 @@ void CDiskInfoDlg::SaveSmartInfo(DWORD i)
 	static CTime preTime[CAtaSmart::MAX_DISK] = {0};
 	CTime time = CTime::GetTickCount();
 
-	if(time < preTime[i] + SAVE_SMART_PERIOD)
+	if(time - preTime[i] < SAVE_SMART_PERIOD)
 	{
 		return ;
 	}
 	else
 	{
-		preTime[i] = CTime::GetTickCount();
+		preTime[i] = time;
 	}
 
 	CString line;
@@ -2309,8 +2309,19 @@ BOOL CDiskInfoDlg::AppendLog(CString dir, CString disk, CString file, CTime time
 		if(outFile.Open(dir + _T("\\") + file + _T(".csv"),
 			CFile::modeCreate | CFile::modeNoTruncate | CFile::modeReadWrite | CFile::typeText))
 		{
-			outFile.SeekToEnd();
-			outFile.WriteString(line);
+			ULONGLONG fileLength = outFile.GetLength();
+			try
+			{
+				if (outFile.SeekToEnd() == fileLength)
+				{
+					outFile.WriteString(line);
+				}				
+			}
+			catch (CFileException * e)			
+			{
+				DebugPrint(L"CFileException");
+				e->Delete();
+			}
 			outFile.Close();
 			return TRUE;
 		}

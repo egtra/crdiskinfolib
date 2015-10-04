@@ -1495,7 +1495,7 @@ void CDiskInfoDlg::AlarmHealthStatus(DWORD i, CString dir, CString disk)
 		static CTime preTime[CAtaSmart::MAX_DISK] = {0};
 		if(m_Ata.vars[i].AlarmTemperature > 0 && m_Ata.vars[i].Temperature >= m_Ata.vars[i].AlarmTemperature)
 		{
-			if(CTime::GetTickCount() > preTime[i] + ALARM_TEMPERATURE_PERIOD)
+			if(CTime::GetTickCount() - preTime[i] > ALARM_TEMPERATURE_PERIOD)
 			{
 				if(m_FlagFahrenheit)
 				{

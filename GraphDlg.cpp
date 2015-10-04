@@ -933,13 +933,27 @@ BOOL CGraphDlg::UpdateGraph()
 			int start = 0;
 			int count = 0;
 			CStringArray lines;
+			/*
 			while(inFile.ReadString(line) != NULL)
 			{
 				if(line.GetLength() > 0)
 				{
 					count++;
 				}
-			}			
+			}
+			*/
+
+			// 20140602 - Skip null
+			while (inFile.GetPosition() < inFile.GetLength())
+			{
+				while (inFile.ReadString(line) != NULL)
+				{
+					if (line.GetLength() > 0)
+					{
+						count++;
+					}
+				}
+			}
 
 			if(count > (int)m_MaxPlotPoint && m_MaxPlotPoint != 0)
 			{
@@ -953,16 +967,20 @@ BOOL CGraphDlg::UpdateGraph()
 			}
 			inFile.SeekToBegin();
 			count = 0;
-			while(inFile.ReadString(line) != NULL)
+			while (inFile.GetPosition() < inFile.GetLength())
 			{
-				if(line.GetLength() > 0)
+				while (inFile.ReadString(line) != NULL)
 				{
-					count++;
-					if(start < count && count <= start + end)
+					if (line.GetLength() > 0)
 					{
-						lines.Add(line);
+						count++;
+						if (start < count && count <= start + end)
+						{
+							lines.Add(line);
+							DebugPrint(line);
+						}
 					}
-				}
+				}	
 			}
 			inFile.Close();
 
