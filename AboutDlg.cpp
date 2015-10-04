@@ -20,6 +20,7 @@ CAboutDlg::CAboutDlg(CWnd* pParent /*=NULL*/)
 	m_ZoomType = ((CMainDialog*)pParent)->GetZoomType();
 
 	m_FontFace = ((CMainDialog*)pParent)->m_FontFace;
+	m_FontType = FT_GDI_PLUS;//((CMainDialog*) pParent)->m_FontType;
 	m_CxThemeDir = ((CDiskInfoApp*)AfxGetApp())->m_ThemeDir;
 	m_CxCurrentTheme = ((CMainDialog*)pParent)->m_CurrentTheme;
 	m_CxDefaultTheme = ((CMainDialog*)pParent)->m_DefaultTheme;
@@ -127,11 +128,11 @@ void CAboutDlg::UpdateDialogSize()
 	m_CtrlSecretVoice.SetHandCursor();
 #endif
 
-	m_CtrlVersion.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0 ,0), FW_BOLD);
-	m_CtrlEdition.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0 ,0), FW_BOLD);
-	m_CtrlRelease.SetFontEx(m_FontFace, 16, m_ZoomRatio);
-	m_CtrlCopyright.SetFontEx(m_FontFace, 16, m_ZoomRatio);
-	m_CtrlLicense.SetFontEx(m_FontFace, 16, m_ZoomRatio);
+	m_CtrlVersion.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0, 0), FW_BOLD, m_FontType);
+	m_CtrlEdition.SetFontEx(m_FontFace, 28, m_ZoomRatio, 255, RGB(0, 0, 0), FW_BOLD, m_FontType);
+	m_CtrlRelease.SetFontEx(m_FontFace, 16, m_ZoomRatio, 255, RGB(0, 0, 0), FW_NORMAL, m_FontType);
+	m_CtrlCopyright.SetFontEx(m_FontFace, 16, m_ZoomRatio, 255, RGB(0, 0, 0), FW_NORMAL, m_FontType);
+	m_CtrlLicense.SetFontEx(m_FontFace, 16, m_ZoomRatio, 255, RGB(0, 0, 0), FW_NORMAL, m_FontType);
 
 	m_CtrlVersion.InitControl(200, 12, 420, 36, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);
 	m_CtrlEdition.InitControl(200, 48, 420, 36, m_ZoomRatio, NULL, 0, SS_CENTER, CStaticCx::OwnerDrawTransparent | m_IsHighContrast);

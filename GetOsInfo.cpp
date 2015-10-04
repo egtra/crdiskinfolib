@@ -230,6 +230,18 @@ void GetOsName(CString& OsFullName)
 				osName = _T("Windows 8.1");
 			}
 		}
+		else if ((osvi.dwMajorVersion == 6 && osvi.dwMinorVersion == 4)
+			|| (osvi.dwMajorVersion == 10 && osvi.dwMinorVersion == 0))
+		{
+			if (osvi.wProductType != VER_NT_WORKSTATION)
+			{
+				osName = _T("Windows Server");
+			}
+			else
+			{
+				osName = _T("Windows 10");
+			}
+		}
 		else
 		{
 			osName.Format(_T("Windows NT %d.%d"), osvi.dwMajorVersion, osvi.dwMinorVersion);
