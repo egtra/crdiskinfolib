@@ -27,7 +27,7 @@ CMainDialog::CMainDialog(UINT dlgResouce,
 
 #ifdef SUISHO_SHIZUKU_SUPPORT
 	m_DefaultTheme = L"Shizuku";
-	m_RecommendTheme = L"ShizukuDate";
+	m_RecommendTheme = L"ShizukuWinterLamp";
 #else
 	m_DefaultTheme = L"default";
 #endif
